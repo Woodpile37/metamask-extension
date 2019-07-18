@@ -1756,7 +1756,142 @@ export default class MetamaskController extends EventEmitter {
       },
     );
 
+<<<<<<< HEAD
     this.metamaskMiddleware = createMetamaskMiddleware({
+=======
+    this.keyringController.memStore.subscribe((s) => this._onKeyringControllerUpdate(s))
+
+    // detect tokens controller
+    this.detectTokensController = new DetectTokensController({
+      preferences: this.preferencesController,
+      network: this.networkController,
+      keyringMemStore: this.keyringController.memStore,
+    })
+
+    this.addressBookController = new AddressBookController(undefined, initState.AddressBookController)
+
+    // tx mgmt
+    this.txController = new TransactionController({
+      initState: initState.TransactionController || initState.TransactionManager,
+      networkStore: this.networkController.networkStore,
+      preferencesStore: this.preferencesController.store,
+      txHistoryLimit: 40,
+      getNetwork: this.networkController.getNetworkState.bind(this),
+      signTransaction: this.keyringController.signTransaction.bind(this.keyringController),
+      provider: this.provider,
+      blockTracker: this.blockTracker,
+      getGasPrice: this.getGasPrice.bind(this),
+    })
+    this.txController.on('newUnapprovedTx', () => opts.showUnapprovedTx())
+
+    this.txController.on(`tx:status-update`, async (txId, status) => {
+      if (status === 'confirmed' || status === 'failed') {
+        const txMeta = this.txController.txStateManager.getTx(txId)
+        this.platform.showTransactionNotification(txMeta)
+
+        const { txReceipt } = txMeta
+        const participateInMetaMetrics = this.preferencesController.getParticipateInMetaMetrics()
+        if (txReceipt && txReceipt.status === '0x0' && participateInMetaMetrics) {
+          const metamaskState = await this.getState()
+          backEndMetaMetricsEvent(metamaskState, {
+            customVariables: {
+              errorMessage: txMeta.simulationFails.reason,
+            },
+            eventOpts: {
+              category: 'backend',
+              action: 'Transactions',
+              name: 'On Chain Failure',
+            },
+          })
+        }
+      }
+    })
+
+    // computed balances (accounting for pending transactions)
+    this.balancesController = new BalancesController({
+      accountTracker: this.accountTracker,
+      txController: this.txController,
+      blockTracker: this.blockTracker,
+    })
+    this.networkController.on('networkDidChange', () => {
+      this.balancesController.updateAllBalances()
+      this.setCurrentCurrency(this.currencyRateController.state.currentCurrency, function () {})
+    })
+    this.balancesController.updateAllBalances()
+
+    this.shapeshiftController = new ShapeShiftController(undefined, initState.ShapeShiftController)
+
+    this.networkController.lookupNetwork()
+    this.messageManager = new MessageManager()
+    this.personalMessageManager = new PersonalMessageManager()
+    this.typedMessageManager = new TypedMessageManager({ networkController: this.networkController })
+
+    // ensure isClientOpenAndUnlocked is updated when memState updates
+    this.on('update', (memState) => {
+      this.isClientOpenAndUnlocked = memState.isUnlocked && this._isClientOpen
+    })
+
+    this.providerApprovalController = new ProviderApprovalController({
+      closePopup: opts.closePopup,
+      keyringController: this.keyringController,
+      openPopup: opts.openPopup,
+      preferencesController: this.preferencesController,
+    })
+
+    this.store.updateStructure({
+      AppStateController: this.appStateController.store,
+      TransactionController: this.txController.store,
+      KeyringController: this.keyringController.store,
+      PreferencesController: this.preferencesController.store,
+      AddressBookController: this.addressBookController,
+      CurrencyController: this.currencyRateController,
+      ShapeShiftController: this.shapeshiftController,
+      NetworkController: this.networkController.store,
+      InfuraController: this.infuraController.store,
+      CachedBalancesController: this.cachedBalancesController.store,
+    })
+
+    this.memStore = new ComposableObservableStore(null, {
+      AppStateController: this.appStateController.store,
+      NetworkController: this.networkController.store,
+      AccountTracker: this.accountTracker.store,
+      TxController: this.txController.memStore,
+      BalancesController: this.balancesController.store,
+      CachedBalancesController: this.cachedBalancesController.store,
+      TokenRatesController: this.tokenRatesController.store,
+      MessageManager: this.messageManager.memStore,
+      PersonalMessageManager: this.personalMessageManager.memStore,
+      TypesMessageManager: this.typedMessageManager.memStore,
+      KeyringController: this.keyringController.memStore,
+      PreferencesController: this.preferencesController.store,
+      RecentBlocksController: this.recentBlocksController.store,
+      AddressBookController: this.addressBookController,
+      CurrencyController: this.currencyRateController,
+      ShapeshiftController: this.shapeshiftController,
+      InfuraController: this.infuraController.store,
+      ProviderApprovalController: this.providerApprovalController.store,
+    })
+    this.memStore.subscribe(this.sendUpdate.bind(this))
+
+    this.capnode = new Capnode({
+      index: {
+        foo: async () => 'BAR!',
+        ping: async () => 'pong',
+        getAlerter: async (opts) => {
+          return async (message) => {
+            alert('background sez ' + message);
+          }
+        },
+      }
+    })
+  }
+
+  /**
+   * Constructor helper: initialize a provider.
+   */
+  initializeProvider () {
+    const providerOpts = {
+>>>>>>> 7932d39eaa (Add alerter as proof of concept)
       static: {
         eth_syncing: false,
         web3_clientVersion: `MetaMask/v${version}`,
