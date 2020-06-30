@@ -1,0 +1,109 @@
+@import 'token-list-placeholder/index';
+
+.add-token {
+  &__custom-token-form {
+    padding: 8px 16px 16px;
+
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      display: none;
+    }
+
+    input[type="number"]:hover::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      display: none;
+    }
+  }
+
+  &__search-token {
+    padding: 16px;
+
+    .searchable-item-list {
+      margin-top: 16px;
+
+      &__title {
+        font-size: .75rem;
+      }
+
+      &__list-container {
+        display: flex;
+        flex-direction: column;
+      }
+
+      &__item {
+        transition: 200ms ease-in-out;
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: center;
+        padding: 8px;
+        margin-top: 8px;
+        box-sizing: border-box;
+        border-radius: 10px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        position: relative;
+
+        &:hover {
+          border: 2px solid rgba($malibu-blue, .5);
+        }
+
+        &--selected {
+          border: 2px solid $malibu-blue !important;
+        }
+
+        &--disabled {
+          opacity: .4;
+          pointer-events: none;
+        }
+      }
+
+      &__item-icon {
+        width: 48px;
+        height: 48px;
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
+        border-radius: 50%;
+        background-color: $white;
+        box-shadow: 0 2px 4px 0 rgba($black, .24);
+        margin-right: 12px;
+        flex: 0 0 auto;
+      }
+
+      &__primary-label {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        min-width: 0;
+      }
+
+      &__item-name {
+        /*rtl:ignore*/
+        direction: ltr;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  &__custom-symbol {
+
+    &__label-wrapper {
+      display: flex;
+      flex-flow: row nowrap;
+    }
+
+    &__label {
+      flex: 0 0 auto;
+    }
+
+    &__edit {
+      flex: 1 1 auto;
+      text-align: right;
+      color: $curious-blue;
+      padding-right: 4px;
+      cursor: pointer;
+    }
+  }
+}
