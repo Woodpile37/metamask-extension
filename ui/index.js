@@ -127,6 +127,15 @@ async function startApp(metamaskState, backgroundConnection, opts) {
 
   updateBackgroundConnection(backgroundConnection);
 
+  if (
+    metamaskState.dataPersistenceFailing &&
+    !metamaskState.dataPersistenceFailureDismissed
+  ) {
+    draftInitialState[ALERT_TYPES.dataPersistenceFailing] = {
+      state: ALERT_STATE.OPEN,
+    }
+  }
+
   if (getEnvironmentType() === ENVIRONMENT_TYPE_POPUP) {
     const { origin } = draftInitialState.activeTab;
     const permittedAccountsForCurrentTab =

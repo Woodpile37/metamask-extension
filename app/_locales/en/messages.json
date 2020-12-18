@@ -1191,6 +1191,12 @@
   "dataHex": {
     "message": "Hex"
   },
+  "dataPersistenceFailingDescription": {
+    "message": "We're having trouble saving your data to disk. Please make sure you have free disk space so that you don't lose any data when the browser restarts."
+  },
+  "dataPersistenceFailingTitle": {
+    "message": "Failed saving to disk"
+  },
   "decimal": {
     "message": "Token decimal"
   },
