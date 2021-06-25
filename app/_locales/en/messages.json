@@ -2508,6 +2508,12 @@
   "multilayerNetworkGasInfo": {
     "message": "The current layer 2 network requires that fees be paid on layer 1 (ethereum mainnet) and the layer 2 network itself."
   },
+  "moreDetails": {
+    "message": "More details"
+  },
+  "multiplier": {
+    "message": "multiplier"
+  },
   "mustSelectOne": {
     "message": "Must select at least 1 token."
   },
