@@ -429,6 +429,7 @@ export default class ConfirmTransactionBase extends Component {
       </div>
     ) : null;
 
+<<<<<<< HEAD
     const simulationFailureWarning = () => (
       <div
         className="confirm-page-container-content__error-container"
@@ -442,6 +443,143 @@ export default class ConfirmTransactionBase extends Component {
         />
       </div>
     );
+=======
+    const showInlineControls = process.env.SHOW_EIP_1559_UI
+      ? advancedInlineGasShown
+      : advancedInlineGasShown || notMainnetOrTest || gasPriceFetchFailure;
+
+    const showGasEditButton = process.env.SHOW_EIP_1559_UI
+      ? !showInlineControls
+      : !(notMainnetOrTest || gasPriceFetchFailure);
+
+    if (process.env.SHOW_EIP_1559_UI) {
+      return (
+        <>
+          <div className="confirm-page-container-content__details">
+            <TransactionDetail
+              onEdit={() => this.handleEditGas()}
+              rows={[
+                <TransactionDetailItem
+                  key="gas-item"
+                  detailTitle={
+                    txData.dappSuggestedGasFees ? (
+                      <>
+                        {t('transactionDetailDappGasHeading', [getRequestingOrigin()])}
+                        <InfoTooltip
+                          contentText={t('transactionDetailDappGasTooltip')}
+                          position="top"
+                          iconFillColor="#f66a0a"
+                        >
+                          <i className="fa fa-info-circle" />
+                        </InfoTooltip>
+                      </>
+                    ) : (
+                      <>
+                        {t('transactionDetailGasHeading')}
+                        <InfoTooltip
+                          contentText={
+                            <>
+                              <p>{t('transactionDetailGasTooltipIntro')}</p>
+                              <p>
+                                {t('transactionDetailGasTooltipExplanation')}
+                              </p>
+                              <p>
+                                <a
+                                  href="https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {t('transactionDetailGasTooltipConversion')}
+                                </a>
+                              </p>
+                            </>
+                          }
+                          position="top"
+                        >
+                          <i className="fa fa-info-circle" />
+                        </InfoTooltip>
+                      </>
+                    )
+                  }
+                  detailTitleColor={
+                    txData.dappSuggestedGasFees
+                      ? COLORS.SECONDARY1
+                      : COLORS.BLACK
+                  }
+                  detailText={
+                    <UserPreferencedCurrencyDisplay
+                      type={PRIMARY}
+                      value={hexMinimumTransactionFee}
+                      hideLabel={false}
+                    />
+                  }
+                  detailTotal={
+                    <UserPreferencedCurrencyDisplay
+                      type={SECONDARY}
+                      value={hexMinimumTransactionFee}
+                      hideLabel
+                    />
+                  }
+                  subText={t('editGasSubTextFee', [
+                    <UserPreferencedCurrencyDisplay
+                      key="gas-subtext"
+                      type={SECONDARY}
+                      value={getHexGasTotal({
+                        gasPrice: txData.txParams.maxFeePerGas,
+                        gasLimit: txData.txParams.gas,
+                      })}
+                      hideLabel
+                    />,
+                  ])}
+                  subTitle={
+                    <GasTiming
+                      maxPriorityFeePerGas={
+                        txData.txParams.maxPriorityFeePerGas
+                      }
+                    />
+                  }
+                />,
+                <TransactionDetailItem
+                  key="total-item"
+                  detailTitle={t('total')}
+                  detailText={
+                    <UserPreferencedCurrencyDisplay
+                      type={PRIMARY}
+                      value={hexTransactionTotal}
+                      hideLabel={false}
+                    />
+                  }
+                  detailTotal={
+                    <UserPreferencedCurrencyDisplay
+                      type={SECONDARY}
+                      value={hexTransactionTotal}
+                      hideLabel
+                    />
+                  }
+                  subTitle={t('transactionDetailGasTotalSubtitle')}
+                  subText={t('editGasSubTextAmount', [
+                    <UserPreferencedCurrencyDisplay
+                      key="gas-total-subtext"
+                      type={SECONDARY}
+                      value={addHexes(
+                        txData.txParams.value,
+                        getHexGasTotal({
+                          gasPrice: txData.txParams.maxFeePerGas,
+                          gasLimit: txData.txParams.gas,
+                        }),
+                      )}
+                      hideLabel
+                    />,
+                  ])}
+                />,
+              ]}
+            />
+          </div>
+          {nonceField}
+        </>
+      );
+    }
+>>>>>>> 1637293495 (Add code accidentally removed in rebase)
 
     return (
       <div className="confirm-page-container-content__details">
