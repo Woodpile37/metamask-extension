@@ -1051,6 +1051,7 @@
     },
     "acorn": {
       "globals": {
+        "console": true,
         "define": true
       }
     },
