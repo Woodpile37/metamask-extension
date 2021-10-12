@@ -22,10 +22,12 @@ export default class AdvancedGasInputs extends Component {
     customGasLimitMessage: PropTypes.string,
     minimumGasLimit: PropTypes.number,
     customPriceIsExcessive: PropTypes.bool,
+    networkSupportsSettingGasPrice: PropTypes.bool,
   };
 
   static defaultProps = {
     customPriceIsExcessive: false,
+    networkSupportsSettingGasPrice: true,
   };
 
   constructor(props) {
@@ -207,6 +209,7 @@ export default class AdvancedGasInputs extends Component {
       customGasLimitMessage,
       minimumGasLimit,
       customPriceIsExcessive,
+      networkSupportsSettingGasPrice,
     } = this.props;
     const { gasPrice, gasLimit } = this.state;
 
@@ -244,15 +247,16 @@ export default class AdvancedGasInputs extends Component {
 
     return (
       <div className="advanced-gas-inputs__gas-edit-rows">
-        {this.renderGasInput({
-          label: this.context.t('gasPrice'),
-          testId: 'gas-price',
-          tooltipTitle: this.context.t('gasPriceInfoTooltipContent'),
-          value: this.state.gasPrice,
-          onChange: this.onChangeGasPrice,
-          errorComponent: gasPriceErrorComponent,
-          errorType: gasPriceErrorType,
-        })}
+        {networkSupportsSettingGasPrice &&
+          this.renderGasInput({
+            label: this.context.t('gasPrice'),
+            testId: 'gas-price',
+            tooltipTitle: this.context.t('gasPriceInfoTooltipContent'),
+            value: this.state.gasPrice,
+            onChange: this.onChangeGasPrice,
+            errorComponent: gasPriceErrorComponent,
+            errorType: gasPriceErrorType,
+          })}
         {this.renderGasInput({
           label: this.context.t('gasLimit'),
           testId: 'gas-limit',
