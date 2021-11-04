@@ -5480,6 +5480,15 @@
   "transactionHistoryL2GasPriceLabel": {
     "message": "L2 gas price`"
   },
+  "transactionHistoryL1GasLabel": {
+    "message": "Total L1 gas fee"
+  },
+  "transactionHistoryL2GasLimitLabel": {
+    "message": "L2 gas limit`"
+  },
+  "transactionHistoryL2GasPriceLabel": {
+    "message": "L2 gas price`"
+  },
   "transactionHistoryMaxFeePerGas": {
     "message": "Max fee per gas"
   },
