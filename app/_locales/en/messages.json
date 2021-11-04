@@ -2490,6 +2490,9 @@
     "message": "$1 wants to connect with $2 snaps. Only proceed if you trust this website.",
     "description": "$1 is the dapp and $2 is the number of snaps it wants to connect to."
   },
+  "multilayerNetworkGasInfo": {
+    "message": "The current layer 2 network requires that fees be paid on layer 1 (ethereum mainnet) and the layer 2 network itself."
+  },
   "mustSelectOne": {
     "message": "Must select at least 1 token."
   },
