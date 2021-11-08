@@ -1179,6 +1179,9 @@
   "dcent": {
     "message": "D'Cent"
   },
+  "dataHex": {
+    "message": "Hex"
+  },
   "decimal": {
     "message": "Token decimal"
   },
@@ -5377,6 +5380,9 @@
   },
   "total": {
     "message": "Total"
+  },
+  "totalAmount": {
+    "message": "Total Amount"
   },
   "transaction": {
     "message": "transaction"
