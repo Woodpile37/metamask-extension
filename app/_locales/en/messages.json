@@ -1185,6 +1185,9 @@
   "dataHex": {
     "message": "Hex"
   },
+  "dataHex": {
+    "message": "Hex"
+  },
   "decimal": {
     "message": "Token decimal"
   },
