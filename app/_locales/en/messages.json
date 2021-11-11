@@ -2511,6 +2511,9 @@
   "moreDetails": {
     "message": "More details"
   },
+  "moreDetails": {
+    "message": "More details"
+  },
   "mustSelectOne": {
     "message": "Must select at least 1 token."
   },
@@ -4521,7 +4524,7 @@
     "description": "The description for the `snap_updateState` permission"
   },
   "somethingWentWrong": {
-    "message": "Oops! Something went wrong."
+    "message": "Something went wrong."
   },
   "speedUp": {
     "message": "Speed up"
