@@ -46,7 +46,7 @@ restoreContextAfterImports();
 log.setDefaultLevel(process.env.METAMASK_DEBUG ? 'debug' : 'warn');
 
 //
-// setup snap communication
+// setup plugin communication
 //
 
 if (shouldInjectProvider()) {

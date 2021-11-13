@@ -20,7 +20,6 @@ import { PermissionPageContainerContent } from '.';
 
 export default class PermissionPageContainer extends Component {
   static propTypes = {
-    permissionsDescriptions: PropTypes.object.isRequired,
     approvePermissionsRequest: PropTypes.func.isRequired,
     rejectPermissionsRequest: PropTypes.func.isRequired,
     selectedIdentities: PropTypes.array,
@@ -175,7 +174,6 @@ export default class PermissionPageContainer extends Component {
       targetSubjectMetadata,
       selectedIdentities,
       allIdentitiesSelected,
-      permissionsDescriptions,
     } = this.props;
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -206,7 +204,6 @@ export default class PermissionPageContainer extends Component {
           ///: END:ONLY_INCLUDE_IF
         }
         <PermissionPageContainerContent
-          permissionsDescriptions={permissionsDescriptions}
           requestMetadata={requestMetadata}
           subjectMetadata={targetSubjectMetadata}
           selectedPermissions={this.state.selectedPermissions}
