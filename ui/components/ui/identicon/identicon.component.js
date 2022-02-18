@@ -58,6 +58,7 @@ export default class Identicon extends Component {
      * User preferred IPFS gateway
      */
     ipfsGateway: PropTypes.string,
+    tokenSymbol: PropTypes.string,
   };
 
   state = {
@@ -73,6 +74,7 @@ export default class Identicon extends Component {
     useBlockie: false,
     alt: '',
     tokenList: {},
+    tokenSymbol: undefined,
   };
 
   state = {
@@ -80,7 +82,14 @@ export default class Identicon extends Component {
   };
 
   renderImage() {
-    const { className, diameter, alt, imageBorder, ipfsGateway } = this.props;
+    const {
+      className,
+      diameter,
+      alt,
+      imageBorder,
+      ipfsGateway,
+      tokenSymbol,
+    } = this.props;
     let { image } = this.props;
     const { isError } = this.state;
 
@@ -99,12 +108,11 @@ export default class Identicon extends Component {
       return (
         <UrlIcon
           className={classnames('identicon', className, {
-            'identicon__image-border': imageBorder,
+            'identicon__image-border': imageBorder || isError,
             'identicon__image--error': isError,
           })}
-          icon={undefined}
-          name="David"
-          fallbackClassName="boo"
+          icon={null}
+          name={tokenSymbol}
         />
       );
     }
@@ -113,7 +121,6 @@ export default class Identicon extends Component {
       <img
         className={classnames('identicon', className, {
           'identicon__image-border': imageBorder,
-          'identicon__image--error': isError,
         })}
         src={image}
         style={getStyles(diameter)}
