@@ -138,7 +138,7 @@ describe('Send ETH non-contract address with data that matches ERC20 transfer da
 /* eslint-disable-next-line mocha/max-top-level-suites */
 describe('Send ETH from inside MetaMask using advanced gas modal', function () {
   it('finds the transaction in the transactions list', async function () {
-    withFixtures(
+    await withFixtures(
       {
         fixtures: new FixtureBuilder().build(),
         ganacheOptions: defaultGanacheOptions,
