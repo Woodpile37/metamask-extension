@@ -1592,6 +1592,16 @@ export function getIsOpbnb(state) {
     getCurrentChainId(state) === CHAIN_IDS.OPBNB_TESTNET
   );
 }
+/**
+ *  To retrieve the maxBaseFee and priotitFee teh user has set as default
+ *
+ * @param {*} state
+ * @returns Boolean
+ */
+export function getAdvancedGasFeeValues(state) {
+  const chainId = getCurrentChainId(state);
+
+  return state.metamask.advancedGasFee[chainId];
 
 export function getIsOpStack(state) {
   return getIsOptimism(state) || getIsBase(state) || getIsOpbnb(state);
@@ -1607,6 +1617,14 @@ export function getIsMultiLayerFeeNetwork(state) {
  * @param {*} state
  * @returns {{maxBaseFee: string, priorityFee: string} | undefined}
  */
+export function getIsAdvancedGasFeeDefault(state) {
+  const { advancedGasFee } = state.metamask;
+  const chainId = getCurrentChainId(state);
+
+  return (
+    Boolean(advancedGasFee[chainId]?.maxBaseFee) &&
+    Boolean(advancedGasFee[chainId]?.priorityFee)
+  );
 export function getAdvancedGasFeeValues(state) {
   // This will not work when we switch to supporting multi-chain.
   // There are four non-test files that use this selector.

@@ -44,6 +44,13 @@ export default class PreferencesController {
       useNonceField: false,
       usePhishDetect: true,
 
+      // set to true means the dynamic list from the API is being used
+      // set to false will be using the static list from contract-metadata
+      useTokenDetection: Boolean(process.env.TOKEN_DETECTION_V2),
+      useCollectibleDetection: false,
+      openSeaEnabled: false,
+      advancedGasFee: {},
+
       // WARNING: Do not use feature flags for security-sensitive things.
       // Feature flag toggling is available in the global namespace
       // for convenient testing of pre-release features, and should never
@@ -128,6 +135,33 @@ export default class PreferencesController {
    * @param {string} type - Indicates the type of first time flow - create or import - the user wishes to follow
    *
    */
+  setUseCollectibleDetection(useCollectibleDetection) {
+    this.store.updateState({ useCollectibleDetection });
+  }
+
+  /**
+   * Setter for the `openSeaEnabled` property
+   *
+   * @param {boolean} openSeaEnabled - Whether or not the user prefers to use the OpenSea API for collectibles data.
+   */
+  setOpenSeaEnabled(openSeaEnabled) {
+    this.store.updateState({
+      openSeaEnabled,
+    });
+  }
+
+  /**
+   * Setter for the `advancedGasFee` property
+   *
+   * @param {object} val - holds the maxBaseFee and PriorityFee that the user set as default advanced settings.
+   * @param chainId - current network's chainId
+   */
+  setAdvancedGasFee(val, chainId) {
+    const currentState = this.store.getState();
+    const { advancedGasFee } = currentState;
+    advancedGasFee[chainId] = val;
+
+    this.store.updateState({ advancedGasFee });
   setFirstTimeFlowType(type) {
     this.store.updateState({ firstTimeFlowType: type });
   }

@@ -2255,10 +2255,12 @@ export function detectCollectibles() {
 }
 
 export function setAdvancedGasFee(val) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const { chainId } = getState().metamask.provider;
+
     dispatch(showLoadingIndication());
     log.debug(`background.setAdvancedGasFee`);
-    background.setAdvancedGasFee(val, (err) => {
+    background.setAdvancedGasFee(val, chainId, (err) => {
       dispatch(hideLoadingIndication());
       if (err) {
         dispatch(displayWarning(err.message));

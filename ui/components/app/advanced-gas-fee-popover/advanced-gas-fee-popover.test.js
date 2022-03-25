@@ -40,6 +40,13 @@ const render = () => {
       },
       featureFlags: { advancedInlineGas: true },
       gasFeeEstimates:
+        mockEstimates[GAS_ESTIMATE_TYPES.FEE_MARKET].gasFeeEstimates,
+      advancedGasFee: {
+        0x4: {
+          maxBaseFee: '75',
+          priorityFee: '2',
+        },
+      },
         mockEstimates[GasEstimateTypes.feeMarket].gasFeeEstimates,
     },
   });

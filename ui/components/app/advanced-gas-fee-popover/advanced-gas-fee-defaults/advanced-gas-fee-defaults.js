@@ -12,12 +12,13 @@ import {
   FLEX_DIRECTION,
   TYPOGRAPHY,
 } from '../../../../helpers/constants/design-system';
-import { getAdvancedGasFeeValues } from '../../../../selectors';
+import { getAdvancedGasFeeValues, getProvider } from '../../../../selectors';
 import { setAdvancedGasFee } from '../../../../store/actions';
 import { useGasFeeContext } from '../../../../contexts/gasFee';
 
 import { useAdvancedGasFeePopoverContext } from '../context';
 import { useI18nContext } from '../../../../hooks/useI18nContext';
+import { NETWORK_TYPE_RPC } from '../../../../../shared/constants/network';
 
 const AdvancedGasFeeDefaults = () => {
   const t = useI18nContext();
@@ -35,6 +36,7 @@ const AdvancedGasFeeDefaults = () => {
       advancedGasFeeValues.maxBaseFee === maxBaseFee &&
       advancedGasFeeValues.priorityFee === maxPriorityFeePerGas,
   );
+  const currentProvider = useSelector(getProvider);
 
   useEffect(() => {
     setDefaultSettingsSelected(
@@ -94,7 +96,11 @@ const AdvancedGasFeeDefaults = () => {
           margin={0}
         >
           {isDefaultSettingsSelected
-            ? t('advancedGasFeeDefaultOptOut')
+            ? t('advancedGasFeeDefaultOptOut', [
+                currentProvider.type === NETWORK_TYPE_RPC
+                  ? currentProvider.nickname ?? t('privateNetwork')
+                  : t(currentProvider.type),
+              ])
             : t('advancedGasFeeDefaultOptIn', [
                 <strong key="default-value-change">{t('newValues')}</strong>,
               ])}

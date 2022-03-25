@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { HIGH_FEE_WARNING_MULTIPLIER } from '../../../../../pages/send/send.constants';
+import { EDIT_GAS_MODES } from '../../../../../../shared/constants/gas';
+import { PRIMARY } from '../../../../../helpers/constants/common';
 import { PRIORITY_LEVELS } from '../../../../../../shared/constants/gas';
 import { SECONDARY } from '../../../../../helpers/constants/common';
 import { decGWEIToHexWEI } from '../../../../../helpers/utils/conversions.util';
@@ -49,6 +51,7 @@ const PriorityFeeInput = () => {
     setMaxPriorityFeePerGas,
   } = useAdvancedGasFeePopoverContext();
   const {
+    editGasMode,
     estimateUsed,
     gasFeeEstimates,
     maxPriorityFeePerGas,
@@ -64,6 +67,9 @@ const PriorityFeeInput = () => {
 
   const [priorityFee, setPriorityFee] = useState(() => {
     if (
+      advancedGasFeeValues?.priorityFee &&
+      editGasMode !== EDIT_GAS_MODES.SWAPS
+    ) {
       estimateUsed !== PRIORITY_LEVELS.CUSTOM &&
       advancedGasFeeValues?.priorityFee
     )

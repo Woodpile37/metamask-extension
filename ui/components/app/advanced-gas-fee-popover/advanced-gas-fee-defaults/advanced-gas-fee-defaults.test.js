@@ -36,6 +36,11 @@ const render = (defaultGasParams) => {
       featureFlags: { advancedInlineGas: true },
       gasFeeEstimates:
         mockEstimates[GAS_ESTIMATE_TYPES.FEE_MARKET].gasFeeEstimates,
+      provider: {
+        chainId: '0x4',
+        nickname: '',
+        type: 'kovan',
+      },
     },
   });
   return renderWithProvider(
@@ -58,6 +63,8 @@ const render = (defaultGasParams) => {
 };
 describe('AdvancedGasFeeDefaults', () => {
   it('should renders correct message when the default is not set', () => {
+    render({ advancedGasFee: {}, provider: {} });
+    expect(screen.queryByText('new values')).toBeInTheDocument();
     render({ advancedGasFee: null });
     expect(
       screen.queryByText(
@@ -67,6 +74,7 @@ describe('AdvancedGasFeeDefaults', () => {
   });
   it('should renders correct message when the default values are set', () => {
     render({
+      advancedGasFee: { '0x4': { maxBaseFee: '75', priorityFee: '2' } },
       advancedGasFee: {
         maxBaseFeeGWEI: null,
         maxBaseFeeMultiplier: 2,
@@ -105,7 +113,7 @@ describe('AdvancedGasFeeDefaults', () => {
     });
     expect(
       screen.queryByText(
-        'Always use these values and advanced setting as default.',
+        'Always use these values and advanced setting as default on Kovan Test Network.',
       ),
     ).toBeInTheDocument();
     fireEvent.change(document.getElementsByTagName('input')[0], {
@@ -117,6 +125,7 @@ describe('AdvancedGasFeeDefaults', () => {
   });
   it('should renders correct message when the default values are set and the maxBaseFee values are updated', () => {
     render({
+      advancedGasFee: { '0x4': { maxBaseFee: '75', priorityFee: '2' } },
       advancedGasFee: {
         maxBaseFeeGWEI: null,
         maxBaseFeeMultiplier: 2,
@@ -126,12 +135,14 @@ describe('AdvancedGasFeeDefaults', () => {
     expect(document.getElementsByTagName('input')[2]).toBeChecked();
     expect(
       screen.queryByText(
-        'Always use these values and advanced setting as default.',
+        'Always use these values and advanced setting as default on Kovan Test Network.',
       ),
     ).toBeInTheDocument();
     fireEvent.change(document.getElementsByTagName('input')[0], {
+      target: { value: 5 },
       target: { value: 4 },
     });
+    expect(document.getElementsByTagName('input')[0]).toHaveValue(5);
     expect(document.getElementsByTagName('input')[0]).toHaveValue(4);
     expect(screen.queryByText('new values')).toBeInTheDocument();
     expect(
@@ -140,6 +151,7 @@ describe('AdvancedGasFeeDefaults', () => {
   });
   it('should renders correct message when the default values are set and the priorityFee values are updated', () => {
     render({
+      advancedGasFee: { '0x4': { maxBaseFee: '75', priorityFee: '2' } },
       advancedGasFee: {
         maxBaseFeeGWEI: null,
         maxBaseFeeMultiplier: 2,
@@ -149,7 +161,7 @@ describe('AdvancedGasFeeDefaults', () => {
     expect(document.getElementsByTagName('input')[2]).toBeChecked();
     expect(
       screen.queryByText(
-        'Always use these values and advanced setting as default.',
+        'Always use these values and advanced setting as default on Kovan Test Network.',
       ),
     ).toBeInTheDocument();
     fireEvent.change(document.getElementsByTagName('input')[1], {

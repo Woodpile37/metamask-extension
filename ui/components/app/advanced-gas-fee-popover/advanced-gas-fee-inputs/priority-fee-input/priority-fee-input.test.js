@@ -35,6 +35,7 @@ const render = (txProps, contextProps) => {
           balance: '0x1F4',
         },
       },
+      advancedGasFee: { priorityFee: 10 },
       advancedGasFee: { [CHAIN_IDS.GOERLI]: { priorityFee: 100 } },
       featureFlags: { advancedInlineGas: true },
       gasFeeEstimates:
@@ -64,7 +65,7 @@ describe('PriorityfeeInput', () => {
     render({
       userFeeLevel: 'high',
     });
-    expect(document.getElementsByTagName('input')[0]).toHaveValue(100);
+    expect(document.getElementsByTagName('input')[0]).toHaveValue(10);
   });
 
   it('should not use advancedGasFee.priorityfee value for swaps', () => {

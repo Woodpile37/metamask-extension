@@ -62,6 +62,11 @@ const renderComponent = ({
 } = {}) => {
   const store = configureStore({
     metamask: {
+      nativeCurrency: ETH,
+      provider: {
+        chainId: '0x4',
+      },
+      cachedBalances: {},
       currencyRates: {},
       providerConfig: {
         chainId: CHAIN_IDS.GOERLI,
@@ -90,6 +95,12 @@ const renderComponent = ({
       gasEstimateType: 'fee-market',
       gasFeeEstimates: MOCK_FEE_ESTIMATE,
       advancedGasFee: {
+        '0x4': {
+          maxBaseFee: '100',
+          priorityFee: '2',
+        },
+      },
+    },
         [CHAIN_IDS.GOERLI]: {
           maxBaseFee: '100',
           priorityFee: '2',
