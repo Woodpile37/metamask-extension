@@ -96,7 +96,7 @@ const AdvancedGasFeeDefaults = () => {
           margin={0}
         >
           {isDefaultSettingsSelected
-            ? t('advancedGasFeeDefaultOptOut', [
+            ? t('advancedFeeDefaultOptOut', [
                 currentProvider.type === NETWORK_TYPE_RPC
                   ? currentProvider.nickname ?? t('privateNetwork')
                   : t(currentProvider.type),
