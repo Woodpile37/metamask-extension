@@ -2,7 +2,7 @@ import { strict as assert } from 'assert';
 import EventEmitter from 'events';
 import { ComposedStore, ObservableStore } from '@metamask/obs-store';
 import { JsonRpcEngine } from 'json-rpc-engine';
-import providerFromEngine from 'eth-json-rpc-middleware/providerFromEngine';
+import { providerFromEngine } from 'eth-json-rpc-middleware';
 import log from 'loglevel';
 import {
   createSwappableProxy,
@@ -18,7 +18,9 @@ import {
   MAINNET_CHAIN_ID,
   RINKEBY_CHAIN_ID,
   INFURA_BLOCKED_KEY,
+  TEST_NETWORK_TICKER_MAP,
 } from '../../../../shared/constants/network';
+import { SECOND } from '../../../../shared/constants/time';
 import {
   isPrefixedFormattedHexString,
   isSafeChainId,
@@ -27,13 +29,12 @@ import getFetchWithTimeout from '../../../../shared/modules/fetch-with-timeout';
 import createMetamaskMiddleware from './createMetamaskMiddleware';
 import createInfuraClient from './createInfuraClient';
 import createJsonRpcClient from './createJsonRpcClient';
-import Network from './network2';
 
 const env = process.env.METAMASK_ENV;
-const fetchWithTimeout = getFetchWithTimeout(30000);
+const fetchWithTimeout = getFetchWithTimeout(SECOND * 30);
 
 let defaultProviderConfigOpts;
-if (process.env.IN_TEST === 'true') {
+if (process.env.IN_TEST) {
   defaultProviderConfigOpts = {
     type: NETWORK_TYPE_RPC,
     rpcUrl: 'http://localhost:8545',
@@ -41,7 +42,11 @@ if (process.env.IN_TEST === 'true') {
     nickname: 'Localhost 8545',
   };
 } else if (process.env.METAMASK_DEBUG || env === 'test') {
-  defaultProviderConfigOpts = { type: RINKEBY, chainId: RINKEBY_CHAIN_ID };
+  defaultProviderConfigOpts = {
+    type: RINKEBY,
+    chainId: RINKEBY_CHAIN_ID,
+    ticker: TEST_NETWORK_TICKER_MAP.rinkeby,
+  };
 } else {
   defaultProviderConfigOpts = { type: MAINNET, chainId: MAINNET_CHAIN_ID };
 }
@@ -49,6 +54,10 @@ if (process.env.IN_TEST === 'true') {
 const defaultProviderConfig = {
   ticker: 'ETH',
   ...defaultProviderConfigOpts,
+};
+
+const defaultNetworkDetailsState = {
+  EIPS: { 1559: undefined },
 };
 
 export const NETWORK_EVENTS = {
@@ -74,10 +83,21 @@ export default class NetworkController extends EventEmitter {
       this.providerStore.getState(),
     );
     this.networkStore = new ObservableStore('loading');
+    // We need to keep track of a few details about the current network
+    // Ideally we'd merge this.networkStore with this new store, but doing so
+    // will require a decent sized refactor of how we're accessing network
+    // state. Currently this is only used for detecting EIP 1559 support but
+    // can be extended to track other network details.
+    this.networkDetails = new ObservableStore(
+      opts.networkDetails || {
+        ...defaultNetworkDetailsState,
+      },
+    );
     this.store = new ComposedStore({
       provider: this.providerStore,
       previousProviderStore: this.previousProviderStore,
       network: this.networkStore,
+      networkDetails: this.networkDetails,
     });
 
     // provider and block tracker
@@ -90,24 +110,29 @@ export default class NetworkController extends EventEmitter {
 
     this.on(NETWORK_EVENTS.NETWORK_DID_CHANGE, this.lookupNetwork);
 
-    this.setInfuraProjectId(opts.infuraProjectId);
+    this._hasInitializationBegun = false;
+    this._promiseForProviderInitialized = new Promise((resolve) => {
+      this._providerInitialized = resolve;
+    });
+  }
 
-    /*
-     * type NetworkOps = { "type": string, "rpcUrl": string, "chainId": string };
-     * type networkKey = `JSON.parse([type, rpcUrl, chainId])`
-     * type Network = { "provider": Provider, "blockTracker": BlockTracker };
-     * type networks = Map<NetworkKey, Network>;
-     */
-    this.networks = new Map();
-    this.selectedNetwork = this._networkKeyForOpts(defaultProviderConfig);
+  async destroy() {
+    if (this._hasInitializationBegun) {
+      await this._promiseForProviderInitialized;
+    }
+
+    const { blockTracker } = this.getProviderAndBlockTracker();
+    if (blockTracker !== null) {
+      console.log('[NetworkController#destroy] Destroying block tracker');
+      blockTracker.destroy();
+    }
   }
 
   /**
    * Sets the Infura project ID
    *
    * @param {string} projectId - The Infura project ID
-   * @throws {Error} if the project ID is not a valid string
-   * @return {void}
+   * @throws {Error} If the project ID is not a valid string.
    */
   setInfuraProjectId(projectId) {
     if (!projectId || typeof projectId !== 'string') {
@@ -118,19 +143,19 @@ export default class NetworkController extends EventEmitter {
   }
 
   initializeProvider(providerParams) {
+    this._hasInitializationBegun = true;
     this._baseProviderParams = providerParams;
     const { type, rpcUrl, chainId } = this.getProviderConfig();
-    const networkOpts = { type, rpcUrl, chainId };
-
-    const networkKey = this._networkKeyForOpts(networkOpts);
-    let network = this.networks.get(networkKey);
-    if (!network) {
-      const network = new Network({...networkOpts, infuraProjectId: this._infuraProjectId, providerParams });
-      this.networks.set(networkKey, network);
-    }
-
-    this._configureProvider(networkOpts, network);
-    this.lookupNetwork();
+    this._configureProvider({ type, rpcUrl, chainId });
+    // We intentionally do not wait for this promise to resolve outside of this
+    // method so we don't have to make MetamaskController asynchronous.
+    this.lookupNetwork()
+      .then(() => {
+        this._providerInitialized();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   // return the proxies so the references will always be good
@@ -140,10 +165,39 @@ export default class NetworkController extends EventEmitter {
     return { provider, blockTracker };
   }
 
-  verifyNetwork() {
+  /**
+   * Method to return the latest block for the current network
+   *
+   * @returns {Object} Block header
+   */
+  async getLatestBlock() {
+    const { blockTracker } = this.getProviderAndBlockTracker();
+    return await blockTracker.getLatestBlock();
+  }
+
+  /**
+   * Method to check if the block header contains fields that indicate EIP 1559
+   * support (baseFeePerGas).
+   *
+   * @returns {Promise<boolean>} true if current network supports EIP 1559
+   */
+  async getEIP1559Compatibility() {
+    const { EIPS } = this.networkDetails.getState();
+    if (EIPS[1559] !== undefined) {
+      return EIPS[1559];
+    }
+    const latestBlock = await this.getLatestBlock();
+    const supportsEIP1559 =
+      latestBlock && latestBlock.baseFeePerGas !== undefined;
+    this.setNetworkEIPSupport(1559, supportsEIP1559);
+    return supportsEIP1559;
+  }
+
+  // TODO: Remove, as this seems unused
+  async verifyNetwork() {
     // Check network when restoring connectivity:
     if (this.isNetworkLoading()) {
-      this.lookupNetwork();
+      await this.lookupNetwork();
     }
   }
 
@@ -155,11 +209,32 @@ export default class NetworkController extends EventEmitter {
     this.networkStore.putState(network);
   }
 
+  /**
+   * Set EIP support indication in the networkDetails store
+   *
+   * @param {number} EIPNumber - The number of the EIP to mark support for
+   * @param {boolean} isSupported - True if the EIP is supported
+   */
+  setNetworkEIPSupport(EIPNumber, isSupported) {
+    this.networkDetails.updateState({
+      EIPS: {
+        [EIPNumber]: isSupported,
+      },
+    });
+  }
+
+  /**
+   * Reset EIP support to default (no support)
+   */
+  clearNetworkDetails() {
+    this.networkDetails.putState({ ...defaultNetworkDetailsState });
+  }
+
   isNetworkLoading() {
     return this.getNetworkState() === 'loading';
   }
 
-  lookupNetwork() {
+  async lookupNetwork() {
     // Prevent firing when provider is not defined.
     if (!this._provider) {
       log.warn(
@@ -174,6 +249,8 @@ export default class NetworkController extends EventEmitter {
         'NetworkController - lookupNetwork aborted due to missing chainId',
       );
       this.setNetworkState('loading');
+      // keep network details in sync with network state
+      this.clearNetworkDetails();
       return;
     }
 
@@ -184,21 +261,29 @@ export default class NetworkController extends EventEmitter {
     const isInfura = INFURA_PROVIDER_TYPES.includes(type);
 
     if (isInfura) {
-      this._checkInfuraAvailability(type);
+      await this._checkInfuraAvailability(type);
     } else {
       this.emit(NETWORK_EVENTS.INFURA_IS_UNBLOCKED);
     }
 
-    ethQuery.sendAsync({ method: 'net_version' }, (err, networkVersion) => {
-      const currentNetwork = this.getNetworkState();
-      if (initialNetwork === currentNetwork) {
-        if (err) {
-          this.setNetworkState('loading');
-          return;
+    await new Promise((resolve) => {
+      ethQuery.sendAsync({ method: 'net_version' }, (err, networkVersion) => {
+        const currentNetwork = this.getNetworkState();
+        if (initialNetwork === currentNetwork) {
+          if (err) {
+            this.setNetworkState('loading');
+            // keep network details in sync with network state
+            this.clearNetworkDetails();
+            resolve();
+          } else {
+            this.setNetworkState(networkVersion);
+            // look up EIP-1559 support
+            this.getEIP1559Compatibility().then(() => resolve());
+          }
+        } else {
+          resolve();
         }
-
-        this.setNetworkState(networkVersion);
-      }
+      });
     });
   }
 
@@ -226,7 +311,7 @@ export default class NetworkController extends EventEmitter {
     });
   }
 
-  async setProviderType(type, rpcUrl = '', ticker = 'ETH', nickname = '') {
+  async setProviderType(type) {
     assert.notStrictEqual(
       type,
       NETWORK_TYPE_RPC,
@@ -236,8 +321,14 @@ export default class NetworkController extends EventEmitter {
       INFURA_PROVIDER_TYPES.includes(type),
       `Unknown Infura provider type "${type}".`,
     );
-    const { chainId } = NETWORK_TYPE_TO_ID_MAP[type];
-    this.setProviderConfig({ type, rpcUrl, chainId, ticker, nickname });
+    const { chainId, ticker } = NETWORK_TYPE_TO_ID_MAP[type];
+    this.setProviderConfig({
+      type,
+      rpcUrl: '',
+      chainId,
+      ticker: ticker ?? 'ETH',
+      nickname: '',
+    });
   }
 
   resetConnection() {
@@ -246,6 +337,8 @@ export default class NetworkController extends EventEmitter {
 
   /**
    * Sets the provider config and switches the network.
+   *
+   * @param config
    */
   setProviderConfig(config) {
     this.previousProviderStore.updateState(this.getProviderConfig());
@@ -280,6 +373,8 @@ export default class NetworkController extends EventEmitter {
       networkChanged = true;
     });
 
+    console.log('[NetworkController] Checking Infura availability');
+
     try {
       const response = await fetchWithTimeout(rpcUrl, {
         method: 'POST',
@@ -307,100 +402,67 @@ export default class NetworkController extends EventEmitter {
         }
       }
     } catch (err) {
+      console.log('[NetworkController] Infura availability check failed', err);
       log.warn(`MetaMask - Infura availability check failed`, err);
     }
   }
 
   _switchNetwork(opts) {
+    // Indicate to subscribers that network is about to change
     this.emit(NETWORK_EVENTS.NETWORK_WILL_CHANGE);
+    // Set loading state
     this.setNetworkState('loading');
+    // Reset network details
+    this.clearNetworkDetails();
+    // Configure the provider appropriately
     this._configureProvider(opts);
+    // Notify subscribers that network has changed
     this.emit(NETWORK_EVENTS.NETWORK_DID_CHANGE, opts.type);
   }
 
-  _configureProvider(networkOpts, network) {
-    const { type, rpcUrl, chainId } = networkOpts;
-
-    if (!network) {
-      network = new Network({...networkOpts, infuraProjectId: this._infuraProjectId, providerParams: this._baseProviderParams });
+  _configureProvider({ type, rpcUrl, chainId }) {
+    // infura type-based endpoints
+    const isInfura = INFURA_PROVIDER_TYPES.includes(type);
+    if (isInfura) {
+      this._configureInfuraProvider(type, this._infuraProjectId);
+      // url-based rpc endpoints
+    } else if (type === NETWORK_TYPE_RPC) {
+      this._configureStandardProvider(rpcUrl, chainId);
+    } else {
+      throw new Error(
+        `NetworkController - _configureProvider - unknown type "${type}"`,
+      );
     }
-
-    return this._configureLegacyProxiesFromNetwork(network);
   }
 
-  _configureLegacyProxiesFromNetwork (network) {
-    const { provider, blockTracker } = network;
-    // update or intialize proxies
-    if (this._providerProxy) {
-      this._providerProxy.setTarget(provider);
-    } else {
-      this._providerProxy = createSwappableProxy(provider);
-    }
-    if (this._blockTrackerProxy) {
-      this._blockTrackerProxy.setTarget(blockTracker);
-    } else {
-      this._blockTrackerProxy = createEventEmitterProxy(blockTracker, {
-        eventFilter: 'skipInternal',
-      });
-    }
-    // set new provider and blockTracker
-    this._provider = provider;
-    this._blockTracker = blockTracker;
+  _configureInfuraProvider(type, projectId) {
+    log.info('NetworkController - configureInfuraProvider', type);
+    const networkClient = createInfuraClient({
+      network: type,
+      projectId,
+    });
+    this._setNetworkClient(networkClient);
   }
 
-  _createChainConditionalProviderAndBlockTracker() {
+  _configureStandardProvider(rpcUrl, chainId) {
+    log.info('NetworkController - configureStandardProvider', rpcUrl);
+    const networkClient = createJsonRpcClient({ rpcUrl, chainId });
+    this._setNetworkClient(networkClient);
+  }
+
+  _setNetworkClient({ networkMiddleware, blockTracker }) {
     const metamaskMiddleware = createMetamaskMiddleware(
       this._baseProviderParams,
     );
     const engine = new JsonRpcEngine();
-    engine.push(this._chainConditionalRequestMiddleware);
     engine.push(metamaskMiddleware);
     engine.push(networkMiddleware);
     const provider = providerFromEngine(engine);
     this._setProviderAndBlockTracker({ provider, blockTracker });
   }
 
-  _chainConditionalRequestMiddleware (req, res, next, end) {
-    // If no chainId is present, then behave as usual, using "current network" logic:
-    if (!req?.params?.chainId) {
-      return next();
-    }
-
-    const networkOptsArr = this.networks.keys.map(this._networkOptsForKey)
-    .filter(key => key.chainId === req.params.chainId);
-
-    const networkOpts = networkOptsArr[networkOptsArr.length - 1];
-
-    if (networkOptsArr) {
-      // We should retain dapp connection, maybe add the permitted chainId's provider
-      // from the permissions controller, where the user would have granted a network access to a recipient.
-      log.info(`Multiple providers for chainId ${req.params.chainId}, defaulting to newest, ${networkOpts.rpcUrl}`);
-    }
-
-    const networkKey = this._networkKeyForOpts(networkOptsArr);
-    const { provider } = this.networks.get(networkKey);
-    provider.send(req, (err, result) => {
-      if (err) {
-        res.error = err;
-        return end();
-      }
-
-      res.result = result;
-      end();
-    });
-  }
-
-  _networkKeyForOpts({ type, rpcUrl, chainId }) {
-    return JSON.stringify([ type, rpcUrl, chainId ]);
-  }
-
-  _networkOptsForKey(networkKey) {
-    const [ type, rpcUrl, chainId ] = JSON.parse(networkKey);
-    return { type, rpcUrl, chainId };
-  }
-
   _setProviderAndBlockTracker({ provider, blockTracker }) {
-    // update or intialize proxies
+    // update or initialize proxies
     if (this._providerProxy) {
       this._providerProxy.setTarget(provider);
     } else {
@@ -413,10 +475,8 @@ export default class NetworkController extends EventEmitter {
         eventFilter: 'skipInternal',
       });
     }
-
     // set new provider and blockTracker
     this._provider = provider;
     this._blockTracker = blockTracker;
   }
-
 }
