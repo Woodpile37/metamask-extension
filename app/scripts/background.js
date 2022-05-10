@@ -654,7 +654,7 @@ export function setupController(
         overrides?.getPortStream?.(remotePort) || new PortStream(remotePort);
       // communication with popup
       controller.isClientOpen = true;
-      controller.setupTrustedCommunication(portStream, remotePort.sender);
+      // controller.setupTrustedCommunication(portStream, remotePort.sender);
 
       if (processName === ENVIRONMENT_TYPE_POPUP) {
         popupIsOpen = true;
