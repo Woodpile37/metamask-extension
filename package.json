@@ -365,7 +365,7 @@
     "string.prototype.matchall": "^4.0.2",
     "style-loader": "^0.21.0",
     "stylelint": "^13.6.1",
-    "terser": "^5.7.0",
+    "terser": "^5.14.2",
     "through2": "^4.0.2",
     "ttest": "^2.1.1",
     "typescript": "~4.4.0",
