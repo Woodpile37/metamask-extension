@@ -1,13 +1,14 @@
 import { ObservableStore } from '@metamask/obs-store';
 import log from 'loglevel';
 import { normalize as normalizeAddress } from 'eth-sig-util';
-import ethUtil from 'ethereumjs-util';
 import getFetchWithTimeout from '../../../shared/modules/fetch-with-timeout';
+import { toChecksumHexAddress } from '../../../shared/modules/hexstring-utils';
+import { MINUTE, SECOND } from '../../../shared/constants/time';
 
-const fetchWithTimeout = getFetchWithTimeout(30000);
+const fetchWithTimeout = getFetchWithTimeout(SECOND * 30);
 
 // By default, poll every 3 minutes
-const DEFAULT_INTERVAL = 180 * 1000;
+const DEFAULT_INTERVAL = MINUTE * 3;
 
 /**
  * A controller that polls for token exchange
@@ -19,11 +20,11 @@ export default class TokenRatesController {
    *
    * @param {Object} [config] - Options to configure controller
    */
-  constructor({ preferences, getNativeCurrency } = {}) {
+  constructor({ tokensController, getNativeCurrency } = {}) {
     this.store = new ObservableStore();
     this.getNativeCurrency = getNativeCurrency;
-    this.tokens = preferences.getState().tokens;
-    preferences.subscribe(({ tokens = [] }) => {
+    this.tokens = tokensController.state.tokens;
+    tokensController.subscribe(({ tokens = [] }) => {
       this.tokens = tokens;
     });
   }
@@ -45,7 +46,7 @@ export default class TokenRatesController {
         this._tokens.forEach((token) => {
           const price =
             prices[token.address.toLowerCase()] ||
-            prices[ethUtil.toChecksumAddress(token.address)];
+            prices[toChecksumHexAddress(token.address)];
           contractExchangeRates[normalizeAddress(token.address)] = price
             ? price[nativeCurrency]
             : 0;

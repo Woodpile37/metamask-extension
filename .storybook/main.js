@@ -1,9 +1,9 @@
-const path = require('path')
+const path = require('path');
 
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  stories: ['../ui/app/**/*.stories.js'],
+  stories: ['../ui/**/*.stories.js'],
   addons: [
     '@storybook/addon-knobs',
     '@storybook/addon-actions',
@@ -12,7 +12,11 @@ module.exports = {
     './i18n-party-addon/register.js',
   ],
   webpackFinal: async (config) => {
-    config.module.strictExportPresence = true
+    config.context = process.cwd()
+    config.node = {
+      __filename: true
+    }
+    config.module.strictExportPresence = true;
     config.module.rules.push({
       test: /\.scss$/,
       loaders: [
@@ -31,12 +35,12 @@ module.exports = {
             sourceMap: true,
             implementation: require('sass'),
             sassOptions: {
-              includePaths: ['ui/app/css/'],
+              includePaths: ['ui/css/'],
             },
           },
         },
       ],
-    })
+    });
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
@@ -51,7 +55,7 @@ module.exports = {
           },
         ],
       }),
-    )
-    return config
+    );
+    return config;
   },
-}
+};

@@ -14,9 +14,6 @@
   "addToken": {
     "message": "டோக்கனைச் சேர்"
   },
-  "addTokens": {
-    "message": "டோக்கன்களைச் சேர்"
-  },
   "advanced": {
     "message": "மேம்பட்டவை"
   },
@@ -54,9 +51,6 @@
   },
   "blockiesIdenticon": {
     "message": "ப்ளாக்கிஸ் ஐடென்டிகோன் பயன்பாட்டு"
-  },
-  "builtInCalifornia": {
-    "message": "மேடமஸ்க் வடிவமைக்கப்பட்டு கலிபோர்னியாவில் கட்டப்பட்டுள்ளது."
   },
   "cancel": {
     "message": "ரத்து செய்"
@@ -226,9 +220,6 @@
     "message": "இறக்குமதியானது",
     "description": "status showing that an account has been fully loaded into the keyring"
   },
-  "infoHelp": {
-    "message": "தகவல் மற்றும் உதவி"
-  },
   "insufficientFunds": {
     "message": "போதுமான பணம் இல்லை."
   },
@@ -257,7 +248,7 @@
   "learnMore": {
     "message": "மேலும் அறிக"
   },
-  "likeToAddTokens": {
+  "likeToImportTokens": {
     "message": "இந்த டோக்கன்களைச் சேர்க்க விரும்புகிறீர்களா?"
   },
   "links": {
@@ -375,9 +366,6 @@
   "readdToken": {
     "message": "உங்கள் கணக்கு விருப்பங்கள் மெனுவில் \"டோக்கனைச் சேர்\" என்பதன் மூலம் நீங்கள் எதிர்காலத்தில் இந்த டோக்கனை மீண்டும் சேர்க்கலாம்."
   },
-  "recipientAddress": {
-    "message": "பெறுநர் முகவரி"
-  },
   "reject": {
     "message": "நிராகரி"
   },
@@ -402,9 +390,6 @@
   "restore": {
     "message": "மீட்டமை"
   },
-  "restoreFromSeed": {
-    "message": "விதை வாக்கியத்திலிருந்து மீட்கவும்"
-  },
   "revealSeedWords": {
     "message": "விதை வார்த்தைகள் வெளிப்படுத்த"
   },
@@ -425,9 +410,6 @@
   },
   "searchTokens": {
     "message": "தேடல் டோக்கன்ஸ்"
-  },
-  "secretPhrase": {
-    "message": "உங்கள் பெட்டகத்தை மீட்டெடுப்பதற்காக இங்கே உங்கள் ரகசிய பன்னிரண்டு வார்த்தை சொற்றொடரை உள்ளிடவும்."
   },
   "seedPhraseReq": {
     "message": "விதை வாக்கியங்கள் 12 வார்த்தைகள் நீண்டவை"

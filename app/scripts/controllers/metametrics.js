@@ -1,35 +1,11 @@
 import { merge, omit } from 'lodash';
 import { ObservableStore } from '@metamask/obs-store';
-import { bufferToHex, sha3 } from 'ethereumjs-util';
+import { bufferToHex, keccak } from 'ethereumjs-util';
 import { ENVIRONMENT_TYPE_BACKGROUND } from '../../../shared/constants/app';
 import {
   METAMETRICS_ANONYMOUS_ID,
   METAMETRICS_BACKGROUND_PAGE_OBJECT,
 } from '../../../shared/constants/metametrics';
-
-/**
- * Used to determine whether or not to attach a user's metametrics id
- * to events that include on-chain data. This helps to prevent identifying
- * a user by being able to trace their activity on etherscan/block exploring
- */
-const trackableSendCounts = {
-  1: true,
-  10: true,
-  30: true,
-  50: true,
-  100: true,
-  250: true,
-  500: true,
-  1000: true,
-  2500: true,
-  5000: true,
-  10000: true,
-  25000: true,
-};
-
-export function sendCountIsTrackable(sendCount) {
-  return Boolean(trackableSendCounts[sendCount]);
-}
 
 /**
  * @typedef {import('../../../shared/constants/metametrics').MetaMetricsContext} MetaMetricsContext
@@ -48,17 +24,12 @@ export function sendCountIsTrackable(sendCount) {
  * @property {?boolean} participateInMetaMetrics - The user's preference for
  *  participating in the MetaMetrics analytics program. This setting controls
  *  whether or not events are tracked
- * @property {number} metaMetricsSendCount - How many send transactions have
- *  been tracked through this controller. Used to prevent attaching sensitive
- *  data that can be traced through on chain data.
  */
 
 export default class MetaMetricsController {
   /**
    * @param {Object} segment - an instance of analytics-node for tracking
    *  events that conform to the new MetaMetrics tracking plan.
-   * @param {Object} segmentLegacy - an instance of analytics-node for
-   *  tracking legacy schema events. Will eventually be phased out
    * @param {Object} preferencesStore - The preferences controller store, used
    *  to access and subscribe to preferences that will be attached to events
    * @param {function} onNetworkDidChange - Used to attach a listener to the
@@ -73,7 +44,6 @@ export default class MetaMetricsController {
    */
   constructor({
     segment,
-    segmentLegacy,
     preferencesStore,
     onNetworkDidChange,
     getCurrentChainId,
@@ -92,7 +62,6 @@ export default class MetaMetricsController {
     this.store = new ObservableStore({
       participateInMetaMetrics: null,
       metaMetricsId: null,
-      metaMetricsSendCount: 0,
       ...initState,
     });
 
@@ -105,14 +74,15 @@ export default class MetaMetricsController {
       this.network = getNetworkIdentifier();
     });
     this.segment = segment;
-    this.segmentLegacy = segmentLegacy;
   }
 
   generateMetaMetricsId() {
     return bufferToHex(
-      sha3(
-        String(Date.now()) +
-          String(Math.round(Math.random() * Number.MAX_SAFE_INTEGER)),
+      keccak(
+        Buffer.from(
+          String(Date.now()) +
+            String(Math.round(Math.random() * Number.MAX_SAFE_INTEGER)),
+        ),
       ),
     );
   }
@@ -138,10 +108,6 @@ export default class MetaMetricsController {
 
   get state() {
     return this.store.getState();
-  }
-
-  setMetaMetricsSendCount(val) {
-    this.store.updateState({ metaMetricsSendCount: val });
   }
 
   /**
@@ -233,11 +199,7 @@ export default class MetaMetricsController {
     // to be updated to work with the new tracking plan. I think we should use
     // a config setting for this instead of trying to match the event name
     const isSendFlow = Boolean(payload.event.match(/^send|^confirm/iu));
-    if (
-      isSendFlow &&
-      this.state.metaMetricsSendCount &&
-      !sendCountIsTrackable(this.state.metaMetricsSendCount + 1)
-    ) {
+    if (isSendFlow) {
       excludeMetaMetricsId = true;
     }
     // If we are tracking sensitive data we will always use the anonymousId
@@ -258,6 +220,12 @@ export default class MetaMetricsController {
     }
     payload[idType] = idValue;
 
+    // If this is an event on the old matomo schema, add a key to the payload
+    // to designate it as such
+    if (matomoEvent === true) {
+      payload.properties.legacy_event = true;
+    }
+
     // Promises will only resolve when the event is sent to segment. For any
     // event that relies on this promise being fulfilled before performing UI
     // updates, or otherwise delaying user interaction, supply the
@@ -276,11 +244,9 @@ export default class MetaMetricsController {
         return resolve();
       };
 
-      const target = matomoEvent === true ? this.segmentLegacy : this.segment;
-
-      target.track(payload, callback);
+      this.segment.track(payload, callback);
       if (flushImmediately) {
-        target.flush();
+        this.segment.flush();
       }
     });
   }
@@ -328,7 +294,17 @@ export default class MetaMetricsController {
   async trackEvent(payload, options) {
     // event and category are required fields for all payloads
     if (!payload.event || !payload.category) {
-      throw new Error('Must specify event and category.');
+      throw new Error(
+        `Must specify event and category. Event was: ${
+          payload.event
+        }. Category was: ${payload.category}. Payload keys were: ${Object.keys(
+          payload,
+        )}. ${
+          typeof payload.properties === 'object'
+            ? `Payload property keys were: ${Object.keys(payload.properties)}`
+            : ''
+        }`,
+      );
     }
 
     if (!this.state.participateInMetaMetrics && !options?.isOptIn) {

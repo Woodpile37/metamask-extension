@@ -43,9 +43,6 @@
   "activityLog": {
     "message": "log attività"
   },
-  "addAccount": {
-    "message": "Aggiungi un account"
-  },
   "addAcquiredTokens": {
     "message": "Aggiungi i token che hai acquistato usando MetaMask"
   },
@@ -54,9 +51,6 @@
   },
   "addNetwork": {
     "message": "Aggiungi Rete"
-  },
-  "addRecipient": {
-    "message": "Aggiungi destinatario"
   },
   "addSuggestedTokens": {
     "message": "Aggiungi Token Suggeriti"
@@ -69,9 +63,6 @@
   },
   "addToken": {
     "message": "Aggiungi Token"
-  },
-  "addTokens": {
-    "message": "Aggiungi token"
   },
   "advanced": {
     "message": "Avanzate"
@@ -125,10 +116,6 @@
   },
   "amount": {
     "message": "Importo"
-  },
-  "amountInEth": {
-    "message": "$1 ETH",
-    "description": "Displays an eth amount to the user. $1 is a decimal number"
   },
   "amountWithColon": {
     "message": "Importo:"
@@ -223,9 +210,6 @@
   },
   "browserNotSupported": {
     "message": "Il tuo Browser non è supportato..."
-  },
-  "builtInCalifornia": {
-    "message": "MetaMask è progettato e realizzato in California."
   },
   "buy": {
     "message": "Compra"
@@ -510,9 +494,6 @@
   "done": {
     "message": "Finito"
   },
-  "dontHaveAHardwareWallet": {
-    "message": "Non hai un portafoglio hardware?"
-  },
   "dontShowThisAgain": {
     "message": "Non mostrare di nuovo"
   },
@@ -737,9 +718,6 @@
     "message": "Ottieni Get Ether da un faucet per $1",
     "description": "Displays network name for Ether faucet"
   },
-  "getHelp": {
-    "message": "Aiuto."
-  },
   "getStarted": {
     "message": "Inizia"
   },
@@ -760,9 +738,6 @@
   },
   "hardwareWalletsMsg": {
     "message": "Selezione un portafoglio hardware che vuoi utilizzare con MetaMask"
-  },
-  "havingTroubleConnecting": {
-    "message": "Problemi di connessione?"
   },
   "here": {
     "message": "qui",
@@ -797,21 +772,12 @@
   "importAccountSeedPhrase": {
     "message": "Importa un Account con una Frase Seed"
   },
-  "importUsingSeed": {
-    "message": "Importa account con frase seed"
-  },
   "importWallet": {
     "message": "Importa Portafoglio"
-  },
-  "importYourExisting": {
-    "message": "Importa il tuo portafoglio esistente usando la tua frase seed a 12 parole"
   },
   "imported": {
     "message": "Importato",
     "description": "status showing that an account has been fully loaded into the keyring"
-  },
-  "infoHelp": {
-    "message": "Informazioni & Aiuto"
   },
   "initialTransactionConfirmed": {
     "message": "La transazione iniziale è stata confermata dalla rete. Clicca OK per tornare indietro."
@@ -906,7 +872,7 @@
   "letsGoSetUp": {
     "message": "Si, iniziamo!"
   },
-  "likeToAddTokens": {
+  "likeToImportTokens": {
     "message": "Vorresti aggiungere questi token?"
   },
   "links": {
@@ -994,20 +960,11 @@
   "metametricsOptInDescription": {
     "message": "MetaMask vorrebbe raccogliere dati di utilizzo per capire meglio come gli utenti interagiscono con l'estensione. Questi dati verranno usati continuamente per migliorare l'usabilità e l'esperienza utente dei nostri prodotti e dell'ecosistema Ethereum."
   },
-  "mobileSyncText": {
-    "message": "Per favore inserisci la password per confermare che sei te!"
-  },
   "mustSelectOne": {
     "message": "Devi selezionare almeno un token."
   },
   "myAccounts": {
     "message": "Miei Account"
-  },
-  "myWalletAccounts": {
-    "message": "I miei account di portafoglio"
-  },
-  "myWalletAccountsDescription": {
-    "message": "Tutti gli account creati con MetaMask saranno automaticamente aggiunti a questa sezione."
   },
   "needEtherInWallet": {
     "message": "Per interagire con applicazioni decentralizzate con MetaMask, devi possedere Ether nel tuo portafoglio."
@@ -1133,9 +1090,6 @@
   "onlyAddTrustedNetworks": {
     "message": "Una rete malevola può mentire sullo stato della blockchain e registrare le tue azioni. Aggiungi solo reti fidate."
   },
-  "onlyAvailableOnMainnet": {
-    "message": "Disponibile solo nella rete principale"
-  },
   "onlyConnectTrust": {
     "message": "Connettiti solo con siti di cui ti fidi."
   },
@@ -1144,9 +1098,6 @@
   },
   "optionalCurrencySymbol": {
     "message": "Simbolo (opzionale)"
-  },
-  "orderOneHere": {
-    "message": "Compra un Trezor o un Ledger e tieni i tuoi soldi al sicuro"
   },
   "origin": {
     "message": "Origine"
@@ -1229,17 +1180,11 @@
   "readdToken": {
     "message": "Puoi aggiungere nuovamente questo token in futuro andando in “Aggiungi token” nel menu delle opzioni del tuo account."
   },
-  "readyToConnect": {
-    "message": "Pronto a Connetterti?"
-  },
   "receive": {
     "message": "Ricevi"
   },
   "recents": {
     "message": "Recenti"
-  },
-  "recipientAddress": {
-    "message": "Indirizzo Destinatario"
   },
   "recipientAddressPlaceholder": {
     "message": "Ricerca, indirizzo pubblico (0x) o ENS"
@@ -1291,9 +1236,6 @@
   },
   "restoreAccountWithSeed": {
     "message": "Ripristina Account con la Frase Seed"
-  },
-  "restoreFromSeed": {
-    "message": "Ripristina da una frase seed"
   },
   "restoreWalletPreferences": {
     "message": "È stato trovato un backup dei tuoi dati da $1. Vuoi ripristinare le preferenze del portafoglio?",
@@ -1365,9 +1307,6 @@
   "secretBackupPhraseWarning": {
     "message": "ATTENZIONE: Non dire mai a nessuno questa frase di backup. Chiunque con questa frase può rubare i tuoi Ether per sempre."
   },
-  "secretPhrase": {
-    "message": "Inserisci la tua frase segreta di dodici parole per ripristinare la cassaforte."
-  },
   "securityAndPrivacy": {
     "message": "Sicurezza & Privacy"
   },
@@ -1425,9 +1364,6 @@
   },
   "sendTokens": {
     "message": "Invia Tokens"
-  },
-  "sentEther": {
-    "message": "ether inviati"
   },
   "separateEachWord": {
     "message": "Separa ogni parola con un solo spazio"
@@ -1538,24 +1474,6 @@
   "statusNotConnected": {
     "message": "Non connesso"
   },
-  "step1HardwareWallet": {
-    "message": "1. Connetti Portafoglio Hardware"
-  },
-  "step1HardwareWalletMsg": {
-    "message": "Connetti il tuo portafoglio hardware al tuo computer."
-  },
-  "step2HardwareWallet": {
-    "message": "2. Seleziona un Account"
-  },
-  "step2HardwareWalletMsg": {
-    "message": "Selezione l'account che vuoi vedere. Puoi selezionarne solo uno alla volta."
-  },
-  "step3HardwareWallet": {
-    "message": "3. Inizia a usare dApps e molto altro ancora!"
-  },
-  "step3HardwareWalletMsg": {
-    "message": "Usa il tuo account hardware come utilizzeresti qualsiasi account Ethereum. Accedi alle dApps, invia Eth, compra e conserva token ERC20 e token non fungibili come CryptoKitties"
-  },
   "storePhrase": {
     "message": "Conserva questa frase in un gestore di password come 1Password."
   },
@@ -1598,10 +1516,6 @@
     "message": "Non ci sono token disponibile con questo nome $1",
     "description": "Tells the user that a given search string does not match any tokens in our token lists. $1 can be any string of text"
   },
-  "swapCheckingQuote": {
-    "message": "Verificando $1",
-    "description": "Shown to the user during quote loading. $1 is the name of an aggregator. The message indicates that metamask is currently checking if that aggregator has a trade/quote for their requested swap."
-  },
   "swapCustom": {
     "message": "personalizza"
   },
@@ -1640,12 +1554,15 @@
   "swapFetchingTokens": {
     "message": "Recuperando i token..."
   },
+<<<<<<< HEAD
   "swapFinalizing": {
     "message": "Finalizzando..."
   },
   "swapHighSlippageWarning": {
     "message": "L'importo di slippage è molto alto. Assicurati di sapere cosa stai facendo!"
   },
+=======
+>>>>>>> origin/12311-2
   "swapLowSlippageError": {
     "message": "La transazione può fallire, il massimo slippage è troppo basso."
   },
@@ -1671,7 +1588,7 @@
     "description": "$1 is the number of quotes that the user can select from when opening the list of quotes on the 'view quote' screen"
   },
   "swapNetworkFeeSummary": {
-    "message": "La tassa di rete copre il costo di processamento dello scambio e della memorizzazione nella rete Ethereum. MetaMask non trae profitto da questa tassa."
+    "message": "La tassa di rete copre il costo di processamento dello scambio e della memorizzazione nella rete $1. MetaMask non trae profitto da questa tassa."
   },
   "swapNewQuoteIn": {
     "message": "Nuove quotazioni in $1",
@@ -1685,18 +1602,9 @@
     "message": "Stai per scambiare $1 $2 (~$3) per $4 $5 (~$6).",
     "description": "This message represents the price slippage for the swap.  $1 and $4 are a number (ex: 2.89), $2 and $5 are symbols (ex: ETH), and $3 and $6 are fiat currency amounts."
   },
-  "swapPriceDifferenceAcknowledgement": {
-    "message": "Sono consapevole"
-  },
   "swapPriceDifferenceTitle": {
     "message": "Differenza di prezzo di circa ~$1%",
     "description": "$1 is a number (ex: 1.23) that represents the price difference."
-  },
-  "swapPriceDifferenceTooltip": {
-    "message": "La differenza tra i prezzi del mercato può essere influenzata da commissioni prelevate da intermediari, dimensione del mercato, dimensione dello scambio, o inefficienze del mercato."
-  },
-  "swapPriceDifferenceUnavailable": {
-    "message": "Il prezzo di mercato non è disponibile. Assicurati di sentirti a tuo agio con l'importo restituito prima di procedere."
   },
   "swapProcessing": {
     "message": "In elaborazione"
@@ -1763,9 +1671,6 @@
   "swapSelectQuotePopoverDescription": {
     "message": "Sotto trovi tutte le quotazioni raccolte da multiple sorgenti di liquidità."
   },
-  "swapSlippageTooLow": {
-    "message": "Lo slippage deve essere maggiore di zero"
-  },
   "swapSource": {
     "message": "Sorgente di liquidità"
   },
@@ -1813,10 +1718,8 @@
     "message": "Quotazione migliore"
   },
   "swapVerifyTokenExplanation": {
-    "message": "Più token possono usare lo stesso nome e simbolo. Verifica su Etherscan che questo sia il token che stai cercando."
-  },
-  "swapViewToken": {
-    "message": "Vedi $1"
+    "message": "Più token possono usare lo stesso nome e simbolo. Verifica su $1 che questo sia il token che stai cercando.",
+    "description": "This appears in a tooltip next to the verifyThisTokenOn message. It gives the user more information about why they should check the token on a block explorer. $1 will be the name or url of the block explorer, which will be the translation of 'etherscan' or a block explorer url specified for a custom network."
   },
   "swapYourTokenBalance": {
     "message": "$1 $2 disponibili allo scambio",
@@ -1916,9 +1819,6 @@
   },
   "tokenContractAddress": {
     "message": "Indirizzo Contratto Token"
-  },
-  "tokenOptions": {
-    "message": "Opzioni token"
   },
   "tokenSymbol": {
     "message": "Simbolo Token"
@@ -2055,15 +1955,6 @@
   },
   "viewContact": {
     "message": "Visualizza contatto"
-  },
-  "viewOnCustomBlockExplorer": {
-    "message": "Vedi su $1"
-  },
-  "viewOnEtherscan": {
-    "message": "Vedi su Etherscan"
-  },
-  "viewinExplorer": {
-    "message": "Vista in Explorer"
   },
   "visitWebSite": {
     "message": "Visita il nostro sito web"

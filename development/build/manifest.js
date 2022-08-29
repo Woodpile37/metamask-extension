@@ -3,16 +3,18 @@ const path = require('path');
 const { merge, cloneDeep } = require('lodash');
 
 const baseManifest = require('../../app/manifest/_base.json');
+const betaManifestModifications = require('../../app/manifest/_beta_modifications.json');
 
 const { createTask, composeSeries } = require('./task');
+const { BuildTypes } = require('./utils');
 
 module.exports = createManifestTasks;
 
-const scriptsToExcludeFromBackgroundDevBuild = {
-  'bg-libs.js': true,
-};
-
-function createManifestTasks({ browserPlatforms }) {
+function createManifestTasks({
+  browserPlatforms,
+  browserVersionMap,
+  buildType,
+}) {
   // merge base manifest with per-platform manifests
   const prepPlatforms = async () => {
     return Promise.all(
@@ -27,7 +29,12 @@ function createManifestTasks({ browserPlatforms }) {
             `${platform}.json`,
           ),
         );
-        const result = merge(cloneDeep(baseManifest), platformModifications);
+        const result = merge(
+          cloneDeep(baseManifest),
+          platformModifications,
+          browserVersionMap[platform],
+          getBuildModifications(buildType),
+        );
         const dir = path.join('.', 'dist', platform);
         await fs.mkdir(dir, { recursive: true });
         await writeJson(result, path.join(dir, 'manifest.json'));
@@ -35,29 +42,13 @@ function createManifestTasks({ browserPlatforms }) {
     );
   };
 
-  // dev: remove bg-libs, add chromereload, add perms
+  // dev: add perms
   const envDev = createTaskForModifyManifestForEnvironment((manifest) => {
-    const scripts = manifest.background.scripts.filter(
-      (scriptName) => !scriptsToExcludeFromBackgroundDevBuild[scriptName],
-    );
-    scripts.push('chromereload.js');
-    manifest.background = {
-      ...manifest.background,
-      scripts,
-    };
     manifest.permissions = [...manifest.permissions, 'webRequestBlocking'];
   });
 
-  // testDev: remove bg-libs, add perms
+  // testDev: add perms
   const envTestDev = createTaskForModifyManifestForEnvironment((manifest) => {
-    const scripts = manifest.background.scripts.filter(
-      (scriptName) => !scriptsToExcludeFromBackgroundDevBuild[scriptName],
-    );
-    scripts.push('chromereload.js');
-    manifest.background = {
-      ...manifest.background,
-      scripts,
-    };
     manifest.permissions = [
       ...manifest.permissions,
       'webRequestBlocking',
@@ -119,4 +110,12 @@ async function readJson(file) {
 // helper for serializing and writing json to fs
 async function writeJson(obj, file) {
   return fs.writeFile(file, JSON.stringify(obj, null, 2));
+}
+
+function getBuildModifications(buildType) {
+  const buildModifications = {};
+  if (buildType === BuildTypes.beta) {
+    Object.assign(buildModifications, betaManifestModifications);
+  }
+  return buildModifications;
 }

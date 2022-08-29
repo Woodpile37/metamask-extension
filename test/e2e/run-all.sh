@@ -5,16 +5,9 @@ set -e
 set -u
 set -o pipefail
 
-retry () {
-  retry=0
-  limit="${METAMASK_E2E_RETRY_LIMIT:-3}"
-  while [[ $retry -lt $limit ]]
-  do
-    "$@" && break
-    retry=$(( retry + 1 ))
-    sleep 1
-  done
+readonly __DIR__=$( cd "${BASH_SOURCE[0]%/*}" && pwd )
 
+<<<<<<< HEAD
   if [[ $retry == "$limit" ]]
   then
     exit 1
@@ -96,3 +89,11 @@ retry concurrently --kill-others \
 #   'node test/e2e/mock-3box/server.js' \
 #   'yarn dapp' \
 #   'mocha test/e2e/threebox.spec'
+=======
+for spec in "${__DIR__}"/tests/*.spec.js
+do
+  node "${__DIR__}/run-e2e-test.js" "${spec}"
+done
+
+node "${__DIR__}/run-e2e-test.js" "${__DIR__}/metamask-ui.spec.js"
+>>>>>>> origin/12311-2

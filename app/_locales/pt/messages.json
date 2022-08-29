@@ -11,9 +11,6 @@
   "addToken": {
     "message": "Adicionar Token"
   },
-  "addTokens": {
-    "message": "Adicionar Tokens"
-  },
   "amount": {
     "message": "Valor"
   },
@@ -42,9 +39,6 @@
   },
   "blockiesIdenticon": {
     "message": "Usar Blockies Identicon"
-  },
-  "builtInCalifornia": {
-    "message": "MetaMask é desenhada e construída na California."
   },
   "cancel": {
     "message": "Cancelar"
@@ -86,7 +80,7 @@
     "message": "Decimais devem ser no mínimo 0 e não passar de 36."
   },
   "defaultNetwork": {
-    "message": "A rede pré definida para transações em Ether é a Main Net."
+    "message": "A rede pré definida para transações em Ether é a Mainnet."
   },
   "depositEther": {
     "message": "Depositar Ether"
@@ -172,9 +166,6 @@
     "message": "Importado",
     "description": "status showing that an account has been fully loaded into the keyring"
   },
-  "infoHelp": {
-    "message": "Informação & Ajuda"
-  },
   "insufficientFunds": {
     "message": "Fundos insuficientes."
   },
@@ -200,7 +191,7 @@
   "kovan": {
     "message": "Rede de Teste Kovan"
   },
-  "likeToAddTokens": {
+  "likeToImportTokens": {
     "message": "Gostaria de adicionar estes tokens?"
   },
   "loading": {
@@ -285,9 +276,6 @@
   "readdToken": {
     "message": "Pode adicionar este token de novo clicando na opção “Adicionar token” no menu de opções da sua conta."
   },
-  "recipientAddress": {
-    "message": "Endereço do Destinatário"
-  },
   "reject": {
     "message": "Rejeitar"
   },
@@ -299,9 +287,6 @@
   },
   "resetAccount": {
     "message": "Reinicializar Conta"
-  },
-  "restoreFromSeed": {
-    "message": "Restaurar a partir da frase seed"
   },
   "revealSeedWords": {
     "message": "Revelar Palavras Seed"
@@ -320,9 +305,6 @@
   },
   "search": {
     "message": "Procurar"
-  },
-  "secretPhrase": {
-    "message": "Introduza a sua frase secreta de 12 palavras para recuperar o seu ."
   },
   "seedPhraseReq": {
     "message": "seed phrases are 12 words long"

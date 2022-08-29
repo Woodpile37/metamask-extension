@@ -38,9 +38,6 @@
   "addNetwork": {
     "message": "Tilføj netværk"
   },
-  "addRecipient": {
-    "message": "Tilføj modtager"
-  },
   "addSuggestedTokens": {
     "message": "Tilføj foreslåede tokens"
   },
@@ -52,9 +49,6 @@
   },
   "addToken": {
     "message": "Tilføj Polet"
-  },
-  "addTokens": {
-    "message": "Tilføj tokens"
   },
   "advanced": {
     "message": "Avanceret"
@@ -142,9 +136,6 @@
   },
   "browserNotSupported": {
     "message": "Din browser er ikke understøttet..."
-  },
-  "builtInCalifornia": {
-    "message": "MetaMask er designet og bygget i Californien."
   },
   "buyWithWyre": {
     "message": "Køb ETH med Wyre"
@@ -279,7 +270,7 @@
     "message": "Decimaler skal være mindst 0 og højst 36."
   },
   "defaultNetwork": {
-    "message": "Standardnetværket for Ether-transaktioner er Main Net."
+    "message": "Standardnetværket for Ether-transaktioner er Mainnet."
   },
   "delete": {
     "message": "Slet"
@@ -307,9 +298,6 @@
   },
   "done": {
     "message": "Færdig"
-  },
-  "dontHaveAHardwareWallet": {
-    "message": "Har du ikke en hardware-pung?"
   },
   "downloadGoogleChrome": {
     "message": "Hent Google Chrome"
@@ -439,9 +427,6 @@
     "message": "Hent Ether fra en hane til $1",
     "description": "Displays network name for Ether faucet"
   },
-  "getHelp": {
-    "message": "Få hjælp"
-  },
   "getStarted": {
     "message": "Kom godt i gang"
   },
@@ -459,9 +444,6 @@
   },
   "hardwareWalletsMsg": {
     "message": "Vælg en hardware-pung du vil bruge med MetaMask"
-  },
-  "havingTroubleConnecting": {
-    "message": "Har du problemer med at oprette forbindelse?"
   },
   "here": {
     "message": "her",
@@ -492,21 +474,12 @@
   "importAccountSeedPhrase": {
     "message": "Importér en Konto med Seedfrase"
   },
-  "importUsingSeed": {
-    "message": "Importér ved brug af kontoens seed-sætning"
-  },
   "importWallet": {
     "message": "Importér pung"
-  },
-  "importYourExisting": {
-    "message": "Importér din eksisterende pung med en 12-ords seedfrase"
   },
   "imported": {
     "message": "Importeret",
     "description": "status showing that an account has been fully loaded into the keyring"
-  },
-  "infoHelp": {
-    "message": "Info & hjælp"
   },
   "initialTransactionConfirmed": {
     "message": "Din indledende transaktion blev bekræftet af netværket. Klik OK for at gå tilbage."
@@ -557,7 +530,7 @@
   "letsGoSetUp": {
     "message": "Ja, lad os komme i gang!"
   },
-  "likeToAddTokens": {
+  "likeToImportTokens": {
     "message": "Ønsker du at tilføje disse tokens?"
   },
   "loadMore": {
@@ -590,20 +563,11 @@
   "metamaskDescription": {
     "message": "Som forbinder dig til Ethereum og de decentraliserede internet."
   },
-  "mobileSyncText": {
-    "message": "Indtast din adgangskode for at bekræfte, at det er dig!"
-  },
   "mustSelectOne": {
     "message": "Skal vælge mindst 1 token."
   },
   "myAccounts": {
     "message": "Mine Konti"
-  },
-  "myWalletAccounts": {
-    "message": "Mine Pungkonti"
-  },
-  "myWalletAccountsDescription": {
-    "message": "Alle dine MetaMask-oprettede konti føjes automatisk til dette afsnit."
   },
   "needEtherInWallet": {
     "message": "Du skal have Ether i din tegnebog for at interagere med decentraliserede applikationer, der bruger MetaMask."
@@ -700,9 +664,6 @@
   "optionalCurrencySymbol": {
     "message": "Symbol (valgfrit)"
   },
-  "orderOneHere": {
-    "message": "Bestil en Trezor eller Ledger og frys dine midler ned"
-  },
   "parameters": {
     "message": "Parametre"
   },
@@ -759,14 +720,8 @@
   "readdToken": {
     "message": "Du kan tilføje denne token i fremtiden, ved at gå til \"Tilføj token\" under dine valgmenuen for dine konti."
   },
-  "readyToConnect": {
-    "message": "Klar til at oprette forbindelse?"
-  },
   "recents": {
     "message": "Seneste"
-  },
-  "recipientAddress": {
-    "message": "Modtagerens adresse"
   },
   "recipientAddressPlaceholder": {
     "message": "Søg, offentlig adresse (0x) eller ENS"
@@ -818,9 +773,6 @@
   },
   "restoreAccountWithSeed": {
     "message": "Gendan din konto med Seed-sætning"
-  },
-  "restoreFromSeed": {
-    "message": "Genopret konto?"
   },
   "revealSeedWords": {
     "message": "Vis Seedord"
@@ -876,9 +828,6 @@
   "secretBackupPhraseWarning": {
     "message": "ADVARSEL: Afslør aldrig din backup-frase. Enhver med denne frase kan tage din Ether for altid."
   },
-  "secretPhrase": {
-    "message": "Indtast din hemmelige tolv ord lange sætning for at gendanne din vault."
-  },
   "securityAndPrivacy": {
     "message": "Sikkerhed & Privatliv"
   },
@@ -917,9 +866,6 @@
   },
   "sendTokens": {
     "message": "Send tokens"
-  },
-  "sentEther": {
-    "message": "sendte ether"
   },
   "separateEachWord": {
     "message": "Separer hvert ord med et enkelt mellemrum"
@@ -986,24 +932,6 @@
   },
   "stateLogsDescription": {
     "message": "Status-logføringer indeholder dine offentlige kontoadresser og afsendte transaktioner."
-  },
-  "step1HardwareWallet": {
-    "message": "1. Tilslut hardware-tegnebog"
-  },
-  "step1HardwareWalletMsg": {
-    "message": "Forbind din hardware-tegnebog direkte med din computer."
-  },
-  "step2HardwareWallet": {
-    "message": "2. Vælg en konto"
-  },
-  "step2HardwareWalletMsg": {
-    "message": "Vælg den konto du ønsker at se. Du kan kun vælge én ad gangen."
-  },
-  "step3HardwareWallet": {
-    "message": "3. Begynd at bruge dApps og mere!"
-  },
-  "step3HardwareWalletMsg": {
-    "message": "Brug din hardwarekonto som du ville gøre med enhver Ethereum-konto. Log ind på dApps, send Eth, køb og opbevar ERC20-tokens og ikke-ombyttelige tokens som CryptoKitties."
   },
   "storePhrase": {
     "message": "Gem denne sætning i en adgangskodeadministrator som 1Password."
@@ -1167,15 +1095,6 @@
   },
   "viewContact": {
     "message": "Vis kontakt"
-  },
-  "viewOnCustomBlockExplorer": {
-    "message": "Se på $1"
-  },
-  "viewOnEtherscan": {
-    "message": "Se på Etherscan"
-  },
-  "viewinExplorer": {
-    "message": "Vis i stifinder"
   },
   "visitWebSite": {
     "message": "Besøg vores webside"

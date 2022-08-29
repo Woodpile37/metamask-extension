@@ -38,9 +38,6 @@
   "addNetwork": {
     "message": "הוסף/י רשת"
   },
-  "addRecipient": {
-    "message": "הוסף נמען"
-  },
   "addSuggestedTokens": {
     "message": "הוסף/י אסימונים מוצעים"
   },
@@ -52,9 +49,6 @@
   },
   "addToken": {
     "message": "הוסף/י אסימון"
-  },
-  "addTokens": {
-    "message": "הוסף סמלים"
   },
   "advanced": {
     "message": "מתקדם"
@@ -142,9 +136,6 @@
   },
   "browserNotSupported": {
     "message": "הדפדפן שלך אינו נתמך..."
-  },
-  "builtInCalifornia": {
-    "message": "MetaMask תוכנן ונבנה בקליפורניה."
   },
   "buyWithWyre": {
     "message": "רכישת את'ר עם Wyre"
@@ -279,7 +270,7 @@
     "message": "מספרים עשרוניים חייבים להיות לפחות 0 ולא מעל 36."
   },
   "defaultNetwork": {
-    "message": "רשת ברירת המחדל לעסקאות Ether היא Main Net."
+    "message": "רשת ברירת המחדל לעסקאות Ether היא Mainnet."
   },
   "delete": {
     "message": "מחיקה"
@@ -307,9 +298,6 @@
   },
   "done": {
     "message": "סיום"
-  },
-  "dontHaveAHardwareWallet": {
-    "message": "אין לך ארנק חומרה?"
   },
   "downloadGoogleChrome": {
     "message": "הורד/י את גוגל כרום"
@@ -443,9 +431,6 @@
     "message": "השג/י את'ר מברז (faucet) עבור ה-$1",
     "description": "Displays network name for Ether faucet"
   },
-  "getHelp": {
-    "message": "בקש/י עזרה."
-  },
   "getStarted": {
     "message": "תחילת העבודה"
   },
@@ -466,9 +451,6 @@
   },
   "hardwareWalletsMsg": {
     "message": "בחר/י ארנק חומרה שבו תרצה להשתמש עם MetaMask"
-  },
-  "havingTroubleConnecting": {
-    "message": "חווה קשיים בהתחברות?"
   },
   "here": {
     "message": "כאן",
@@ -499,21 +481,12 @@
   "importAccountSeedPhrase": {
     "message": "יבא חשבון באמצעות Seed Phrase"
   },
-  "importUsingSeed": {
-    "message": "ייבא באמצעות צירוף הגרעין של החשבון"
-  },
   "importWallet": {
     "message": "ייבא ארנק"
-  },
-  "importYourExisting": {
-    "message": "יבא/י את הארנק הקיים שלך באמצעות seed phrase בן 12 מילים"
   },
   "imported": {
     "message": "מיובאות",
     "description": "status showing that an account has been fully loaded into the keyring"
-  },
-  "infoHelp": {
-    "message": "מידע ועזרה"
   },
   "initialTransactionConfirmed": {
     "message": "העסקה הראשונית שלך אושרה על ידי הרשת. לחצ/י על אישור כדי לחזור."
@@ -564,7 +537,7 @@
   "letsGoSetUp": {
     "message": "כן, בוא נתקין!"
   },
-  "likeToAddTokens": {
+  "likeToImportTokens": {
     "message": "האם ברצונך להוסיף טוקנים אלה?"
   },
   "links": {
@@ -603,20 +576,11 @@
   "metamaskVersion": {
     "message": "גרסת MetaMask"
   },
-  "mobileSyncText": {
-    "message": "נא להזין את הססמה שלך כדי לאשר שזה/זו אכן את/ה!"
-  },
   "mustSelectOne": {
     "message": "חובה לבחור לפחות אסימון אחד."
   },
   "myAccounts": {
     "message": "החשבונות שלי"
-  },
-  "myWalletAccounts": {
-    "message": "חשבונות הארנק שלי"
-  },
-  "myWalletAccountsDescription": {
-    "message": "כל חשבונותיך שנוצרו ב-MetaMask יתווספו אוטומטית לחלק זה."
   },
   "needEtherInWallet": {
     "message": "כדי לתקשר עם אפליקציות מבוזרות באמצעות MetaMask, צריך להיות לך את'ר בארנק."
@@ -713,9 +677,6 @@
   "optionalCurrencySymbol": {
     "message": "סמל (אופציונלי)"
   },
-  "orderOneHere": {
-    "message": "הזמנ/י Trezor או Ledger ושמר/י את הכספים שלך באחסון קר"
-  },
   "origin": {
     "message": "מקור"
   },
@@ -775,14 +736,8 @@
   "readdToken": {
     "message": "באפשרותך להוסיף טוקן זה בחזרה בעתיד על ידי מעבר אל \"הוסף טוקן\" בתפריט אפשרויות החשבונות שלך."
   },
-  "readyToConnect": {
-    "message": "מוכנ/ה להתחבר?"
-  },
   "recents": {
     "message": "אחרונים"
-  },
-  "recipientAddress": {
-    "message": "כתובת הנמען"
   },
   "recipientAddressPlaceholder": {
     "message": "חיפוש, כתובת ציבורית (0x), או ENS"
@@ -835,9 +790,6 @@
   "restoreAccountWithSeed": {
     "message": "שחזר את חשבונך באמצעות צירוף הגרעין"
   },
-  "restoreFromSeed": {
-    "message": "לשחזר את החשבון?"
-  },
   "revealSeedWords": {
     "message": "גלה מילות Seed"
   },
@@ -889,9 +841,6 @@
   "secretBackupPhraseWarning": {
     "message": "אזהרה: לעולם אין לחשוף את צירוף הגיבוי שלך. כל מי שברשותו צירוף זה יכול לקחת את האת'ר שלך לצמיתות."
   },
-  "secretPhrase": {
-    "message": "הזנ/י את הצירוף הסודי שלך של שתים-עשרה המילים כאן כדי לשחזר את הכספת שלך."
-  },
   "securityAndPrivacy": {
     "message": "אבטחה ופרטיות"
   },
@@ -933,9 +882,6 @@
   },
   "sendTokens": {
     "message": "שלח טוקנים"
-  },
-  "sentEther": {
-    "message": "את'ר שנשלח"
   },
   "separateEachWord": {
     "message": "יש להפריד כל מילה עם רווח יחיד"
@@ -1002,24 +948,6 @@
   },
   "stateLogsDescription": {
     "message": "יומני המצב מכילים את כתובות החשבון הציבוריות שלך ועסקאות שנשלחו."
-  },
-  "step1HardwareWallet": {
-    "message": "1. חבר/י ארנק חומרה"
-  },
-  "step1HardwareWalletMsg": {
-    "message": "חבר/י את ארנק החומרה שלך ישירות למחשב שלך."
-  },
-  "step2HardwareWallet": {
-    "message": "2. בחר/י חשבון"
-  },
-  "step2HardwareWalletMsg": {
-    "message": "בחר/י את החשבון שברצונך להציג. באפשרותך לבחור רק אחד בכל פעם."
-  },
-  "step3HardwareWallet": {
-    "message": "3. התחל/י להשתמש ב- dApps ועוד!"
-  },
-  "step3HardwareWalletMsg": {
-    "message": "השתמש/י בחשבון החומרה שלך כי שהיית משתמש/ת בכל חשבון אתריום"
   },
   "storePhrase": {
     "message": "אחסנ/י צירוף זה במנהל ססמאות כמו 1Password."
@@ -1192,15 +1120,6 @@
   },
   "viewContact": {
     "message": "הצג איש קשר"
-  },
-  "viewOnCustomBlockExplorer": {
-    "message": "הצג ב- $1"
-  },
-  "viewOnEtherscan": {
-    "message": "הצג ב-Etherscan"
-  },
-  "viewinExplorer": {
-    "message": "הצג באקספלורר"
   },
   "visitWebSite": {
     "message": "בקר/י באתר שלנו"

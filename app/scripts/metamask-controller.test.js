@@ -1,8 +1,8 @@
-import assert from 'assert';
+import { strict as assert } from 'assert';
 import sinon from 'sinon';
 import { cloneDeep } from 'lodash';
 import nock from 'nock';
-import ethUtil from 'ethereumjs-util';
+import { pubToAddress, bufferToHex } from 'ethereumjs-util';
 import { obj as createThoughStream } from 'through2';
 import EthQuery from 'eth-query';
 import proxyquire from 'proxyquire';
@@ -20,6 +20,11 @@ const firstTimeState = {
       type: NETWORK_TYPE_RPC,
       rpcUrl: 'http://localhost:8545',
       chainId: '0x539',
+    },
+    networkDetails: {
+      EIPS: {
+        1559: false,
+      },
     },
   },
 };
@@ -52,6 +57,7 @@ const ExtensionizerMock = {
     onInstalled: {
       addListener: () => undefined,
     },
+    getPlatformInfo: async () => 'mac',
   },
 };
 
@@ -85,7 +91,6 @@ const MetaMaskController = proxyquire('./metamask-controller', {
 
 const currentNetworkId = '42';
 const DEFAULT_LABEL = 'Account 1';
-const DEFAULT_LABEL_2 = 'Account 2';
 const TEST_SEED =
   'debris dizzy just program just float decrease vacant alarm reduce speak stadium';
 const TEST_ADDRESS = '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc';
@@ -184,11 +189,11 @@ describe('MetaMaskController', function () {
       const simpleKeyrings = metamaskController.keyringController.getKeyringsByType(
         'Simple Key Pair',
       );
-      const privKeyBuffer = simpleKeyrings[0].wallets[0]._privKey;
-      const pubKeyBuffer = simpleKeyrings[0].wallets[0]._pubKey;
-      const addressBuffer = ethUtil.pubToAddress(pubKeyBuffer);
-      const privKey = ethUtil.bufferToHex(privKeyBuffer);
-      const pubKey = ethUtil.bufferToHex(addressBuffer);
+      const privKeyBuffer = simpleKeyrings[0].wallets[0].privateKey;
+      const pubKeyBuffer = simpleKeyrings[0].wallets[0].publicKey;
+      const addressBuffer = pubToAddress(pubKeyBuffer);
+      const privKey = bufferToHex(privKeyBuffer);
+      const pubKey = bufferToHex(addressBuffer);
       assert.equal(privKey, addHexPrefix(importPrivkey));
       assert.equal(pubKey, '0xe18035bf8712672935fdb4e5e431b1a0183d2dfc');
     });
@@ -354,7 +359,7 @@ describe('MetaMaskController', function () {
       });
     });
 
-    it('should restore any consecutive accounts with balances', async function () {
+    it('should restore any consecutive accounts with balances without extra zero balance accounts', async function () {
       sandbox.stub(metamaskController, 'getBalance');
       metamaskController.getBalance.withArgs(TEST_ADDRESS).callsFake(() => {
         return Promise.resolve('0x14ced5122ce0a000');
@@ -380,7 +385,6 @@ describe('MetaMaskController', function () {
       delete identities[TEST_ADDRESS].lastSelected;
       assert.deepEqual(identities, {
         [TEST_ADDRESS]: { address: TEST_ADDRESS, name: DEFAULT_LABEL },
-        [TEST_ADDRESS_2]: { address: TEST_ADDRESS_2, name: DEFAULT_LABEL_2 },
       });
     });
   });
@@ -492,8 +496,8 @@ describe('MetaMaskController', function () {
         );
       } catch (e) {
         assert.equal(
-          e,
-          'Error: MetamaskController:getKeyringForDevice - Unknown device',
+          e.message,
+          'MetamaskController:getKeyringForDevice - Unknown device',
         );
       }
     });
@@ -504,9 +508,9 @@ describe('MetaMaskController', function () {
       const keyrings = await metamaskController.keyringController.getKeyringsByType(
         'Trezor Hardware',
       );
-      assert.equal(
+      assert.deepEqual(
         metamaskController.keyringController.addNewKeyring.getCall(0).args,
-        'Trezor Hardware',
+        ['Trezor Hardware'],
       );
       assert.equal(keyrings.length, 1);
     });
@@ -517,9 +521,9 @@ describe('MetaMaskController', function () {
       const keyrings = await metamaskController.keyringController.getKeyringsByType(
         'Ledger Hardware',
       );
-      assert.equal(
+      assert.deepEqual(
         metamaskController.keyringController.addNewKeyring.getCall(0).args,
-        'Ledger Hardware',
+        ['Ledger Hardware'],
       );
       assert.equal(keyrings.length, 1);
     });
@@ -534,8 +538,8 @@ describe('MetaMaskController', function () {
         );
       } catch (e) {
         assert.equal(
-          e,
-          'Error: MetamaskController:getKeyringForDevice - Unknown device',
+          e.message,
+          'MetamaskController:getKeyringForDevice - Unknown device',
         );
       }
     });
@@ -553,8 +557,8 @@ describe('MetaMaskController', function () {
         await metamaskController.forgetDevice('Some random device name');
       } catch (e) {
         assert.equal(
-          e,
-          'Error: MetamaskController:getKeyringForDevice - Unknown device',
+          e.message,
+          'MetamaskController:getKeyringForDevice - Unknown device',
         );
       }
     });
@@ -653,43 +657,21 @@ describe('MetaMaskController', function () {
   });
 
   describe('#setCustomRpc', function () {
-    let rpcUrl;
-
-    beforeEach(function () {
-      rpcUrl = metamaskController.setCustomRpc(
+    it('returns custom RPC that when called', async function () {
+      const rpcUrl = await metamaskController.setCustomRpc(
         CUSTOM_RPC_URL,
         CUSTOM_RPC_CHAIN_ID,
       );
+      assert.equal(rpcUrl, CUSTOM_RPC_URL);
     });
 
-    it('returns custom RPC that when called', async function () {
-      assert.equal(await rpcUrl, CUSTOM_RPC_URL);
-    });
-
-    it('changes the network controller rpc', function () {
+    it('changes the network controller rpc', async function () {
+      await metamaskController.setCustomRpc(
+        CUSTOM_RPC_URL,
+        CUSTOM_RPC_CHAIN_ID,
+      );
       const networkControllerState = metamaskController.networkController.store.getState();
       assert.equal(networkControllerState.provider.rpcUrl, CUSTOM_RPC_URL);
-    });
-  });
-
-  describe('#setCurrentCurrency', function () {
-    let defaultMetaMaskCurrency;
-
-    beforeEach(function () {
-      defaultMetaMaskCurrency =
-        metamaskController.currencyRateController.state.currentCurrency;
-    });
-
-    it('defaults to usd', function () {
-      assert.equal(defaultMetaMaskCurrency, 'usd');
-    });
-
-    it('sets currency to JPY', function () {
-      metamaskController.setCurrentCurrency('JPY', noop);
-      assert.equal(
-        metamaskController.currencyRateController.state.currentCurrency,
-        'JPY',
-      );
     });
   });
 
@@ -743,7 +725,7 @@ describe('MetaMaskController', function () {
       selectedAddressStub.returns('0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc');
       getNetworkstub.returns(42);
 
-      metamaskController.txController.txStateManager._saveTxList([
+      metamaskController.txController.txStateManager._addTransactionsToState([
         createTxMeta({
           id: 1,
           status: TRANSACTION_STATUSES.UNAPPROVED,
@@ -771,7 +753,7 @@ describe('MetaMaskController', function () {
 
       await metamaskController.resetAccount();
       assert.equal(
-        metamaskController.txController.txStateManager.getTx(1),
+        metamaskController.txController.txStateManager.getTransaction(1),
         undefined,
       );
     });
@@ -906,7 +888,10 @@ describe('MetaMaskController', function () {
       try {
         await metamaskController.signMessage(messages[0].msgParams);
       } catch (error) {
-        assert.equal(error.message, 'message length is invalid');
+        assert.equal(
+          error.message,
+          'Expected message to be an Uint8Array with length 32',
+        );
       }
     });
   });

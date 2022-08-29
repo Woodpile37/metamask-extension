@@ -38,9 +38,6 @@
   "addNetwork": {
     "message": "Προσθήκη Δικτύου"
   },
-  "addRecipient": {
-    "message": "Προσθήκη Παραλήπτη"
-  },
   "addSuggestedTokens": {
     "message": "Προσθέστε τα Προτεινόμενα Tokens"
   },
@@ -51,9 +48,6 @@
     "message": "π.χ. John D."
   },
   "addToken": {
-    "message": "Προσθήκη Token"
-  },
-  "addTokens": {
     "message": "Προσθήκη Token"
   },
   "advanced": {
@@ -142,9 +136,6 @@
   },
   "browserNotSupported": {
     "message": "Το Πρόγραμμα Περιήγησής σας δεν υποστηρίζεται..."
-  },
-  "builtInCalifornia": {
-    "message": "Το MetaMask έχει σχεδιαστεί και αναπτυχθεί στην Καλιφόρνια."
   },
   "buyWithWyre": {
     "message": "Αγοράστε ETH με το Wyre"
@@ -276,7 +267,7 @@
     "message": "Τα δεκαδικά πρέπει να είναι τουλάχιστον 0 και όχι πάνω από 36."
   },
   "defaultNetwork": {
-    "message": "Το προεπιλεγμένο δίκτυο για συναλλαγές Ether είναι το Main Net."
+    "message": "Το προεπιλεγμένο δίκτυο για συναλλαγές Ether είναι το Mainnet."
   },
   "delete": {
     "message": "Διαγραφή"
@@ -304,9 +295,6 @@
   },
   "done": {
     "message": "Τέλος"
-  },
-  "dontHaveAHardwareWallet": {
-    "message": "Δεν έχετε πορτοφόλι υλικού;"
   },
   "downloadGoogleChrome": {
     "message": "Κατεβάστε το Google Chrome"
@@ -440,9 +428,6 @@
     "message": "Πάρτε Ether από μια πηγή για το $1",
     "description": "Displays network name for Ether faucet"
   },
-  "getHelp": {
-    "message": "Πάρτε Βοήθεια."
-  },
   "getStarted": {
     "message": "Έναρξη"
   },
@@ -463,9 +448,6 @@
   },
   "hardwareWalletsMsg": {
     "message": "Επιλέξτε ένα πορτοφόλι εξοπλισμού το οποίο θέλετε να χρησιμοποιήσετε με το MetaMask"
-  },
-  "havingTroubleConnecting": {
-    "message": "Δυσκολεύεστε να συνδεθείτε;"
   },
   "here": {
     "message": "εδώ",
@@ -496,21 +478,12 @@
   "importAccountSeedPhrase": {
     "message": "Εισαγωγή λογαριασμού με Φράση Φύτρου"
   },
-  "importUsingSeed": {
-    "message": "Εισαγωγή με χρήση φάσης σπόρου λογαριασμού"
-  },
   "importWallet": {
     "message": "Εισαγωγή Πορτοφολιού"
-  },
-  "importYourExisting": {
-    "message": "Εισαγάγετε το υπάρχον πορτοφόλι σας χρησιμοποιώντας μια φράση φύτρου 12 λέξεων"
   },
   "imported": {
     "message": "Έγινε εισαγωγή",
     "description": "status showing that an account has been fully loaded into the keyring"
-  },
-  "infoHelp": {
-    "message": "Πληροφορίες & Βοήθεια"
   },
   "initialTransactionConfirmed": {
     "message": "Η αρχική σας συναλλαγή επιβεβαιώθηκε από το δίκτυο. Πατήστε ΕΝΤΑΞΕΙ για επιστροφή."
@@ -561,7 +534,7 @@
   "letsGoSetUp": {
     "message": "Ναι, ας το εγκαταστήσουμε!"
   },
-  "likeToAddTokens": {
+  "likeToImportTokens": {
     "message": "Θέλετε να προσθέσετε αυτά τα token;"
   },
   "links": {
@@ -603,20 +576,11 @@
   "metamaskVersion": {
     "message": "Έκδοση MetaMask "
   },
-  "mobileSyncText": {
-    "message": "Παρακαλούμε δώστε τον κωδικό πρόσβασής σας για να επιβεβαιώσετε ότι είστε εσείς!"
-  },
   "mustSelectOne": {
     "message": "Πρέπει να επιλέξετε 1 τουλάχιστον διακριτικό."
   },
   "myAccounts": {
     "message": "Οι Λογαριασμοί μου"
-  },
-  "myWalletAccounts": {
-    "message": "Λογαριασμοί Πορτοφολιού"
-  },
-  "myWalletAccountsDescription": {
-    "message": "Όλοι οι λογαριασμοί σας που έχετε δημιουργήσει στο MetaMask θα προστεθούν αυτόματα σε αυτήν την ενότητα."
   },
   "needEtherInWallet": {
     "message": "Για να αλληλεπιδράσετε με αποκεντρωμένες εφαρμογές χρησιμοποιώντας το MetaMask, θα χρειαστείτε Ether στο πορτοφόλι σας."
@@ -713,9 +677,6 @@
   "optionalCurrencySymbol": {
     "message": "Σύμβολο (προαιρετικό)"
   },
-  "orderOneHere": {
-    "message": "Παραγγείλετε ένα Trezor ή Ledger και κρατήστε τα χρήματά σας σε παγωμένη αποθήκευση"
-  },
   "origin": {
     "message": "Προέλευση"
   },
@@ -775,14 +736,8 @@
   "readdToken": {
     "message": "Μπορείτε να προσθέσετε ξανά αυτό το διακριτικό στο μέλλον μεταβαίνοντας στο \"Πρόσθεση διακριτικού\" στο μενού επιλογών των λογαριασμών σας."
   },
-  "readyToConnect": {
-    "message": "Έτοιμοι να Συνδεθείτε;"
-  },
   "recents": {
     "message": "Πρόσφατα"
-  },
-  "recipientAddress": {
-    "message": "Διεύθυνση Παραλήπτη"
   },
   "recipientAddressPlaceholder": {
     "message": "Αναζήτηση, δημόσια διεύθυνση (0x) ή ENS"
@@ -834,9 +789,6 @@
   },
   "restoreAccountWithSeed": {
     "message": "Επαναφέρετε τον Λογαριασμό σας με Φράση Επαναφοράς"
-  },
-  "restoreFromSeed": {
-    "message": "Επαναφορά λογαριασμού;"
   },
   "revealSeedWords": {
     "message": "Αποκάλυψη Λέξεων Φύτρου"
@@ -892,9 +844,6 @@
   "secretBackupPhraseWarning": {
     "message": "ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Ποτέ μην αποκαλύπτετε την εφεδρική φράση. Όποιος έχει αυτή τη φράση μπορεί να πάρει τα Ether σας για πάντα."
   },
-  "secretPhrase": {
-    "message": "Εισαγάγετε εδώ τη μυστική φράση δώδεκα λέξεων για να επαναφέρετε το χρηματοκιβώτιό σας."
-  },
   "securityAndPrivacy": {
     "message": "Ασφάλεια και Απόρρητο"
   },
@@ -936,9 +885,6 @@
   },
   "sendTokens": {
     "message": "Στείλτε Tokens"
-  },
-  "sentEther": {
-    "message": "απεσταλμένα ether"
   },
   "separateEachWord": {
     "message": "Διαχωρίστε κάθε λέξη με ένα μόνο κενό"
@@ -1005,24 +951,6 @@
   },
   "stateLogsDescription": {
     "message": "Τα αρχεία καταγραφής κατάστασης περιέχουν τις διευθύνσεις του δημόσιου λογαριασμού σας και τις συναλλαγές οι οποίες έχουν αποσταλεί."
-  },
-  "step1HardwareWallet": {
-    "message": "1. Συνδέστε το Πορτοφόλι Εξοπλισμού"
-  },
-  "step1HardwareWalletMsg": {
-    "message": "Συνδέστε το πορτοφόλι υλικού απευθείας στον υπολογιστή σας."
-  },
-  "step2HardwareWallet": {
-    "message": "2. Επιλέξτε ένα Λογαριασμό"
-  },
-  "step2HardwareWalletMsg": {
-    "message": "Επιλέξτε τον λογαριασμό που θέλετε να δείτε. Μπορείτε να επιλέξετε έναν μόνο κάθε φορά."
-  },
-  "step3HardwareWallet": {
-    "message": "3. Ξεκινήστε να χρησιμοποιείτε το dApps και άλλα!"
-  },
-  "step3HardwareWalletMsg": {
-    "message": "Χρησιμοποιήστε τον λογαριασμό εξοπλισμού σας όπως θα κάνατε με οποιονδήποτε λογαριασμό του Ethereum. Συνδεθείτε στο dApps, στείλτε το Eth, αγοράστε και αποθηκεύστε ERC20 tokens και Non-Fungible tokens όπως το CryptoKitties."
   },
   "storePhrase": {
     "message": "Αποθηκεύστε αυτήν τη φράση σε έναν διαχειριστή κωδικών πρόσβασης όπως το 1Password."
@@ -1192,15 +1120,6 @@
   },
   "viewContact": {
     "message": "Εμφάνιση Επαφής"
-  },
-  "viewOnCustomBlockExplorer": {
-    "message": "Προβολή σε $1"
-  },
-  "viewOnEtherscan": {
-    "message": "Προβολή στο Etherscan"
-  },
-  "viewinExplorer": {
-    "message": "Προβολή στον Εξερευνητή"
   },
   "visitWebSite": {
     "message": "Επισκεφθείτε τον ιστότοπό μας"

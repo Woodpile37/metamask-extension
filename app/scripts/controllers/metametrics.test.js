@@ -11,7 +11,6 @@ import MetaMetricsController from './metametrics';
 import { NETWORK_EVENTS } from './network';
 
 const segment = createSegmentMock(2, 10000);
-const segmentLegacy = createSegmentMock(2, 10000);
 
 const VERSION = '0.0.1-test';
 const NETWORK = 'Mainnet';
@@ -85,13 +84,11 @@ function getMockPreferencesStore({ currentLocale = LOCALE } = {}) {
 function getMetaMetricsController({
   participateInMetaMetrics = true,
   metaMetricsId = TEST_META_METRICS_ID,
-  metaMetricsSendCount = 0,
   preferencesStore = getMockPreferencesStore(),
   networkController = getMockNetworkController(),
 } = {}) {
   return new MetaMetricsController({
     segment,
-    segmentLegacy,
     getNetworkIdentifier: networkController.getNetworkIdentifier.bind(
       networkController,
     ),
@@ -108,7 +105,6 @@ function getMetaMetricsController({
     initState: {
       participateInMetaMetrics,
       metaMetricsId,
-      metaMetricsSendCount,
     },
   });
 }
@@ -200,14 +196,6 @@ describe('MetaMetricsController', function () {
     });
   });
 
-  describe('setMetaMetricsSendCount', function () {
-    it('should update the send count in state', function () {
-      const metaMetricsController = getMetaMetricsController();
-      metaMetricsController.setMetaMetricsSendCount(1);
-      assert.equal(metaMetricsController.state.metaMetricsSendCount, 1);
-    });
-  });
-
   describe('trackEvent', function () {
     it('should not track an event if user is not participating in metametrics', function () {
       const mock = sinon.mock(segment);
@@ -286,7 +274,7 @@ describe('MetaMetricsController', function () {
     });
 
     it('should track a legacy event', function () {
-      const mock = sinon.mock(segmentLegacy);
+      const mock = sinon.mock(segment);
       const metaMetricsController = getMetaMetricsController();
       mock
         .expects('track')
@@ -297,6 +285,7 @@ describe('MetaMetricsController', function () {
           context: DEFAULT_TEST_CONTEXT,
           properties: {
             test: 1,
+            legacy_event: true,
             ...DEFAULT_EVENT_PROPERTIES,
           },
         });
@@ -335,61 +324,6 @@ describe('MetaMetricsController', function () {
           test: 1,
         },
       });
-      mock.verify();
-    });
-
-    it('should use anonymousId when metametrics send count is not trackable in send flow', function () {
-      const mock = sinon.mock(segment);
-      const metaMetricsController = getMetaMetricsController({
-        metaMetricsSendCount: 1,
-      });
-      mock
-        .expects('track')
-        .once()
-        .withArgs({
-          event: 'Send Fake Event',
-          anonymousId: METAMETRICS_ANONYMOUS_ID,
-          context: DEFAULT_TEST_CONTEXT,
-          properties: {
-            test: 1,
-            ...DEFAULT_EVENT_PROPERTIES,
-          },
-        });
-      metaMetricsController.trackEvent({
-        event: 'Send Fake Event',
-        category: 'Unit Test',
-        properties: {
-          test: 1,
-        },
-      });
-      mock.verify();
-    });
-
-    it('should use user metametrics id when metametrics send count is trackable in send flow', function () {
-      const mock = sinon.mock(segment);
-      const metaMetricsController = getMetaMetricsController();
-      mock
-        .expects('track')
-        .once()
-        .withArgs({
-          event: 'Send Fake Event',
-          userId: TEST_META_METRICS_ID,
-          context: DEFAULT_TEST_CONTEXT,
-          properties: {
-            test: 1,
-            ...DEFAULT_EVENT_PROPERTIES,
-          },
-        });
-      metaMetricsController.trackEvent(
-        {
-          event: 'Send Fake Event',
-          category: 'Unit Test',
-          properties: {
-            test: 1,
-          },
-        },
-        { metaMetricsSendCount: 0 },
-      );
       mock.verify();
     });
 
@@ -544,7 +478,6 @@ describe('MetaMetricsController', function () {
   afterEach(function () {
     // flush the queues manually after each test
     segment.flush();
-    segmentLegacy.flush();
     sinon.restore();
   });
 });

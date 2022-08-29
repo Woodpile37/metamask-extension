@@ -2,7 +2,9 @@
 const { promises: fs } = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');
+const glob = require('fast-glob');
 const VERSION = require('../dist/chrome/manifest.json').version; // eslint-disable-line import/no-unresolved
+const { getHighlights } = require('./highlights');
 
 start().catch(console.error);
 
@@ -39,21 +41,35 @@ async function start() {
     .join(', ');
 
   // links to bundle browser builds
-  const bundles = [
-    'background',
-    'ui',
-    'inpage',
-    'contentscript',
-    'ui-libs',
-    'bg-libs',
-    'phishing-detect',
-  ];
-  const bundleLinks = bundles
-    .map((bundle) => {
-      const url = `${BUILD_LINK_BASE}/build-artifacts/source-map-explorer/${bundle}.html`;
-      return `<a href="${url}">${bundle}</a>`;
-    })
-    .join(', ');
+  const bundles = {};
+  const fileType = '.html';
+  const sourceMapRoot = '/build-artifacts/source-map-explorer/';
+  const bundleFiles = await glob(`.${sourceMapRoot}*${fileType}`);
+
+  bundleFiles.forEach((bundleFile) => {
+    const fileName = bundleFile.split(sourceMapRoot)[1];
+    const bundleName = fileName.split(fileType)[0];
+    const url = `${BUILD_LINK_BASE}${sourceMapRoot}${fileName}`;
+    let fileRoot = bundleName;
+    let fileIndex = bundleName.match(/-[0-9]{1,}$/u)?.index;
+
+    if (fileIndex) {
+      fileRoot = bundleName.slice(0, fileIndex);
+      fileIndex = bundleName.slice(fileIndex + 1, bundleName.length);
+    }
+
+    const link = `<a href="${url}">${fileIndex || fileRoot}</a>`;
+
+    if (fileRoot in bundles) {
+      bundles[fileRoot].push(link);
+    } else {
+      bundles[fileRoot] = [link];
+    }
+  });
+
+  const bundleMarkup = `<ul>${Object.keys(bundles)
+    .map((key) => `<li>${key}: ${bundles[key].join(', ')}</li>`)
+    .join('')}</ul>`;
 
   const coverageUrl = `${BUILD_LINK_BASE}/coverage/index.html`;
   const coverageLink = `<a href="${coverageUrl}">Report</a>`;
@@ -70,17 +86,20 @@ async function start() {
 
   const contentRows = [
     `builds: ${buildLinks}`,
-    `bundle viz: ${bundleLinks}`,
     `build viz: ${depVizLink}`,
     `code coverage: ${coverageLink}`,
     `storybook: ${storybookLink}`,
     `<a href="${allArtifactsUrl}">all artifacts</a>`,
+    `<details>
+       <summary>bundle viz:</summary>
+       ${bundleMarkup}
+     </details>`,
   ];
   const hiddenContent = `<ul>${contentRows
     .map((row) => `<li>${row}</li>`)
     .join('\n')}</ul>`;
   const exposedContent = `Builds ready [${SHORT_SHA1}]`;
-  const artifactsBody = `<details><summary>${exposedContent}</summary>${hiddenContent}</details>`;
+  const artifactsBody = `<details><summary>${exposedContent}</summary>${hiddenContent}</details>\n\n`;
 
   const benchmarkResults = {};
   for (const platform of platforms) {
@@ -106,7 +125,7 @@ async function start() {
 
   const summaryPlatform = 'chrome';
   const summaryPage = 'home';
-  let commentBody;
+  let commentBody = artifactsBody;
   if (benchmarkResults[summaryPlatform]) {
     try {
       const summaryPageLoad = Math.round(
@@ -178,15 +197,23 @@ async function start() {
         .join('')}</tr></thead>`;
       const benchmarkTableBody = `<tbody>${tableRows.join('')}</tbody>`;
       const benchmarkTable = `<table>${benchmarkTableHeader}${benchmarkTableBody}</table>`;
-      const benchmarkBody = `<details><summary>${benchmarkSummary}</summary>${benchmarkTable}</details>`;
-      commentBody = `${artifactsBody}${benchmarkBody}`;
+      const benchmarkBody = `<details><summary>${benchmarkSummary}</summary>${benchmarkTable}</details>\n\n`;
+      commentBody += `${benchmarkBody}`;
     } catch (error) {
       console.error(`Error constructing benchmark results: '${error}'`);
-      commentBody = artifactsBody;
     }
   } else {
     console.log(`No results for ${summaryPlatform} found; skipping benchmark`);
-    commentBody = artifactsBody;
+  }
+
+  try {
+    const highlights = await getHighlights({ artifactBase: BUILD_LINK_BASE });
+    if (highlights) {
+      const highlightsBody = `### highlights:\n${highlights}\n`;
+      commentBody += highlightsBody;
+    }
+  } catch (error) {
+    console.error(`Error constructing highlight results: '${error}'`);
   }
 
   const JSON_PAYLOAD = JSON.stringify({ body: commentBody });
@@ -199,7 +226,7 @@ async function start() {
     body: JSON_PAYLOAD,
     headers: {
       'User-Agent': 'metamaskbot',
-      Authorization: `token ${GITHUB_COMMENT_TOKEN}`,
+      'Authorization': `token ${GITHUB_COMMENT_TOKEN}`,
     },
   });
   if (!response.ok) {

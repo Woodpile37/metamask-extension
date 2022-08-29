@@ -25,7 +25,10 @@ workflows:
               only:
                 - /^Version-v(\d+)[.](\d+)[.](\d+)/
       - prep-deps
-      - test-deps
+      - test-deps-audit
+      - test-deps-depcheck:
+          requires:
+            - prep-deps
       - validate-lavamoat-config:
           filters:
             branches:
@@ -50,6 +53,9 @@ workflows:
             - prep-deps
       - test-lint-shellcheck
       - test-lint-lockfile:
+          requires:
+            - prep-deps
+      - test-lint-changelog:
           requires:
             - prep-deps
       - test-e2e-chrome:
@@ -83,6 +89,7 @@ workflows:
             - test-lint
             - test-lint-shellcheck
             - test-lint-lockfile
+            - test-lint-changelog
             - test-unit
             - test-unit-global
             - validate-source-maps
@@ -124,27 +131,37 @@ jobs:
       - attach_workspace:
           at: .
       - run:
+          name: Bump manifest version
+          command: .circleci/scripts/release-bump-manifest-version.sh
+      - run:
+          name: Update changelog
+          command: yarn update-changelog --rc
+      - run:
+          name: Commit changes
+          command: .circleci/scripts/release-commit-version-bump.sh
+      - run:
           name: Create GitHub Pull Request for version
-          command: |
-            .circleci/scripts/release-bump-changelog-version.sh
-            .circleci/scripts/release-bump-manifest-version.sh
-            .circleci/scripts/release-create-release-pr.sh
+          command: .circleci/scripts/release-create-release-pr.sh
 
   prep-deps:
     executor: node-browsers
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
+          key: dependency-cache-v1-{{ checksum "yarn.lock" }}
       - run:
           name: Install deps
           command: |
             .circleci/scripts/deps-install.sh
       - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
+          key: dependency-cache-v1-{{ checksum "yarn.lock" }}
           paths:
             - node_modules/
             - build-artifacts/yarn-install-har/
+      - run:
+          name: Postinstall
+          command: |
+            yarn setup:postinstall
       - persist_to_workspace:
           root: .
           paths:
@@ -272,7 +289,34 @@ jobs:
           name: lockfile-lint
           command: yarn lint:lockfile
 
-  test-deps:
+  test-lint-changelog:
+    executor: node-browsers
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - when:
+          condition:
+            not:
+              matches:
+                pattern: /^Version-v(\d+)[.](\d+)[.](\d+)$/
+                value: << pipeline.git.branch >>
+          steps:
+            - run:
+                name: Validate changelog
+                command: yarn lint:changelog
+      - when:
+          condition:
+            matches:
+              pattern: /^Version-v(\d+)[.](\d+)[.](\d+)$/
+              value: << pipeline.git.branch >>
+          steps:
+            - run:
+                name: Validate release candidate changelog
+                command: yarn lint:changelog:rc
+
+
+  test-deps-audit:
     executor: node-browsers
     steps:
       - checkout
@@ -281,6 +325,16 @@ jobs:
       - run:
           name: yarn audit
           command: .circleci/scripts/yarn-audit.sh
+
+  test-deps-depcheck:
+    executor: node-browsers
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: depcheck
+          command: yarn depcheck
 
   test-e2e-chrome:
     executor: node-browsers
@@ -302,7 +356,7 @@ jobs:
           command: |
             if .circleci/scripts/test-run-e2e.sh
             then
-              yarn test:e2e:chrome
+              yarn test:e2e:chrome --retries 2
             fi
           no_output_timeout: 20m
       - store_artifacts:
@@ -329,7 +383,7 @@ jobs:
           command: |
             if .circleci/scripts/test-run-e2e.sh
             then
-              yarn test:e2e:chrome:metrics
+              yarn test:e2e:chrome:metrics --retries 2
             fi
           no_output_timeout: 20m
       - store_artifacts:
@@ -337,7 +391,7 @@ jobs:
           destination: test-artifacts
 
   test-e2e-firefox:
-    executor: node-browsers
+    executor: node-browsers-medium-plus
     steps:
       - checkout
       - run:
@@ -356,7 +410,7 @@ jobs:
           command: |
             if .circleci/scripts/test-run-e2e.sh
             then
-              yarn test:e2e:firefox
+              yarn test:e2e:firefox --retries 2
             fi
           no_output_timeout: 20m
       - store_artifacts:
@@ -383,7 +437,7 @@ jobs:
           command: |
             if .circleci/scripts/test-run-e2e.sh
             then
-              yarn test:e2e:firefox:metrics
+              yarn test:e2e:firefox:metrics --retries 2
             fi
           no_output_timeout: 20m
       - store_artifacts:
@@ -407,7 +461,7 @@ jobs:
           command: mv ./builds-test ./builds
       - run:
           name: Run page load benchmark
-          command: yarn benchmark:chrome --out test-artifacts/chrome/benchmark/pageload.json
+          command: yarn benchmark:chrome --out test-artifacts/chrome/benchmark/pageload.json --retries 2
       - store_artifacts:
           path: test-artifacts
           destination: test-artifacts
@@ -435,6 +489,9 @@ jobs:
           path: coverage
           destination: coverage
       - store_artifacts:
+          path: jest-coverage
+          destination: jest-coverage
+      - store_artifacts:
           path: test-artifacts
           destination: test-artifacts
       # important: generate lavamoat viz AFTER uploading builds as artifacts
@@ -461,21 +518,18 @@ jobs:
           at: .
       - run:
           name: sentry sourcemaps upload
-          command: yarn sentry:publish
+          command: SENTRY_ORG=metamask SENTRY_PROJECT=metamask yarn sentry:publish
       - run:
           name: Create GitHub release
           command: |
             .circleci/scripts/release-create-gh-release.sh
-      - run:
-          name: Create GitHub Pull Request to sync master with develop
-          command: .circleci/scripts/release-create-master-pr.sh
 
   job-publish-storybook:
     executor: node-browsers
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "5e:a3:2d:35:b6:25:b5:87:b1:41:11:0d:77:50:96:73"
+            - "3d:49:29:f4:b2:e8:ea:af:d1:32:eb:2a:fc:15:85:d8"
       - checkout
       - attach_workspace:
           at: .
@@ -494,11 +548,15 @@ jobs:
       - run:
           name: test:coverage
           command: yarn test:coverage
+      - run:
+          name: test:coverage:jest
+          command: yarn test:coverage:jest
       - persist_to_workspace:
           root: .
           paths:
             - .nyc_output
             - coverage
+            - jest-coverage
   test-unit-global:
     executor: node-browsers
     steps:

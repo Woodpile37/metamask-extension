@@ -28,5 +28,11 @@ export const MESSAGE_TYPE = {
   WATCH_ASSET: 'wallet_watchAsset',
   WATCH_ASSET_LEGACY: 'metamask_watchAsset',
   ADD_ETHEREUM_CHAIN: 'wallet_addEthereumChain',
-  SWITCH_ETHEREUM_CHAIN: 'metamask_switchEthereumChain',
+  SWITCH_ETHEREUM_CHAIN: 'wallet_switchEthereumChain',
+};
+
+export const POLLING_TOKEN_ENVIRONMENT_TYPES = {
+  [ENVIRONMENT_TYPE_POPUP]: 'popupGasPollTokens',
+  [ENVIRONMENT_TYPE_NOTIFICATION]: 'notificationGasPollTokens',
+  [ENVIRONMENT_TYPE_FULLSCREEN]: 'fullScreenGasPollTokens',
 };

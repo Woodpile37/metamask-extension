@@ -1,6 +1,6 @@
 import EthQuery from 'ethjs-query';
 import log from 'loglevel';
-import ethUtil from 'ethereumjs-util';
+import { addHexPrefix } from 'ethereumjs-util';
 import { cloneDeep } from 'lodash';
 import { hexToBn, BnMultiplyByFraction, bnToHex } from '../../lib/util';
 
@@ -62,8 +62,11 @@ export default class TxGasUtil {
     // `eth_estimateGas` can fail if the user has insufficient balance for the
     // value being sent, or for the gas cost. We don't want to check their
     // balance here, we just want the gas estimate. The gas price is removed
-    // to skip those balance checks. We check balance elsewhere.
+    // to skip those balance checks. We check balance elsewhere. We also delete
+    // maxFeePerGas and maxPriorityFeePerGas to support EIP-1559 txs.
     delete txParams.gasPrice;
+    delete txParams.maxFeePerGas;
+    delete txParams.maxPriorityFeePerGas;
 
     // estimate tx gas requirements
     return await this.query.estimateGas(txParams);
@@ -103,7 +106,7 @@ export default class TxGasUtil {
 
     // add additional gas buffer to our estimation for safety
     const gasLimit = this.addGasBuffer(
-      ethUtil.addHexPrefix(estimatedGasHex),
+      addHexPrefix(estimatedGasHex),
       blockGasLimit,
       multiplier,
     );

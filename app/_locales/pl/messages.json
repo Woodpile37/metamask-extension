@@ -38,9 +38,6 @@
   "addNetwork": {
     "message": "Dodaj sieć"
   },
-  "addRecipient": {
-    "message": "Dodaj odbiorcę"
-  },
   "addSuggestedTokens": {
     "message": "Dodaj sugerowane tokeny."
   },
@@ -52,9 +49,6 @@
   },
   "addToken": {
     "message": "Dodaj token"
-  },
-  "addTokens": {
-    "message": "Dodaj tokeny"
   },
   "advanced": {
     "message": "Zaawansowane"
@@ -142,9 +136,6 @@
   },
   "browserNotSupported": {
     "message": "Twoja przeglądarka nie jest obsługiwana..."
-  },
-  "builtInCalifornia": {
-    "message": "MetaMask został zaprojektowany i stworzony w Kaliforni."
   },
   "buyWithWyre": {
     "message": "Kup ETH poprzez Wyre"
@@ -279,7 +270,7 @@
     "message": "Liczb po przecinku musi być co najmniej 0 i nie więcej niż 36."
   },
   "defaultNetwork": {
-    "message": "Domyślna sieć dla Eteru to Main Net."
+    "message": "Domyślna sieć dla Eteru to Mainnet."
   },
   "delete": {
     "message": "Usuń"
@@ -307,9 +298,6 @@
   },
   "done": {
     "message": "Gotowe"
-  },
-  "dontHaveAHardwareWallet": {
-    "message": "Nie masz portfela sprzętowego?"
   },
   "downloadGoogleChrome": {
     "message": "Ściągnij Google Chrome"
@@ -443,9 +431,6 @@
     "message": "Zdobądź Eter ze źródła za $1",
     "description": "Displays network name for Ether faucet"
   },
-  "getHelp": {
-    "message": "Po pomoc."
-  },
   "getStarted": {
     "message": "Rozpocznij"
   },
@@ -466,9 +451,6 @@
   },
   "hardwareWalletsMsg": {
     "message": "Wybierz portfel sprzętowy, którego chcesz użyć z MetaMaskiem"
-  },
-  "havingTroubleConnecting": {
-    "message": "Problem z połączeniem?"
   },
   "here": {
     "message": "tutaj",
@@ -499,21 +481,12 @@
   "importAccountSeedPhrase": {
     "message": "Zaimportuj konto za pomocą frazy seed"
   },
-  "importUsingSeed": {
-    "message": "Importuj przy pomocy frazy seed konta"
-  },
   "importWallet": {
     "message": "Importuj portfel"
-  },
-  "importYourExisting": {
-    "message": "Zaimportuj istniejący portfel, wprowadzając 12 słów frazy seed"
   },
   "imported": {
     "message": "Zaimportowane",
     "description": "status showing that an account has been fully loaded into the keyring"
-  },
-  "infoHelp": {
-    "message": "Info & pomoc"
   },
   "initialTransactionConfirmed": {
     "message": "Twoja transakcja została potwierdzona w sieci. Kliknij OK żeby wrócić."
@@ -564,7 +537,7 @@
   "letsGoSetUp": {
     "message": "Tak, zacznijmy od początku!"
   },
-  "likeToAddTokens": {
+  "likeToImportTokens": {
     "message": "Czy chcesz dodać te tokeny?"
   },
   "links": {
@@ -603,20 +576,11 @@
   "metamaskVersion": {
     "message": "Wersja MetaMask"
   },
-  "mobileSyncText": {
-    "message": "Wpisz hasło, aby potwierdzić, że to Ty!"
-  },
   "mustSelectOne": {
     "message": "Należy wybrać co najmniej 1 token."
   },
   "myAccounts": {
     "message": "Moje konta"
-  },
-  "myWalletAccounts": {
-    "message": "Moja konta portfeli"
-  },
-  "myWalletAccountsDescription": {
-    "message": "Wszystkie Twoje konta utworzone w MetaMask zostaną automatycznie dodane do tej sekcji."
   },
   "needEtherInWallet": {
     "message": "Żeby skorzystać ze zdecentraliowanych aplikacji (dApps) przy pomocy MetaMask, potrzebujesz Eteru w swoim portfelu."
@@ -710,9 +674,6 @@
   "optionalCurrencySymbol": {
     "message": "Symbol (opcjonalnie)"
   },
-  "orderOneHere": {
-    "message": "Zamów Trezor lub Ledger i trzymaj swoje środki w portfelu sprzętowym."
-  },
   "origin": {
     "message": "Pochodzenie"
   },
@@ -772,14 +733,8 @@
   "readdToken": {
     "message": "Możesz później ponownie dodać ten token poprzez \"Dodaj token\" w opcjach menu swojego konta."
   },
-  "readyToConnect": {
-    "message": "Gotowy na połączenie?"
-  },
   "recents": {
     "message": "Ostatnie"
-  },
-  "recipientAddress": {
-    "message": "Adres odbiorcy"
   },
   "recipientAddressPlaceholder": {
     "message": "Szukaj, adres publiczny (0x) lub ENS"
@@ -831,9 +786,6 @@
   },
   "restoreAccountWithSeed": {
     "message": "Przywróć konto frazą seed"
-  },
-  "restoreFromSeed": {
-    "message": "Przywrócić konto?"
   },
   "revealSeedWords": {
     "message": "Pokaż słowa seed"
@@ -889,9 +841,6 @@
   "secretBackupPhraseWarning": {
     "message": "OSTRZEŻENIE: Nigdy nie ujawniaj swojej frazy zapasowej. Każdy, kto pozna tę frazę, może bezpowrotnie odebrać Ci kryptowalutę Ether."
   },
-  "secretPhrase": {
-    "message": "Żeby otworzyć schowek, wpisz tutaj swoją frazę dwunastu słów."
-  },
   "securityAndPrivacy": {
     "message": "Bezpieczeństwo i prywatność"
   },
@@ -933,9 +882,6 @@
   },
   "sendTokens": {
     "message": "Wyślij tokeny"
-  },
-  "sentEther": {
-    "message": "wyślij eter"
   },
   "separateEachWord": {
     "message": "Oddziel słowa pojedynczą spacją"
@@ -1002,24 +948,6 @@
   },
   "stateLogsDescription": {
     "message": "Logi stanów zawierają Twoje publiczne adresy kont i wykonanych transakcji."
-  },
-  "step1HardwareWallet": {
-    "message": "1. Podłącz portfel sprzętowy"
-  },
-  "step1HardwareWalletMsg": {
-    "message": "Połącz swój portfel sprzętowy z komputerem."
-  },
-  "step2HardwareWallet": {
-    "message": "2. Wybierz konto"
-  },
-  "step2HardwareWalletMsg": {
-    "message": "Wybierz konto, które chcesz przeglądać. Możesz wybrać tylko jedno konto w danym momencie."
-  },
-  "step3HardwareWallet": {
-    "message": "3. Zacznij używać dystrybuowanych aplikacji (dApps) i wiele więcej!"
-  },
-  "step3HardwareWalletMsg": {
-    "message": "Używaj swojego konta sprzętowego tak, jak używasz jakiegokolwiek konta z Ethereum. Loguj się do dystrybuowanych aplikacji (dApps), wysyłaj Eth, kupuj i przechowaj tokeny ERC20 i niewymienne tokeny, jak np. CryptoKitties."
   },
   "storePhrase": {
     "message": "Przechowuj tę frazę w menedżerze haseł, takim jak 1Password."
@@ -1186,15 +1114,6 @@
   },
   "viewContact": {
     "message": "Wyświetl kontakt"
-  },
-  "viewOnCustomBlockExplorer": {
-    "message": "Wyświetl w $1"
-  },
-  "viewOnEtherscan": {
-    "message": "Zobacz na Etherscan"
-  },
-  "viewinExplorer": {
-    "message": "Wyświetl w przeglądarce"
   },
   "visitWebSite": {
     "message": "Odwiedź naszą stronę"
