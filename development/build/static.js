@@ -115,6 +115,10 @@ function getCopyTargets(
 ) {
   const allCopyTargets = [
     {
+      src: `./node_modules/@metamask/contract-metadata/contract-map.json`,
+      dest: `contract-map.json`,
+    },
+    {
       src: `./app/_locales/`,
       dest: `_locales`,
     },
