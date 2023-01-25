@@ -264,6 +264,16 @@ function defaultFixture() {
             networkConfigurationId: 'networkConfigurationId',
           },
         },
+        networkConfigurations: {
+          networkConfigurationId: {
+            chainId: CHAIN_IDS.LOCALHOST,
+            nickname: 'Localhost 8545',
+            rpcPrefs: {},
+            rpcUrl: 'http://localhost:8545',
+            ticker: 'ETH',
+            networkConfigurationId: 'networkConfigurationId',
+          },
+        },
       },
       OnboardingController: {
         completedOnboarding: true,
@@ -398,6 +408,16 @@ function onboardingFixture() {
             ticker: 'ETH',
             networkConfigurationId: 'networkConfigurationId',
             type: 'rpc',
+          },
+        },
+        networkConfigurations: {
+          networkConfigurationId: {
+            chainId: CHAIN_IDS.LOCALHOST,
+            nickname: 'Localhost 8545',
+            rpcPrefs: {},
+            rpcUrl: 'http://localhost:8545',
+            ticker: 'ETH',
+            networkConfigurationId: 'networkConfigurationId',
           },
         },
       },
