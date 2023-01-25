@@ -211,7 +211,7 @@ const state = {
     },
     providerConfig: {
       type: 'mainnet',
-      nickname: '',
+      chainName: '',
     },
     currencyRates: {},
     preferences: {
