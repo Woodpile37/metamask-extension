@@ -125,6 +125,10 @@ function getActionFunctionById(id, history) {
     [NOTIFICATION_U2F_LEDGER_LIVE]: () => {
       updateViewedNotifications({ [NOTIFICATION_U2F_LEDGER_LIVE]: true });
     },
+    18: () => {
+      updateViewedNotifications({ 18: true });
+      history.push(`${EXPERIMENTAL_ROUTE}#autodetect-nfts`);
+    }
   };
 
   return actionFunctions[id];
