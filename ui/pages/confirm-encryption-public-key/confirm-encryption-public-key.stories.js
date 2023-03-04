@@ -28,11 +28,6 @@ export default {
     encryptionPublicKey: {
       action: 'encryptionPublicKey',
     },
-    conversionRate: {
-      control: {
-        type: 'number',
-      },
-    },
     history: {
       control: {
         type: 'object',
