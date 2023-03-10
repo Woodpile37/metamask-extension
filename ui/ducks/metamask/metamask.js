@@ -28,7 +28,7 @@ const initialState = {
   isAccountMenuOpen: false,
   identities: {},
   unapprovedTxs: {},
-  frequentRpcList: [],
+  networkConfigurations: {},
   addressBook: [],
   contractExchangeRates: {},
   pendingTokens: {},
@@ -165,6 +165,15 @@ export default function reduceMetamask(state = initialState, action) {
         nextNonce: action.payload,
       };
     }
+
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
+    case actionConstants.FORCE_DISABLE_DESKTOP: {
+      return {
+        ...metamaskState,
+        desktopEnabled: false,
+      };
+    }
+    ///: END:ONLY_INCLUDE_IN
 
     default:
       return metamaskState;

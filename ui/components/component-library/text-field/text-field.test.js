@@ -1,5 +1,6 @@
 /* eslint-disable jest/require-top-level-describe */
 import React from 'react';
+import PropTypes from 'prop-types';
 import { fireEvent, render } from '@testing-library/react';
 import { renderWithUserEvent } from '../../../../test/lib/render-helpers';
 
@@ -227,9 +228,19 @@ describe('TextField', () => {
     expect(getByTestId('text-field-required')).toHaveAttribute('required', '');
   });
   it('should render with a custom input and still work', async () => {
-    const CustomInputComponent = React.forwardRef((props, ref) => (
-      <Box ref={ref} as="input" {...props} />
-    ));
+    const CustomInputComponent = React.forwardRef(
+      ({ disableStateStyles, ...props }, ref) => (
+        <Box
+          ref={ref}
+          as="input"
+          {...props}
+          placeholder={`Removing ${disableStateStyles} from ...props spread to prevent error in test`}
+        />
+      ),
+    );
+    CustomInputComponent.propTypes = {
+      disableStateStyles: PropTypes.bool,
+    };
     CustomInputComponent.displayName = 'CustomInputComponent'; // fixes eslint error
     const { getByTestId, user } = renderWithUserEvent(
       <TextField
@@ -244,5 +255,15 @@ describe('TextField', () => {
     expect(textField.value).toBe('text value');
     fireEvent.change(textField, { target: { value: '' } }); // reset value
     expect(textField.value).toBe(''); // value is empty string after reset
+  });
+  it('should render the child Input with disableStateStyles to prevent multiple focus outlines', async () => {
+    const { getByTestId, user } = renderWithUserEvent(
+      <TextField inputProps={{ 'data-testid': 'input' }} />,
+    );
+    const InputComponent = getByTestId('input');
+
+    await user.click(InputComponent);
+    expect(getByTestId('input')).toHaveFocus();
+    expect(getByTestId('input')).toHaveClass('mm-input--disable-state-styles');
   });
 });
