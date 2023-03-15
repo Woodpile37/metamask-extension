@@ -1,8 +1,10 @@
 const { strict: assert } = require('assert');
 const { convertToHexValue, withFixtures } = require('../helpers');
+const FixtureBuilder = require('../fixture-builder');
 
 describe('Navigate transactions', function () {
   const ganacheOptions = {
+    hardfork: 'london',
     accounts: [
       {
         secretKey:
@@ -14,7 +16,9 @@ describe('Navigate transactions', function () {
   it('should navigate the unapproved transactions', async function () {
     await withFixtures(
       {
-        fixtures: 'navigate-transactions',
+        fixtures: new FixtureBuilder()
+          .withTransactionControllerMultipleTransactions()
+          .build(),
         ganacheOptions,
         title: this.test.title,
       },
@@ -102,7 +106,10 @@ describe('Navigate transactions', function () {
     await withFixtures(
       {
         dapp: true,
-        fixtures: 'navigate-transactions',
+        fixtures: new FixtureBuilder()
+          .withPermissionControllerConnectedToTestDapp()
+          .withTransactionControllerMultipleTransactions()
+          .build(),
         ganacheOptions,
         title: this.test.title,
       },
@@ -149,7 +156,9 @@ describe('Navigate transactions', function () {
   it('should reject and remove an unapproved transaction', async function () {
     await withFixtures(
       {
-        fixtures: 'navigate-transactions',
+        fixtures: new FixtureBuilder()
+          .withTransactionControllerMultipleTransactions()
+          .build(),
         ganacheOptions,
         title: this.test.title,
       },
@@ -180,7 +189,9 @@ describe('Navigate transactions', function () {
   it('should confirm and remove an unapproved transaction', async function () {
     await withFixtures(
       {
-        fixtures: 'navigate-transactions',
+        fixtures: new FixtureBuilder()
+          .withTransactionControllerMultipleTransactions()
+          .build(),
         ganacheOptions,
         title: this.test.title,
       },
@@ -211,7 +222,9 @@ describe('Navigate transactions', function () {
   it('should reject and remove all unapproved transactions', async function () {
     await withFixtures(
       {
-        fixtures: 'navigate-transactions',
+        fixtures: new FixtureBuilder()
+          .withTransactionControllerMultipleTransactions()
+          .build(),
         ganacheOptions,
         title: this.test.title,
       },

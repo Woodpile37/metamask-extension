@@ -8,9 +8,6 @@
   "about": {
     "message": "Info"
   },
-  "acceleratingATransaction": {
-    "message": "* Akselerering av en transaksjon ved å bruke en høyere datakraftspris øker sjansene for å bli behandlet av nettverket raskere, men det er ikke alltid garantert."
-  },
   "accessingYourCamera": {
     "message": "Oppretter tilgang til kameraet ditt..."
   },
@@ -50,9 +47,6 @@
   "advanced": {
     "message": "Avansert"
   },
-  "advancedOptions": {
-    "message": "Avanserte valg"
-  },
   "amount": {
     "message": "Sum"
   },
@@ -80,12 +74,6 @@
   },
   "asset": {
     "message": "Ressurs"
-  },
-  "attemptToCancel": {
-    "message": "Forsøk å avbryte"
-  },
-  "attemptToCancelDescription": {
-    "message": "Å sende inn dette forsøket garanterer ikke at den opprinnelige transaksjonen blir kansellert. Hvis kanselleringsforsøket lykkes, vil du bli belastet transaksjonsgebyret ovenfor."
   },
   "attemptingConnect": {
     "message": "Prøver å opprette forbindelse med blokkjede"
@@ -136,17 +124,8 @@
   "browserNotSupported": {
     "message": "Nettleseren din støttes ikke ..."
   },
-  "buyWithWyre": {
-    "message": "Kjøp $1 med Wyre"
-  },
-  "buyWithWyreDescription": {
-    "message": "Wyre lar deg bruke et kredittkort for å sette inn $1 rett på MetaMask-kontoen din."
-  },
   "cancel": {
     "message": "Avbryt"
-  },
-  "cancellationGasFee": {
-    "message": "Kansellering gassavgift"
   },
   "cancelled": {
     "message": "Avbrutt"
@@ -157,9 +136,6 @@
   "chromeRequiredForHardwareWallets": {
     "message": "Du må bruke MetaMask på Google Chrome for å koble deg til maskinvare-lommeboken."
   },
-  "clickToRevealSeed": {
-    "message": "Klikk her for å vise hemmelige ord "
-  },
   "close": {
     "message": "Lukk"
   },
@@ -169,14 +145,8 @@
   "confirmPassword": {
     "message": "Bekreft passord"
   },
-  "confirmSecretBackupPhrase": {
-    "message": "Bekreft din hemmelige gjennopprettingsfrase"
-  },
   "confirmed": {
     "message": "Bekreftet"
-  },
-  "congratulations": {
-    "message": "Gratulerer "
   },
   "connect": {
     "message": "Koble til"
@@ -190,20 +160,8 @@
   "connectingToGoerli": {
     "message": "Oppretter forbindelse med Goerli Test Network"
   },
-  "connectingToKovan": {
-    "message": "Kobler til Kovan testnettverk"
-  },
   "connectingToMainnet": {
     "message": "Forbinder med hoved-Ethereumnettverk "
-  },
-  "connectingToRinkeby": {
-    "message": "Kobler til Rinkeby Test Network "
-  },
-  "connectingToRopsten": {
-    "message": "Kobler til Ropsten testnettverk"
-  },
-  "continueToWyre": {
-    "message": "Fortsett til Wyre "
   },
   "contractDeployment": {
     "message": "Distribusjon av kontrakten"
@@ -229,9 +187,6 @@
   "create": {
     "message": "Opprett"
   },
-  "createAWallet": {
-    "message": "Opprett en lommebok"
-  },
   "createAccount": {
     "message": "Opprett konto"
   },
@@ -246,12 +201,6 @@
   },
   "custom": {
     "message": "Avansert"
-  },
-  "customGas": {
-    "message": "Tilpass Gass"
-  },
-  "customGasSubTitle": {
-    "message": "Økt gebyr kan redusere behandlingstiden, men det er ikke garantert."
   },
   "customToken": {
     "message": "Egendefinert token "
@@ -283,9 +232,6 @@
   "downloadGoogleChrome": {
     "message": "Last ned Google Chrome "
   },
-  "downloadSecretBackup": {
-    "message": "Last ned denne hemmelige gjenopprettingsfrasen og lagre den trygt på ekstern, kryptert harddisk eller lagringsmedium."
-  },
   "downloadStateLogs": {
     "message": "Last ned tilstandslogg"
   },
@@ -298,33 +244,6 @@
   "editContact": {
     "message": "Rediger kontakt"
   },
-  "endOfFlowMessage1": {
-    "message": "Du besto prøven - oppbevar den mnemoniske gjenopprettingsfrasen din på et sikkert sted, det er ditt ansvar! "
-  },
-  "endOfFlowMessage10": {
-    "message": "Ferdig"
-  },
-  "endOfFlowMessage2": {
-    "message": "Tips om sikker lagring "
-  },
-  "endOfFlowMessage3": {
-    "message": "Lagre en sikkerhetskopi på flere steder. "
-  },
-  "endOfFlowMessage4": {
-    "message": "Aldri del frasen med noen."
-  },
-  "endOfFlowMessage5": {
-    "message": "Vær forsiktig med phishing! MetaMask vil aldri be om den mnemoniske gjenopprettingsfrasen din spontant."
-  },
-  "endOfFlowMessage6": {
-    "message": "Hvis du trenger å sikkerhetskopiere seed-frasen din igjen kan du finne den i Innstillinger -> Sikkerhet."
-  },
-  "endOfFlowMessage8": {
-    "message": "MetaMask klarer ikke å gjenopprette den mnemoniske gjenopprettingsfrasen din. Finn ut mer. "
-  },
-  "endOfFlowMessage9": {
-    "message": "Finn ut mer."
-  },
   "ensNotFoundOnCurrentNetwork": {
     "message": "ENS-navn ikke funnet i det gjeldende nettverket. Prøv å bytte til hovednettverket for Ethereum."
   },
@@ -336,9 +255,6 @@
   },
   "enterPasswordContinue": {
     "message": "Skriv inn passord for å fortsette"
-  },
-  "estimatedProcessingTimes": {
-    "message": "Anslått behandlingstid"
   },
   "ethereumPublicAddress": {
     "message": "Ethereum offentlig adresse"
@@ -395,19 +311,6 @@
   "general": {
     "message": "Generell"
   },
-  "getEther": {
-    "message": "Skaff Ether "
-  },
-  "getEtherFromFaucet": {
-    "message": "Få Ether fra en kran for $1",
-    "description": "Displays network name for Ether faucet"
-  },
-  "getStarted": {
-    "message": "Kom i gang"
-  },
-  "happyToSeeYou": {
-    "message": "Vi er glade for å se deg "
-  },
   "hardware": {
     "message": "Maskinvare"
   },
@@ -442,12 +345,6 @@
   },
   "importAccountMsg": {
     "message": "Importerte kontoer blir ikke tilknyttet den opprinnelig opprettede mnemoniske gjenopprettingsfrasen for MetaMask-kontoen din. Finn ut mer om importerte kontoer"
-  },
-  "importAccountSeedPhrase": {
-    "message": "Importer en konto med den mnemoniske gjenopprettingsfrasen "
-  },
-  "importWallet": {
-    "message": "Importér lommebok "
   },
   "imported": {
     "message": "Importert",
@@ -490,9 +387,6 @@
   "knownAddressRecipient": {
     "message": "Kjent kontaktadresse"
   },
-  "kovan": {
-    "message": "Kovan testnettverk"
-  },
   "learnMore": {
     "message": "Lær mer"
   },
@@ -501,9 +395,6 @@
   },
   "ledgerAccountRestriction": {
     "message": "Du må bruke den siste kontoen din før du kan legge til en ny."
-  },
-  "letsGoSetUp": {
-    "message": "Ja, la oss komme i gang!"
   },
   "likeToImportTokens": {
     "message": "Ønsker du å legge til disse tokenene"
@@ -535,14 +426,8 @@
   "memo": {
     "message": "beskjed"
   },
-  "memorizePhrase": {
-    "message": "Memorer denne frasen. "
-  },
   "message": {
     "message": "Melding "
-  },
-  "metamaskDescription": {
-    "message": "Kobler deg til Ethereum og det desentraliserte nettet."
   },
   "metamaskVersion": {
     "message": "MetaMask-versjon "
@@ -572,11 +457,8 @@
   "newAccount": {
     "message": "Ny konto "
   },
-  "newAccountDetectedDialogMessage": {
-    "message": "Ny adresse oppdaget! Klikk her for å legge til adresseboken din."
-  },
   "newAccountNumberName": {
-    "message": "Konto $1 ",
+    "message": "Konto $1",
     "description": "Default name of next account to be created on create account screen"
   },
   "newContact": {
@@ -588,23 +470,11 @@
   "newPassword": {
     "message": "Nytt passord (minimum 8 tegn)"
   },
-  "newToMetaMask": {
-    "message": "Ny på MetaMask? "
-  },
-  "newTotal": {
-    "message": "Ny total"
-  },
-  "newTransactionFee": {
-    "message": "Ny transaksjonsavgift"
-  },
   "next": {
     "message": "Neste"
   },
   "noAddressForName": {
     "message": "Ingen adresse har blitt angitt for dette navnet. "
-  },
-  "noAlreadyHaveSeed": {
-    "message": "Nei, jeg har allerede en mnemonisk gjenopprettingsfrase"
   },
   "noConversionRateAvailable": {
     "message": "Ingen konverteringsrate tilgjengelig "
@@ -713,9 +583,6 @@
   "rejected": {
     "message": "Avvist"
   },
-  "remindMeLater": {
-    "message": "Minn meg på dette senere"
-  },
   "remove": {
     "message": "Fjern"
   },
@@ -734,38 +601,21 @@
   "reset": {
     "message": "Tilbakestill"
   },
-  "resetAccount": {
-    "message": "Tilbakestill konto"
-  },
-  "resetAccountDescription": {
-    "message": "Hvis du tilbakestiller kontoen din vil transaksjonshistorien din slettes. "
-  },
   "restore": {
     "message": "Gjenopprett"
   },
   "revealSeedWords": {
     "message": "Vis frøord"
   },
-  "revealSeedWordsDescription": {
-    "message": "Hvis du noen gang bytter nettlesere eller flytter datamaskiner, trenger du denne mnemoniske gjenopprettingsfrasen for å få tilgang til kontoene dine. Lagre dem på et trygt og hemmelig sted."
-  },
   "revealSeedWordsWarning": {
-    "message": "Disse ordene kan brukes for å stjele alle kontoene dine. "
-  },
-  "revealSeedWordsWarningTitle": {
-    "message": "IKKE del denne frasen med noen! "
-  },
-  "rinkeby": {
-    "message": "Rinkeby testnettverk"
+    "message": "Disse ordene kan brukes for å stjele alle kontoene dine. ",
+    "description": "$1 is bolded text using the message from 'revealSeedWordsWarning2'"
   },
   "rpcUrl": {
     "message": "NY RPC-URL "
   },
   "save": {
     "message": "Lagre"
-  },
-  "saveAsCsvFile": {
-    "message": "Lagre som CSV-fil "
   },
   "scanInstructions": {
     "message": "Plasser QR-koden foran kameraet ditt"
@@ -782,26 +632,14 @@
   "searchTokens": {
     "message": "Søk i sjetonger"
   },
-  "secretBackupPhraseDescription": {
-    "message": "Den hemmelige gjenopprettingsfrasen din gjør det enkelt å sikkerhetskopiere og gjenopprette kontoen din."
-  },
-  "secretBackupPhraseWarning": {
-    "message": "ADVARSEL: Du må aldri avsløre gjenopprettingsfrasen din. Alle som har denne frasen kan ta fra deg Etheren din for alltid."
-  },
   "securityAndPrivacy": {
     "message": "Sikkerhet og personvern"
   },
   "seedPhraseReq": {
     "message": "Mnemoniske gjenopprettingsfraser består av 12 ord "
   },
-  "selectAHigherGasFee": {
-    "message": "Velg en høyere gassavgift for å fremskynde transaksjonsbehandlingen.*"
-  },
   "selectAnAccount": {
     "message": "Velg en konto"
-  },
-  "selectEachPhrase": {
-    "message": "Velg hver frase for å kontrollere at den er riktig."
   },
   "selectHdPath": {
     "message": "Velg HD-bane"
@@ -811,9 +649,6 @@
   },
   "selectType": {
     "message": "Velg type "
-  },
-  "sendAmount": {
-    "message": "Send beløp"
   },
   "sendTokens": {
     "message": "Send tokener"
@@ -848,17 +683,11 @@
   "sign": {
     "message": "Undertegn"
   },
-  "signNotice": {
-    "message": "Signering av denne meldingen kan ha\nfarlige konsekvenser. Signér kun meldinger fra\nnettsteder du stoler fullt og helt på med hele kontoen din. Denne farlige metoden vil bli fjernet i en fremtidig versjon."
-  },
   "signatureRequest": {
     "message": "Signaturforespørsel"
   },
   "signed": {
     "message": "Signert"
-  },
-  "slow": {
-    "message": "Lav"
   },
   "somethingWentWrong": {
     "message": "Oisann! Noe gikk galt. "
@@ -880,9 +709,6 @@
   },
   "stateLogsDescription": {
     "message": "Tilstandslogger inneholder de offentlige kontoadressene og sendte transaksjoner."
-  },
-  "storePhrase": {
-    "message": "Lagre denne frasen i en passordbehandler slik som 1Password."
   },
   "submitted": {
     "message": "Sendt inn"
@@ -919,12 +745,6 @@
   },
   "terms": {
     "message": "Brukervilkår"
-  },
-  "testFaucet": {
-    "message": "Testkran"
-  },
-  "thisWillCreate": {
-    "message": "Dette vil opprette en ny lommebok og mnemonisk gjenopprettingsfrase"
   },
   "to": {
     "message": "Til "
@@ -1041,26 +861,14 @@
   "userName": {
     "message": "Brukernavn"
   },
-  "viewAccount": {
-    "message": "Se konto"
-  },
   "viewContact": {
     "message": "Se kontrakt"
   },
   "visitWebSite": {
     "message": "Besøk nettsiden vår "
   },
-  "welcome": {
-    "message": "Velkommen til MetaMask"
-  },
   "welcomeBack": {
     "message": "Velkommen tilbake!"
-  },
-  "writePhrase": {
-    "message": "Skriv denne frasen på et papir og oppbevar på et sikkert sted. Hvis du vil ha enda mer sikkerhet, kan du skrive det ned på flere papirbiter og oppbevare hver på 2 - 3 forskjellige steder."
-  },
-  "yesLetsTry": {
-    "message": "Ja, la oss prøve"
   },
   "youNeedToAllowCameraAccess": {
     "message": "Du må gi kameratilgang for å bruke denne funksjonen."

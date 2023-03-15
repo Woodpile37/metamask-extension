@@ -1,16 +1,17 @@
 import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import IconCaretDown from '../icon/icon-caret-down';
+import { Icon, ICON_NAMES, ICON_SIZES } from '../../component-library';
 
 const Dropdown = ({
   className,
   disabled = false,
   onChange,
   options,
-  selectedOption = null,
+  selectedOption = '',
   style,
   title,
+  'data-testid': dataTestId,
 }) => {
   const _onChange = useCallback(
     (event) => {
@@ -25,6 +26,7 @@ const Dropdown = ({
     <div className={classnames('dropdown', className)}>
       <select
         className="dropdown__select"
+        data-testid={dataTestId}
         disabled={disabled}
         title={title}
         onChange={_onChange}
@@ -39,7 +41,11 @@ const Dropdown = ({
           );
         })}
       </select>
-      <IconCaretDown size={16} className="dropdown__icon-caret-down" />
+      <Icon
+        name={ICON_NAMES.ARROW_DOWN}
+        size={ICON_SIZES.SM}
+        className="dropdown__icon-caret-down"
+      />
     </div>
   );
 };
@@ -78,6 +84,10 @@ Dropdown.propTypes = {
    * Add inline style for the component
    */
   style: PropTypes.object,
+  /**
+   * Unit testing test id
+   */
+  'data-testid': PropTypes.string,
 };
 
 export default Dropdown;

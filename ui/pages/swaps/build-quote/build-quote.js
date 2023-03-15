@@ -24,11 +24,11 @@ import ActionableMessage from '../../../components/ui/actionable-message/actiona
 import Box from '../../../components/ui/box';
 import Typography from '../../../components/ui/typography';
 import {
-  TYPOGRAPHY,
+  TypographyVariant,
   DISPLAY,
   FLEX_DIRECTION,
   FONT_WEIGHT,
-  COLORS,
+  TextColor,
 } from '../../../helpers/constants/design-system';
 import {
   VIEW_QUOTE_ROUTE,
@@ -69,9 +69,9 @@ import {
   getTokenList,
   isHardwareWallet,
   getHardwareWalletType,
+  getUseCurrencyRateCheck,
 } from '../../../selectors';
 
-import { getValueFromWeiHex } from '../../../helpers/utils/conversions.util';
 import { getURLHostName } from '../../../helpers/utils/util';
 import { usePrevious } from '../../../hooks/usePrevious';
 import { useTokenTracker } from '../../../hooks/useTokenTracker';
@@ -86,7 +86,7 @@ import { EVENT, EVENT_NAMES } from '../../../../shared/constants/metametrics';
 import {
   SWAPS_CHAINID_DEFAULT_BLOCK_EXPLORER_URL_MAP,
   SWAPS_CHAINID_DEFAULT_TOKEN_MAP,
-  TOKEN_BUCKET_PRIORITY,
+  TokenBucketPriority,
 } from '../../../../shared/constants/swaps';
 
 import {
@@ -98,16 +98,16 @@ import {
   setSmartTransactionsOptInStatus,
   clearSmartTransactionFees,
 } from '../../../store/actions';
-import {
-  countDecimals,
-  fetchTokenPrice,
-  fetchTokenBalance,
-} from '../swaps.util';
+import { countDecimals, fetchTokenPrice } from '../swaps.util';
 import SwapsFooter from '../swaps-footer';
 import { isEqualCaseInsensitive } from '../../../../shared/modules/string-utils';
-import { hexToDecimal } from '../../../../shared/lib/metamask-controller-utils';
 import { calcTokenAmount } from '../../../../shared/lib/transactions-controller-utils';
+import { fetchTokenBalance } from '../../../../shared/lib/token-util.ts';
 import { shouldEnableDirectWrapping } from '../../../../shared/lib/swaps-utils';
+import {
+  getValueFromWeiHex,
+  hexToDecimal,
+} from '../../../../shared/modules/conversion.utils';
 
 const fuseSearchKeys = [
   { name: 'name', weight: 0.499 },
@@ -154,6 +154,7 @@ export default function BuildQuote({
 
   const tokenConversionRates = useSelector(getTokenExchangeRates, isEqual);
   const conversionRate = useSelector(getConversionRate);
+  const useCurrencyRateCheck = useSelector(getUseCurrencyRateCheck);
   const hardwareWalletUsed = useSelector(isHardwareWallet);
   const hardwareWalletType = useSelector(getHardwareWalletType);
   const smartTransactionsOptInStatus = useSelector(
@@ -217,13 +218,13 @@ export default function BuildQuote({
     usersTokens: memoizedUsersTokens,
     topTokens: topAssets,
     shuffledTokensList,
-    tokenBucketPriority: TOKEN_BUCKET_PRIORITY.OWNED,
+    tokenBucketPriority: TokenBucketPriority.owned,
   });
   const tokensToSearchSwapTo = useTokensToSearch({
     usersTokens: memoizedUsersTokens,
     topTokens: topAssets,
     shuffledTokensList,
-    tokenBucketPriority: TOKEN_BUCKET_PRIORITY.TOP,
+    tokenBucketPriority: TokenBucketPriority.top,
   });
   const selectedToToken =
     tokensToSearchSwapFrom.find(({ address }) =>
@@ -255,13 +256,13 @@ export default function BuildQuote({
     fromTokenInputValue || 0,
     fromTokenSymbol,
     {
-      showFiat: true,
+      showFiat: useCurrencyRateCheck,
     },
     true,
   );
   const swapFromEthFiatValue = useEthFiatAmount(
     fromTokenInputValue || 0,
-    { showFiat: true },
+    { showFiat: useCurrencyRateCheck },
     true,
   );
   const swapFromFiatValue = isSwapsDefaultTokenSymbol(fromTokenSymbol, chainId)
@@ -309,24 +310,26 @@ export default function BuildQuote({
         isEqualCaseInsensitive(usersToken.address, token.address),
       )
     ) {
-      fetchTokenBalance(token.address, selectedAccountAddress).then(
-        (fetchedBalance) => {
-          if (fetchedBalance?.balance) {
-            const balanceAsDecString = fetchedBalance.balance.toString(10);
-            const userTokenBalance = calcTokenAmount(
-              balanceAsDecString,
-              token.decimals,
-            );
-            dispatch(
-              setSwapsFromToken({
-                ...token,
-                string: userTokenBalance.toString(10),
-                balance: balanceAsDecString,
-              }),
-            );
-          }
-        },
-      );
+      fetchTokenBalance(
+        token.address,
+        selectedAccountAddress,
+        global.ethereumProvider,
+      ).then((fetchedBalance) => {
+        if (fetchedBalance?.balance) {
+          const balanceAsDecString = fetchedBalance.balance.toString(10);
+          const userTokenBalance = calcTokenAmount(
+            balanceAsDecString,
+            token.decimals,
+          );
+          dispatch(
+            setSwapsFromToken({
+              ...token,
+              string: userTokenBalance.toString(10),
+              balance: balanceAsDecString,
+            }),
+          );
+        }
+      });
     }
     dispatch(setSwapsFromToken(token));
     onInputChange(
@@ -481,6 +484,7 @@ export default function BuildQuote({
         className="build-quote__token-etherscan-link build-quote__underline"
         key="build-quote-etherscan-link"
         onClick={() => {
+          /* istanbul ignore next */
           trackEvent({
             event: EVENT_NAMES.EXTERNAL_LINK_CLICKED,
             category: EVENT.CATEGORIES.SWAPS,
@@ -585,7 +589,7 @@ export default function BuildQuote({
                   {t('enableSmartTransactions')}
                 </Button>
                 <Box marginTop={1}>
-                  <Typography variant={TYPOGRAPHY.H6}>
+                  <Typography variant={TypographyVariant.H6}>
                     <Button
                       type="link"
                       onClick={onCloseSmartTransactionsOptInPopover}
@@ -619,12 +623,12 @@ export default function BuildQuote({
                   alt={t('swapSwapSwitch')}
                 />
               </Box>
-              <Typography variant={TYPOGRAPHY.H7} marginTop={0}>
+              <Typography variant={TypographyVariant.H7} marginTop={0}>
                 {t('stxDescription')}
               </Typography>
               <Typography
                 as="ul"
-                variant={TYPOGRAPHY.H7}
+                variant={TypographyVariant.H7}
                 fontWeight={FONT_WEIGHT.BOLD}
                 marginTop={3}
               >
@@ -636,23 +640,23 @@ export default function BuildQuote({
                   <Typography
                     as="span"
                     fontWeight={FONT_WEIGHT.NORMAL}
-                    variant={TYPOGRAPHY.H7}
+                    variant={TypographyVariant.H7}
                   >
                     {' *'}
                   </Typography>
                 </li>
               </Typography>
               <Typography
-                variant={TYPOGRAPHY.H8}
-                color={COLORS.TEXT_ALTERNATIVE}
+                variant={TypographyVariant.H8}
+                color={TextColor.textAlternative}
                 boxProps={{ marginTop: 3 }}
               >
                 {t('stxSubDescription')}&nbsp;
                 <Typography
                   as="span"
                   fontWeight={FONT_WEIGHT.BOLD}
-                  variant={TYPOGRAPHY.H8}
-                  color={COLORS.TEXT_ALTERNATIVE}
+                  variant={TypographyVariant.H8}
+                  color={TextColor.textAlternative}
                 >
                   {t('stxYouCanOptOut')}&nbsp;
                 </Typography>
@@ -678,6 +682,7 @@ export default function BuildQuote({
           onSelect={onFromSelect}
           itemsToSearch={tokensToSearchSwapFrom}
           onInputChange={(value) => {
+            /* istanbul ignore next */
             onInputChange(value, fromTokenBalance);
           }}
           inputValue={fromTokenInputValue}
@@ -732,6 +737,7 @@ export default function BuildQuote({
         <div className="build-quote__swap-arrows-row">
           <button
             className="build-quote__swap-arrows"
+            data-testid="build-quote__swap-arrows"
             onClick={() => {
               onToSelect(selectedFromToken);
               onFromSelect(selectedToToken);
@@ -781,6 +787,7 @@ export default function BuildQuote({
                 </div>
               }
               primaryAction={
+                /* istanbul ignore next */
                 verificationClicked
                   ? null
                   : {
@@ -809,6 +816,7 @@ export default function BuildQuote({
                       className="build-quote__token-etherscan-link"
                       key="build-quote-etherscan-link"
                       onClick={() => {
+                        /* istanbul ignore next */
                         trackEvent({
                           event: 'Clicked Block Explorer Link',
                           category: EVENT.CATEGORIES.SWAPS,
@@ -861,30 +869,33 @@ export default function BuildQuote({
         )}
       </div>
       <SwapsFooter
-        onSubmit={async () => {
-          // We need this to know how long it took to go from clicking on the Review swap button to rendered View Quote page.
-          dispatch(setReviewSwapClickedTimestamp(Date.now()));
-          // In case that quotes prefetching is waiting to be executed, but hasn't started yet,
-          // we want to cancel it and fetch quotes from here.
-          if (timeoutIdForQuotesPrefetching) {
-            clearTimeout(timeoutIdForQuotesPrefetching);
-            dispatch(
-              fetchQuotesAndSetQuoteState(
-                history,
-                fromTokenInputValue,
-                maxSlippage,
-                trackEvent,
-              ),
-            );
-          } else if (areQuotesPresent) {
-            // If there are prefetched quotes already, go directly to the View Quote page.
-            history.push(VIEW_QUOTE_ROUTE);
-          } else {
-            // If the "Review swap" button was clicked while quotes are being fetched, go to the Loading Quotes page.
-            await dispatch(setBackgroundSwapRouteState('loading'));
-            history.push(LOADING_QUOTES_ROUTE);
+        onSubmit={
+          /* istanbul ignore next */
+          async () => {
+            // We need this to know how long it took to go from clicking on the Review swap button to rendered View Quote page.
+            dispatch(setReviewSwapClickedTimestamp(Date.now()));
+            // In case that quotes prefetching is waiting to be executed, but hasn't started yet,
+            // we want to cancel it and fetch quotes from here.
+            if (timeoutIdForQuotesPrefetching) {
+              clearTimeout(timeoutIdForQuotesPrefetching);
+              dispatch(
+                fetchQuotesAndSetQuoteState(
+                  history,
+                  fromTokenInputValue,
+                  maxSlippage,
+                  trackEvent,
+                ),
+              );
+            } else if (areQuotesPresent) {
+              // If there are prefetched quotes already, go directly to the View Quote page.
+              history.push(VIEW_QUOTE_ROUTE);
+            } else {
+              // If the "Review swap" button was clicked while quotes are being fetched, go to the Loading Quotes page.
+              await dispatch(setBackgroundSwapRouteState('loading'));
+              history.push(LOADING_QUOTES_ROUTE);
+            }
           }
-        }}
+        }
         submitText={t('swapReviewSwap')}
         disabled={isReviewSwapButtonDisabled}
         hideCancel

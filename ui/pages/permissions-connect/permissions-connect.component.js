@@ -1,11 +1,19 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { Switch, Route } from 'react-router-dom';
+///: BEGIN:ONLY_INCLUDE_IN(flask)
+import { ethErrors, serializeError } from 'eth-rpc-errors';
+///: END:ONLY_INCLUDE_IN
 import { getEnvironmentType } from '../../../app/scripts/lib/util';
 import { ENVIRONMENT_TYPE_NOTIFICATION } from '../../../shared/constants/app';
 import { MILLISECOND } from '../../../shared/constants/time';
 import { DEFAULT_ROUTE } from '../../helpers/constants/routes';
 import PermissionPageContainer from '../../components/app/permission-page-container';
+import {
+  Icon,
+  ICON_NAMES,
+  ICON_SIZES,
+} from '../../components/component-library';
 import ChooseAccount from './choose-account';
 import PermissionsRedirect from './redirect';
 ///: BEGIN:ONLY_INCLUDE_IN(flask)
@@ -20,7 +28,6 @@ export default class PermissionConnect extends Component {
     approvePermissionsRequest: PropTypes.func.isRequired,
     rejectPermissionsRequest: PropTypes.func.isRequired,
     getRequestAccountTabIds: PropTypes.func.isRequired,
-    getCurrentWindowTab: PropTypes.func.isRequired,
     accounts: PropTypes.array.isRequired,
     currentAddress: PropTypes.string.isRequired,
     origin: PropTypes.string,
@@ -38,6 +45,8 @@ export default class PermissionConnect extends Component {
     snapInstallPath: PropTypes.string.isRequired,
     snapUpdatePath: PropTypes.string.isRequired,
     isSnap: PropTypes.bool.isRequired,
+    approvePendingApproval: PropTypes.func.isRequired,
+    rejectPendingApproval: PropTypes.func.isRequired,
     ///: END:ONLY_INCLUDE_IN
     totalPages: PropTypes.string.isRequired,
     page: PropTypes.string.isRequired,
@@ -95,13 +104,11 @@ export default class PermissionConnect extends Component {
       snapUpdatePath,
       isSnap,
       ///: END:ONLY_INCLUDE_IN
-      getCurrentWindowTab,
       getRequestAccountTabIds,
       permissionsRequest,
       history,
       isRequestingAccounts,
     } = this.props;
-    getCurrentWindowTab();
     getRequestAccountTabIds();
 
     if (!permissionsRequest) {
@@ -159,11 +166,33 @@ export default class PermissionConnect extends Component {
   }
 
   selectAccounts = (addresses) => {
+    const {
+      confirmPermissionPath,
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      snapInstallPath,
+      snapUpdatePath,
+      isSnap,
+      permissionsRequest,
+      ///: END:ONLY_INCLUDE_IN
+    } = this.props;
     this.setState(
       {
         selectedAccountAddresses: addresses,
       },
-      () => this.props.history.push(this.props.confirmPermissionPath),
+      ///: BEGIN:ONLY_INCLUDE_IN(main,beta)
+      () => this.props.history.push(confirmPermissionPath),
+      ///: END:ONLY_INCLUDE_IN
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      () =>
+        this.props.history.push(
+          // eslint-disable-next-line no-nested-ternary
+          isSnap
+            ? permissionsRequest.newPermissions
+              ? snapUpdatePath
+              : snapInstallPath
+            : confirmPermissionPath,
+        ),
+      ///: END:ONLY_INCLUDE_IN
     );
   };
 
@@ -207,7 +236,11 @@ export default class PermissionConnect extends Component {
             className="permissions-connect__back"
             onClick={() => this.goBack()}
           >
-            <i className="fas fa-chevron-left"></i>
+            <Icon
+              name={ICON_NAMES.ARROW_RIGHT}
+              marginInlineEnd={1}
+              size={ICON_SIZES.XS}
+            />
             {t('back')}
           </div>
         ) : null}
@@ -235,6 +268,8 @@ export default class PermissionConnect extends Component {
       ///: BEGIN:ONLY_INCLUDE_IN(flask)
       snapInstallPath,
       snapUpdatePath,
+      approvePendingApproval,
+      rejectPendingApproval,
       ///: END:ONLY_INCLUDE_IN
     } = this.props;
     const {
@@ -305,13 +340,20 @@ export default class PermissionConnect extends Component {
               render={() => (
                 <SnapInstall
                   request={permissionsRequest || {}}
-                  approveSnapInstall={(...args) => {
-                    approvePermissionsRequest(...args);
+                  approveSnapInstall={(requestId) => {
+                    approvePendingApproval(requestId, {
+                      ...permissionsRequest,
+                      approvedAccounts: [...selectedAccountAddresses],
+                    });
                     this.redirect(true);
                   }}
-                  rejectSnapInstall={(requestId) =>
-                    this.cancelPermissionsRequest(requestId)
-                  }
+                  rejectSnapInstall={(requestId) => {
+                    rejectPendingApproval(
+                      requestId,
+                      serializeError(ethErrors.provider.userRejectedRequest()),
+                    );
+                    this.redirect(false);
+                  }}
                   targetSubjectMetadata={targetSubjectMetadata}
                 />
               )}
@@ -328,13 +370,20 @@ export default class PermissionConnect extends Component {
               render={() => (
                 <SnapUpdate
                   request={permissionsRequest || {}}
-                  approveSnapUpdate={(...args) => {
-                    approvePermissionsRequest(...args);
+                  approveSnapUpdate={(requestId) => {
+                    approvePendingApproval(requestId, {
+                      ...permissionsRequest,
+                      approvedAccounts: [...selectedAccountAddresses],
+                    });
                     this.redirect(true);
                   }}
-                  rejectSnapUpdate={(requestId) =>
-                    this.cancelPermissionsRequest(requestId)
-                  }
+                  rejectSnapUpdate={(requestId) => {
+                    rejectPendingApproval(
+                      requestId,
+                      serializeError(ethErrors.provider.userRejectedRequest()),
+                    );
+                    this.redirect(false);
+                  }}
                   targetSubjectMetadata={targetSubjectMetadata}
                 />
               )}

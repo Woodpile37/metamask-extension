@@ -11,7 +11,7 @@ import {
   getIsTestnet,
   getCurrentChainId,
   getShouldShowSeedPhraseReminder,
-  getShowPortfolioTooltip,
+  isCurrentProviderCustom,
 } from '../../selectors';
 import {
   lockMetamask,
@@ -28,6 +28,7 @@ function mapStateToProps(state) {
   const { appState } = state;
   const { alertOpen, alertMessage, isLoading, loadingMessage } = appState;
   const { autoLockTimeLimit = 0 } = getPreferences(state);
+  const { completedOnboarding } = state.metamask;
 
   return {
     alertOpen,
@@ -51,7 +52,9 @@ function mapStateToProps(state) {
     isTestNet: getIsTestnet(state),
     currentChainId: getCurrentChainId(state),
     shouldShowSeedPhraseReminder: getShouldShowSeedPhraseReminder(state),
-    portfolioTooltipIsBeingShown: getShowPortfolioTooltip(state),
+    forgottenPassword: state.metamask.forgottenPassword,
+    isCurrentProviderCustom: isCurrentProviderCustom(state),
+    completedOnboarding,
   };
 }
 

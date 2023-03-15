@@ -5,7 +5,7 @@ import {
   activeTabHasPermissions,
   getFirstPermissionRequest,
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  getFirstSnapUpdateRequest,
+  getFirstSnapInstallOrUpdateRequest,
   ///: END:ONLY_INCLUDE_IN
   getIsMainnet,
   getOriginOfCurrentTab,
@@ -17,53 +17,46 @@ import {
   getShowWhatsNewPopup,
   getSortedAnnouncementsToShow,
   getShowRecoveryPhraseReminder,
+  getShowOutdatedBrowserWarning,
   getNewNetworkAdded,
   hasUnsignedQRHardwareTransaction,
   hasUnsignedQRHardwareMessage,
-  getNewCollectibleAddedMessage,
+  getNewNftAddedMessage,
   getNewTokensImported,
-  getShowPortfolioTooltip,
   getShouldShowSeedPhraseReminder,
+  getRemoveNftMessage,
 } from '../../selectors';
 
 import {
   closeNotificationPopup,
-  restoreFromThreeBox,
-  turnThreeBoxSyncingOn,
-  getThreeBoxLastUpdated,
-  hidePortfolioTooltip,
-  setShowRestorePromptToFalse,
   setConnectedStatusPopoverHasBeenShown,
   setDefaultHomeActiveTabName,
   setWeb3ShimUsageAlertDismissed,
   setAlertEnabledness,
   setRecoveryPhraseReminderHasBeenShown,
   setRecoveryPhraseReminderLastShown,
+  setOutdatedBrowserWarningLastShown,
   setNewNetworkAdded,
-  setNewCollectibleAddedMessage,
+  setNewNftAddedMessage,
+  setRemoveNftMessage,
   setNewTokensImported,
-  setRpcTarget,
+  setActiveNetwork,
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
   removeSnapError,
   ///: END:ONLY_INCLUDE_IN
 } from '../../store/actions';
-import {
-  setThreeBoxLastUpdated,
-  hideWhatsNewPopup,
-  setNewCustomNetworkAdded,
-  getPortfolioTooltipWasShownInThisSession,
-  setPortfolioTooltipWasShownInThisSession,
-} from '../../ducks/app/app';
+import { hideWhatsNewPopup } from '../../ducks/app/app';
 import { getWeb3ShimUsageAlertEnabledness } from '../../ducks/metamask/metamask';
 import { getSwapsFeatureIsLive } from '../../ducks/swaps/swaps';
 import { getEnvironmentType } from '../../../app/scripts/lib/util';
+import { getIsBrowserDeprecated } from '../../helpers/utils/util';
 import {
   ENVIRONMENT_TYPE_NOTIFICATION,
   ENVIRONMENT_TYPE_POPUP,
 } from '../../../shared/constants/app';
 import {
-  ALERT_TYPES,
-  WEB3_SHIM_USAGE_ALERT_STATES,
+  AlertTypes,
+  Web3ShimUsageAlertStates,
 } from '../../../shared/constants/alerts';
 import Home from './home.component';
 
@@ -72,8 +65,6 @@ const mapStateToProps = (state) => {
   const {
     suggestedAssets,
     seedPhraseBackedUp,
-    threeBoxSynced,
-    showRestorePrompt,
     selectedAddress,
     connectedStatusPopoverHasBeenShown,
     defaultHomeActiveTabName,
@@ -81,7 +72,7 @@ const mapStateToProps = (state) => {
     firstTimeFlowType,
     completedOnboarding,
   } = metamask;
-  const { forgottenPassword, threeBoxLastUpdated } = appState;
+  const { forgottenPassword } = metamask;
   const totalUnapprovedCount = getTotalUnapprovedCount(state);
   const swapsEnabled = getSwapsFeatureIsLive(state);
   const pendingConfirmations = getUnapprovedTemplatedConfirmations(state);
@@ -98,7 +89,7 @@ const mapStateToProps = (state) => {
 
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
   if (!firstPermissionsRequest) {
-    firstPermissionsRequest = getFirstSnapUpdateRequest(state);
+    firstPermissionsRequest = getFirstSnapInstallOrUpdateRequest(state);
     firstPermissionsRequestId = firstPermissionsRequest?.metadata.id || null;
   }
   ///: END:ONLY_INCLUDE_IN
@@ -109,7 +100,7 @@ const mapStateToProps = (state) => {
     getWeb3ShimUsageAlertEnabledness(state) &&
     activeTabHasPermissions(state) &&
     getWeb3ShimUsageStateForOrigin(state, originOfCurrentTab) ===
-      WEB3_SHIM_USAGE_ALERT_STATES.RECORDED;
+      Web3ShimUsageAlertStates.recorded;
 
   const isSigningQRHardwareTransaction =
     hasUnsignedQRHardwareTransaction(state) ||
@@ -123,10 +114,7 @@ const mapStateToProps = (state) => {
     shouldShowSeedPhraseReminder: getShouldShowSeedPhraseReminder(state),
     isPopup,
     isNotification,
-    threeBoxSynced,
-    showRestorePrompt,
     selectedAddress,
-    threeBoxLastUpdated,
     firstPermissionsRequestId,
     totalUnapprovedCount,
     connectedStatusPopoverHasBeenShown,
@@ -147,67 +135,57 @@ const mapStateToProps = (state) => {
     shouldShowErrors: Object.entries(metamask.snapErrors || []).length > 0,
     ///: END:ONLY_INCLUDE_IN
     showWhatsNewPopup: getShowWhatsNewPopup(state),
-    showPortfolioTooltip: getShowPortfolioTooltip(state),
-    portfolioTooltipWasShownInThisSession:
-      getPortfolioTooltipWasShownInThisSession(state),
     showRecoveryPhraseReminder: getShowRecoveryPhraseReminder(state),
+    showOutdatedBrowserWarning:
+      getIsBrowserDeprecated() && getShowOutdatedBrowserWarning(state),
     seedPhraseBackedUp,
-    newNetworkAdded: getNewNetworkAdded(state),
+    newNetworkAddedName: getNewNetworkAdded(state),
     isSigningQRHardwareTransaction,
-    newCollectibleAddedMessage: getNewCollectibleAddedMessage(state),
+    newNftAddedMessage: getNewNftAddedMessage(state),
+    removeNftMessage: getRemoveNftMessage(state),
     newTokensImported: getNewTokensImported(state),
-    newCustomNetworkAdded: appState.newCustomNetworkAdded,
+    newNetworkAddedConfigurationId: appState.newNetworkAddedConfigurationId,
+    onboardedInThisUISession: appState.onboardedInThisUISession,
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
   closeNotificationPopup: () => closeNotificationPopup(),
-  turnThreeBoxSyncingOn: () => dispatch(turnThreeBoxSyncingOn()),
-  setupThreeBox: () => {
-    dispatch(getThreeBoxLastUpdated()).then((lastUpdated) => {
-      if (lastUpdated) {
-        dispatch(setThreeBoxLastUpdated(lastUpdated));
-      } else {
-        dispatch(setShowRestorePromptToFalse());
-        dispatch(turnThreeBoxSyncingOn());
-      }
-    });
-  },
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
   removeSnapError: async (id) => await removeSnapError(id),
   ///: END:ONLY_INCLUDE_IN
-  restoreFromThreeBox: (address) => dispatch(restoreFromThreeBox(address)),
-  setShowRestorePromptToFalse: () => dispatch(setShowRestorePromptToFalse()),
   setConnectedStatusPopoverHasBeenShown: () =>
     dispatch(setConnectedStatusPopoverHasBeenShown()),
   onTabClick: (name) => dispatch(setDefaultHomeActiveTabName(name)),
   setWeb3ShimUsageAlertDismissed: (origin) =>
     setWeb3ShimUsageAlertDismissed(origin),
   disableWeb3ShimUsageAlert: () =>
-    setAlertEnabledness(ALERT_TYPES.web3ShimUsage, false),
+    setAlertEnabledness(AlertTypes.web3ShimUsage, false),
   hideWhatsNewPopup: () => dispatch(hideWhatsNewPopup()),
-  hidePortfolioTooltip,
   setRecoveryPhraseReminderHasBeenShown: () =>
     dispatch(setRecoveryPhraseReminderHasBeenShown()),
   setRecoveryPhraseReminderLastShown: (lastShown) =>
     dispatch(setRecoveryPhraseReminderLastShown(lastShown)),
-  setNewNetworkAdded: (newNetwork) => {
-    dispatch(setNewNetworkAdded(newNetwork));
+  setOutdatedBrowserWarningLastShown: (lastShown) => {
+    dispatch(setOutdatedBrowserWarningLastShown(lastShown));
   },
-  setNewCollectibleAddedMessage: (message) => {
-    dispatch(setNewCollectibleAddedMessage(message));
+  setNewNftAddedMessage: (message) => {
+    dispatch(setRemoveNftMessage(''));
+    dispatch(setNewNftAddedMessage(message));
+  },
+  setRemoveNftMessage: (message) => {
+    dispatch(setNewNftAddedMessage(''));
+    dispatch(setRemoveNftMessage(message));
   },
   setNewTokensImported: (newTokens) => {
     dispatch(setNewTokensImported(newTokens));
   },
-  clearNewCustomNetworkAdded: () => {
-    dispatch(setNewCustomNetworkAdded({}));
+  clearNewNetworkAdded: () => {
+    dispatch(setNewNetworkAdded({}));
   },
-  setRpcTarget: (rpcUrl, chainId, ticker, nickname) => {
-    dispatch(setRpcTarget(rpcUrl, chainId, ticker, nickname));
+  setActiveNetwork: (networkConfigurationId) => {
+    dispatch(setActiveNetwork(networkConfigurationId));
   },
-  setPortfolioTooltipWasShownInThisSession: () =>
-    dispatch(setPortfolioTooltipWasShownInThisSession()),
 });
 
 export default compose(

@@ -3,13 +3,14 @@ import configureStore from 'redux-mock-store';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { renderWithProvider } from '../../../../test/lib/render-helpers';
 import { CHAIN_IDS } from '../../../../shared/constants/network';
+import { HardwareKeyringTypes } from '../../../../shared/constants/hardware-wallets';
 import MenuBar from './menu-bar';
 
 const initState = {
   activeTab: {},
   metamask: {
     provider: {
-      chainId: CHAIN_IDS.ROPSTEN,
+      chainId: CHAIN_IDS.GOERLI,
     },
     selectedAddress: '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc',
     identities: {
@@ -20,11 +21,11 @@ const initState = {
     },
     keyrings: [
       {
-        type: 'HD Key Tree',
+        type: HardwareKeyringTypes.hdKeyTree,
         accounts: ['0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc'],
       },
     ],
-    frequentRpcListDetail: [],
+    networkConfigurations: {},
   },
 };
 const mockStore = configureStore();

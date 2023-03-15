@@ -54,11 +54,17 @@ describe('Network Dropdown', () => {
         preferences: {
           showTestNetworks: true,
         },
-        frequentRpcListDetail: [
-          { chainId: '0x1a', rpcUrl: 'http://localhost:7545' },
-          { rpcUrl: 'http://localhost:7546' },
-          { rpcUrl: LOCALHOST_RPC_URL, nickname: 'localhost' },
-        ],
+        networkConfigurations: {
+          networkConfigurationId1: {
+            chainId: '0x1a',
+            rpcUrl: 'http://localhost:7545',
+          },
+          networkConfigurationId2: { rpcUrl: 'http://localhost:7546' },
+          networkConfigurationId3: {
+            rpcUrl: LOCALHOST_RPC_URL,
+            nickname: 'localhost',
+          },
+        },
       },
       appState: {
         networkDropdownOpen: true,
@@ -80,33 +86,17 @@ describe('Network Dropdown', () => {
       expect(mainnetColorIndicator).toBeInTheDocument();
     });
 
-    it('checks background color for second ColorIndicator', () => {
-      // find where test networks start in case there are custom RPCs
-      const ropstenColorIndicator = screen.queryByTestId('color-icon-ropsten');
-      expect(ropstenColorIndicator).toBeInTheDocument();
-    });
-
-    it('checks background color for third ColorIndicator', () => {
-      const kovanColorIndicator = screen.queryByTestId('color-icon-kovan');
-      expect(kovanColorIndicator).toBeInTheDocument();
-    });
-
     it('checks background color for fourth ColorIndicator', () => {
-      const rinkebyColorIndicator = screen.queryByTestId('color-icon-rinkeby');
-      expect(rinkebyColorIndicator).toBeInTheDocument();
-    });
-
-    it('checks background color for fifth ColorIndicator', () => {
       const goerliColorIndicator = screen.queryByTestId('color-icon-goerli');
       expect(goerliColorIndicator).toBeInTheDocument();
     });
 
-    it('checks background color for sixth ColorIndicator', () => {
+    it('checks background color for fifth ColorIndicator', () => {
       const sepoliaColorIndicator = screen.queryByTestId('color-icon-sepolia');
       expect(sepoliaColorIndicator).toBeInTheDocument();
     });
 
-    it('checks background color for seventh ColorIndicator', () => {
+    it('checks background color for sixth ColorIndicator', () => {
       const localhostColorIndicator = screen.queryByTestId(
         'color-icon-localhost',
       );
@@ -121,7 +111,7 @@ describe('Network Dropdown', () => {
     it('shows test networks in the dropdown', () => {
       const networkItems = screen.queryAllByTestId(/network-item/u);
 
-      expect(networkItems).toHaveLength(9);
+      expect(networkItems).toHaveLength(6);
     });
   });
 
@@ -136,10 +126,13 @@ describe('Network Dropdown', () => {
         preferences: {
           showTestNetworks: false,
         },
-        frequentRpcListDetail: [
-          { chainId: '0x1a', rpcUrl: 'http://localhost:7545' },
-          { rpcUrl: 'http://localhost:7546' },
-        ],
+        networkConfigurations: {
+          networkConfigurationId1: {
+            chainId: '0x1a',
+            rpcUrl: 'http://localhost:7545',
+          },
+          networkConfigurationId2: { rpcUrl: 'http://localhost:7546' },
+        },
       },
       appState: {
         networkDropdownOpen: true,

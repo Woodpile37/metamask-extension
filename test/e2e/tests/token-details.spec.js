@@ -1,5 +1,6 @@
 const { strict: assert } = require('assert');
 const { convertToHexValue, withFixtures } = require('../helpers');
+const FixtureBuilder = require('../fixture-builder');
 
 describe('Token Details', function () {
   const ganacheOptions = {
@@ -14,7 +15,7 @@ describe('Token Details', function () {
   it('should show token details for an imported token', async function () {
     await withFixtures(
       {
-        fixtures: 'imported-account',
+        fixtures: new FixtureBuilder().build(),
         ganacheOptions,
         title: this.test.title,
       },
@@ -34,8 +35,8 @@ describe('Token Details', function () {
         await driver.fill('#custom-symbol', tokenSymbol);
         await driver.clickElement({ text: 'Add custom token', tag: 'button' });
         await driver.clickElement({ text: 'Import tokens', tag: 'button' });
-        await driver.clickElement('[title="Asset options"]');
-        await driver.clickElement({ text: 'Token details', tag: 'span' });
+        await driver.clickElement('[aria-label="Asset options"]');
+        await driver.clickElement({ text: 'Token details', tag: 'div' });
 
         const tokenAddressFound = {
           text: tokenAddress,

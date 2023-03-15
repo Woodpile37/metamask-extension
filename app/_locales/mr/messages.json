@@ -68,9 +68,6 @@
   "forgetDevice": {
     "message": "हे डिव्हाइस विसरा"
   },
-  "getStarted": {
-    "message": "प्रारंभ करा"
-  },
   "hide": {
     "message": "लपवा"
   },
@@ -136,9 +133,6 @@
   "settings": {
     "message": "सेटिंग्ज"
   },
-  "slow": {
-    "message": "धीमी"
-  },
   "tryAgain": {
     "message": "पुन्हा प्रयत्न करा"
   },
@@ -150,8 +144,5 @@
   },
   "userName": {
     "message": "वापरकर्तानाव"
-  },
-  "viewAccount": {
-    "message": "खाते पहा"
   }
 }

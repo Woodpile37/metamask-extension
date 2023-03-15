@@ -2,7 +2,8 @@ import EthQuery from 'ethjs-query';
 import log from 'loglevel';
 import { addHexPrefix } from 'ethereumjs-util';
 import { cloneDeep } from 'lodash';
-import { hexToBn, BnMultiplyByFraction, bnToHex } from '../../lib/util';
+import { hexToBn, BnMultiplyByFraction } from '../../lib/util';
+import { bnToHex } from '../../../../shared/modules/conversion.utils';
 
 /**
  * Result of gas analysis, including either a gas estimate for a successful analysis, or
@@ -50,7 +51,11 @@ export default class TxGasUtil {
       };
     }
 
-    return { blockGasLimit: block.gasLimit, estimatedGasHex, simulationFails };
+    return {
+      blockGasLimit: block.gasLimit,
+      estimatedGasHex,
+      simulationFails,
+    };
   }
 
   /**
@@ -104,7 +109,6 @@ export default class TxGasUtil {
   async getBufferedGasLimit(txMeta, multiplier) {
     const { blockGasLimit, estimatedGasHex, simulationFails } =
       await this.analyzeGasUsage(txMeta);
-
     // add additional gas buffer to our estimation for safety
     const gasLimit = this.addGasBuffer(
       addHexPrefix(estimatedGasHex),

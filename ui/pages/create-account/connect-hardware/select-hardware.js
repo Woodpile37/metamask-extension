@@ -8,25 +8,35 @@ import LogoTrezor from '../../../components/ui/logo/logo-trezor';
 import LogoLattice from '../../../components/ui/logo/logo-lattice';
 
 import {
-  DEVICE_NAMES,
-  LEDGER_TRANSPORT_TYPES,
+  HardwareDeviceNames,
+  LedgerTransportTypes,
+  HardwareAffiliateLinks,
+  HardwareAffiliateTutorialLinks,
 } from '../../../../shared/constants/hardware-wallets';
 import ZENDESK_URLS from '../../../helpers/constants/zendesk-url';
+import { EVENT } from '../../../../shared/constants/metametrics';
+import { isManifestV3 } from '../../../../shared/modules/mv3.utils';
+import { openWindow } from '../../../helpers/utils/window';
 
 export default class SelectHardware extends Component {
   static contextTypes = {
     t: PropTypes.func,
+    trackEvent: PropTypes.func,
   };
 
   static propTypes = {
     connectToHardwareWallet: PropTypes.func.isRequired,
     browserSupported: PropTypes.bool.isRequired,
-    ledgerTransportType: PropTypes.oneOf(Object.values(LEDGER_TRANSPORT_TYPES)),
+    ledgerTransportType: PropTypes.oneOf(Object.values(LedgerTransportTypes)),
   };
 
   state = {
     selectedDevice: null,
   };
+
+  shouldShowConnectButton() {
+    return !isManifestV3 || process.env.CONF?.HARDWARE_WALLETS_MV3;
+  }
 
   connect = () => {
     if (this.state.selectedDevice) {
@@ -39,9 +49,11 @@ export default class SelectHardware extends Component {
     return (
       <button
         className={classnames('hw-connect__btn', {
-          selected: this.state.selectedDevice === DEVICE_NAMES.TREZOR,
+          selected: this.state.selectedDevice === HardwareDeviceNames.trezor,
         })}
-        onClick={(_) => this.setState({ selectedDevice: DEVICE_NAMES.TREZOR })}
+        onClick={(_) =>
+          this.setState({ selectedDevice: HardwareDeviceNames.trezor })
+        }
       >
         <LogoTrezor className="hw-connect__btn__img" ariaLabel="Trezor" />
       </button>
@@ -52,9 +64,11 @@ export default class SelectHardware extends Component {
     return (
       <button
         className={classnames('hw-connect__btn', {
-          selected: this.state.selectedDevice === DEVICE_NAMES.LATTICE,
+          selected: this.state.selectedDevice === HardwareDeviceNames.lattice,
         })}
-        onClick={(_) => this.setState({ selectedDevice: DEVICE_NAMES.LATTICE })}
+        onClick={(_) =>
+          this.setState({ selectedDevice: HardwareDeviceNames.lattice })
+        }
       >
         <LogoLattice className="hw-connect__btn__img" ariaLabel="Lattice" />
       </button>
@@ -65,9 +79,11 @@ export default class SelectHardware extends Component {
     return (
       <button
         className={classnames('hw-connect__btn', {
-          selected: this.state.selectedDevice === DEVICE_NAMES.LEDGER,
+          selected: this.state.selectedDevice === HardwareDeviceNames.ledger,
         })}
-        onClick={(_) => this.setState({ selectedDevice: DEVICE_NAMES.LEDGER })}
+        onClick={(_) =>
+          this.setState({ selectedDevice: HardwareDeviceNames.ledger })
+        }
       >
         <LogoLedger className="hw-connect__btn__img" ariaLabel="Ledger" />
       </button>
@@ -78,9 +94,11 @@ export default class SelectHardware extends Component {
     return (
       <button
         className={classnames('hw-connect__btn', {
-          selected: this.state.selectedDevice === DEVICE_NAMES.QR,
+          selected: this.state.selectedDevice === HardwareDeviceNames.qr,
         })}
-        onClick={(_) => this.setState({ selectedDevice: DEVICE_NAMES.QR })}
+        onClick={(_) =>
+          this.setState({ selectedDevice: HardwareDeviceNames.qr })
+        }
       >
         <LogoQRBased className="hw-connect__btn__img" ariaLabel="QRCode" />
       </button>
@@ -91,14 +109,15 @@ export default class SelectHardware extends Component {
     return (
       <>
         <div className="hw-connect__btn-wrapper">
-          {this.renderConnectToLedgerButton()}
-          {this.renderConnectToTrezorButton()}
+          {this.shouldShowConnectButton() && this.renderConnectToLedgerButton()}
+          {this.shouldShowConnectButton() && this.renderConnectToTrezorButton()}
         </div>
         <div
           className="hw-connect__btn-wrapper"
           style={{ margin: '10px 0 0 0' }}
         >
-          {this.renderConnectToLatticeButton()}
+          {this.shouldShowConnectButton() &&
+            this.renderConnectToLatticeButton()}
           {this.renderConnectToQRButton()}
         </div>
       </>
@@ -160,13 +179,13 @@ export default class SelectHardware extends Component {
 
   renderTutorialsteps() {
     switch (this.state.selectedDevice) {
-      case DEVICE_NAMES.LEDGER:
+      case HardwareDeviceNames.ledger:
         return this.renderLedgerTutorialSteps();
-      case DEVICE_NAMES.TREZOR:
+      case HardwareDeviceNames.trezor:
         return this.renderTrezorTutorialSteps();
-      case DEVICE_NAMES.LATTICE:
+      case HardwareDeviceNames.lattice:
         return this.renderLatticeTutorialSteps();
-      case DEVICE_NAMES.QR:
+      case HardwareDeviceNames.qr:
         return this.renderQRHardwareWalletSteps();
       default:
         return '';
@@ -175,8 +194,9 @@ export default class SelectHardware extends Component {
 
   renderLedgerTutorialSteps() {
     const steps = [];
-    if (this.props.ledgerTransportType === LEDGER_TRANSPORT_TYPES.LIVE) {
+    if (this.props.ledgerTransportType === LedgerTransportTypes.live) {
       steps.push({
+        renderButtons: false,
         title: this.context.t('step1LedgerWallet'),
         message: this.context.t('step1LedgerWalletMsg', [
           <a
@@ -193,6 +213,7 @@ export default class SelectHardware extends Component {
     }
 
     steps.push({
+      renderButtons: true,
       asset: 'plug-in-wallet',
       dimensions: { width: '225px', height: '75px' },
       title: this.context.t('step2LedgerWallet'),
@@ -214,6 +235,36 @@ export default class SelectHardware extends Component {
         {steps.map((step, index) => (
           <div className="hw-connect" key={index}>
             <h3 className="hw-connect__title">{step.title}</h3>
+            {step.renderButtons ? (
+              <>
+                <Button
+                  className="hw-connect__external-btn-first"
+                  type="secondary"
+                  onClick={() => {
+                    this.context.trackEvent({
+                      category: EVENT.CATEGORIES.NAVIGATION,
+                      event: 'Clicked Ledger Buy Now',
+                    });
+                    openWindow(HardwareAffiliateLinks.ledger);
+                  }}
+                >
+                  {this.context.t('buyNow')}
+                </Button>
+                <Button
+                  className="hw-connect__external-btn"
+                  type="secondary"
+                  onClick={() => {
+                    this.context.trackEvent({
+                      category: EVENT.CATEGORIES.NAVIGATION,
+                      event: 'Clicked Ledger Tutorial',
+                    });
+                    openWindow(HardwareAffiliateTutorialLinks.ledger);
+                  }}
+                >
+                  {this.context.t('tutorial')}
+                </Button>
+              </>
+            ) : null}
             <p className="hw-connect__msg">{step.message}</p>
             {step.asset && (
               <img
@@ -254,6 +305,32 @@ export default class SelectHardware extends Component {
         {steps.map((step, index) => (
           <div className="hw-connect" key={index}>
             <h3 className="hw-connect__title">{step.title}</h3>
+            <Button
+              className="hw-connect__external-btn-first"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked GridPlus Buy Now',
+                });
+                openWindow(HardwareAffiliateLinks.gridplus);
+              }}
+            >
+              {this.context.t('buyNow')}
+            </Button>
+            <Button
+              className="hw-connect__external-btn"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked GidPlus Tutorial',
+                });
+                openWindow(HardwareAffiliateTutorialLinks.gridplus);
+              }}
+            >
+              {this.context.t('tutorial')}
+            </Button>
             <p className="hw-connect__msg">{step.message}</p>
             {step.asset && (
               <img
@@ -294,6 +371,32 @@ export default class SelectHardware extends Component {
         {steps.map((step, index) => (
           <div className="hw-connect" key={index}>
             <h3 className="hw-connect__title">{step.title}</h3>
+            <Button
+              className="hw-connect__external-btn-first"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked Trezor Buy Now',
+                });
+                openWindow(HardwareAffiliateLinks.trezor);
+              }}
+            >
+              {this.context.t('buyNow')}
+            </Button>
+            <Button
+              className="hw-connect__external-btn"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked Trezor Tutorial',
+                });
+                openWindow(HardwareAffiliateTutorialLinks.trezor);
+              }}
+            >
+              {this.context.t('tutorial')}
+            </Button>
             <p className="hw-connect__msg">{step.message}</p>
             {step.asset && (
               <img
@@ -319,48 +422,138 @@ export default class SelectHardware extends Component {
       {
         message: (
           <>
-            <a
-              className="hw-connect__msg-link"
-              href="https://keyst.one"
-              rel="noopener noreferrer"
-              target="_blank"
-              key="keystone-support-link"
-            >
+            <p className="hw-connect__QR-subtitle">
               {this.context.t('keystone')}
-            </a>
-            <a
-              className="hw-connect__msg-link"
-              href="https://keyst.one/mm"
-              rel="noopener noreferrer"
-              target="_blank"
-              key="keystone-tutorial-link"
+            </p>
+            <Button
+              className="hw-connect__external-btn-first"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked Keystone Buy Now',
+                });
+                openWindow(HardwareAffiliateLinks.keystone);
+              }}
             >
-              {this.context.t('keystoneTutorial')}
-            </a>
+              {this.context.t('buyNow')}
+            </Button>
+            <Button
+              className="hw-connect__external-btn"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked Keystone Tutorial',
+                });
+                openWindow(HardwareAffiliateTutorialLinks.keystone);
+              }}
+            >
+              {this.context.t('tutorial')}
+            </Button>
           </>
         ),
       },
       {
         message: (
           <>
-            <a
-              className="hw-connect__msg-link"
-              href="https://airgap.it/metamask"
-              rel="noopener noreferrer"
-              target="_blank"
-              key="airgap-vault-support-link"
-            >
+            <p className="hw-connect__QR-subtitle">
               {this.context.t('airgapVault')}
-            </a>
-            <a
-              className="hw-connect__msg-link"
-              href="https://support.airgap.it/guides/metamask"
-              rel="noopener noreferrer"
-              target="_blank"
-              key="airgap-vault-tutorial-link"
+            </p>
+            <Button
+              className="hw-connect__external-btn-first"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked AirGap Vault Buy Now',
+                });
+                openWindow(HardwareAffiliateLinks.airgap);
+              }}
             >
-              {this.context.t('airgapVaultTutorial')}
-            </a>
+              {this.context.t('downloadNow')}
+            </Button>
+            <Button
+              className="hw-connect__external-btn"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked AirGap Vault Tutorial',
+                });
+                openWindow(HardwareAffiliateTutorialLinks.airgap);
+              }}
+            >
+              {this.context.t('tutorial')}
+            </Button>
+          </>
+        ),
+      },
+      {
+        message: (
+          <>
+            <p className="hw-connect__QR-subtitle">
+              {this.context.t('coolWallet')}
+            </p>
+            <Button
+              className="hw-connect__external-btn-first"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked CoolWallet Buy Now',
+                });
+                openWindow(HardwareAffiliateLinks.coolwallet);
+              }}
+            >
+              {this.context.t('buyNow')}
+            </Button>
+            <Button
+              className="hw-connect__external-btn"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked CoolWallet Tutorial',
+                });
+                openWindow(HardwareAffiliateTutorialLinks.coolwallet);
+              }}
+            >
+              {this.context.t('tutorial')}
+            </Button>
+          </>
+        ),
+      },
+      {
+        message: (
+          <>
+            <p className="hw-connect__QR-subtitle">{this.context.t('dcent')}</p>
+            <Button
+              className="hw-connect__external-btn-first"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked DCent Buy Now',
+                });
+                openWindow(HardwareAffiliateLinks.dcent);
+              }}
+            >
+              {this.context.t('buyNow')}
+            </Button>
+            <Button
+              className="hw-connect__external-btn"
+              type="secondary"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: EVENT.CATEGORIES.NAVIGATION,
+                  event: 'Clicked DCent Tutorial',
+                });
+                openWindow(HardwareAffiliateTutorialLinks.dcent);
+              }}
+            >
+              {this.context.t('tutorial')}
+            </Button>
           </>
         ),
       },
@@ -377,7 +570,7 @@ export default class SelectHardware extends Component {
         {steps.map((step, index) => (
           <div className="hw-connect" key={index}>
             {step.title && <h3 className="hw-connect__title">{step.title}</h3>}
-            <p className="hw-connect__msg">{step.message}</p>
+            <div className="hw-connect__msg">{step.message}</div>
             {step.asset && (
               <img
                 className="hw-connect__step-asset"

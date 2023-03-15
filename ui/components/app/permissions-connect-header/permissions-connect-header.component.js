@@ -5,7 +5,7 @@ import SiteOrigin from '../../ui/site-origin';
 import Box from '../../ui/box';
 import {
   FLEX_DIRECTION,
-  JUSTIFY_CONTENT,
+  JustifyContent,
 } from '../../../helpers/constants/design-system';
 ///: BEGIN:ONLY_INCLUDE_IN(flask)
 import SnapsAuthorshipPill from '../flask/snaps-authorship-pill';
@@ -26,6 +26,7 @@ export default class PermissionsConnectHeader extends Component {
     headerTitle: PropTypes.node,
     boxProps: PropTypes.shape({ ...Box.propTypes }),
     headerText: PropTypes.string,
+    leftIcon: PropTypes.node,
     rightIcon: PropTypes.node,
     ///: BEGIN:ONLY_INCLUDE_IN(flask)
     snapVersion: PropTypes.string,
@@ -45,6 +46,7 @@ export default class PermissionsConnectHeader extends Component {
       iconUrl,
       iconName,
       siteOrigin,
+      leftIcon,
       rightIcon,
       ///: BEGIN:ONLY_INCLUDE_IN(flask)
       isSnapInstallOrUpdate,
@@ -64,6 +66,7 @@ export default class PermissionsConnectHeader extends Component {
           siteOrigin={siteOrigin}
           iconSrc={iconUrl}
           name={iconName}
+          leftIcon={leftIcon}
           rightIcon={rightIcon}
         />
       </div>
@@ -86,7 +89,7 @@ export default class PermissionsConnectHeader extends Component {
       <Box
         className={classnames('permissions-connect-header', className)}
         flexDirection={FLEX_DIRECTION.COLUMN}
-        justifyContent={JUSTIFY_CONTENT.CENTER}
+        justifyContent={JustifyContent.center}
         {...boxProps}
       >
         {this.renderHeaderIcon()}

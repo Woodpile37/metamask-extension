@@ -1,4 +1,3 @@
-import { exportAsFile } from '../../../shared/modules/export-utils';
 import { prependZero } from '../../../shared/modules/string-utils';
 
 export default class BackupController {
@@ -6,17 +5,19 @@ export default class BackupController {
     const {
       preferencesController,
       addressBookController,
+      networkController,
       trackMetaMetricsEvent,
     } = opts;
 
     this.preferencesController = preferencesController;
     this.addressBookController = addressBookController;
+    this.networkController = networkController;
     this._trackMetaMetricsEvent = trackMetaMetricsEvent;
   }
 
   async restoreUserData(jsonString) {
     const existingPreferences = this.preferencesController.store.getState();
-    const { preferences, addressBook } = JSON.parse(jsonString);
+    const { preferences, addressBook, network } = JSON.parse(jsonString);
     if (preferences) {
       preferences.identities = existingPreferences.identities;
       preferences.lostIdentities = existingPreferences.lostIdentities;
@@ -29,7 +30,11 @@ export default class BackupController {
       this.addressBookController.update(addressBook, true);
     }
 
-    if (preferences && addressBook) {
+    if (network) {
+      this.networkController.store.updateState(network);
+    }
+
+    if (preferences || addressBook || network) {
       this._trackMetaMetricsEvent({
         event: 'User Data Imported',
         category: 'Backup',
@@ -41,6 +46,10 @@ export default class BackupController {
     const userData = {
       preferences: { ...this.preferencesController.store.getState() },
       addressBook: { ...this.addressBookController.state },
+      network: {
+        networkConfigurations:
+          this.networkController.store.getState().networkConfigurations,
+      },
     };
 
     /**
@@ -65,13 +74,6 @@ export default class BackupController {
       date.getMinutes(),
     )}_${prefixZero(date.getDay())}.json`;
 
-    exportAsFile(userDataFileName, result);
-
-    this._trackMetaMetricsEvent({
-      event: 'User Data Exported',
-      category: 'Backup',
-    });
-
-    return result;
+    return { fileName: userDataFileName, data: result };
   }
 }

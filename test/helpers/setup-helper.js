@@ -1,10 +1,11 @@
+/* eslint-disable-next-line */
+import { TextEncoder, TextDecoder } from 'util';
 import nock from 'nock';
-import Enzyme from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
 import log from 'loglevel';
 import { JSDOM } from 'jsdom';
 
 process.env.IN_TEST = true;
+process.env.METAMASK_BUILD_TYPE = 'main';
 
 global.chrome = {
   runtime: { id: 'testid', getManifest: () => ({ manifest_version: 2 }) },
@@ -12,6 +13,12 @@ global.chrome = {
 
 nock.disableNetConnect();
 nock.enableNetConnect('localhost');
+if (typeof beforeEach === 'function') {
+  /* eslint-disable-next-line jest/require-top-level-describe */
+  beforeEach(() => {
+    nock.cleanAll();
+  });
+}
 
 // catch rejections that are still unhandled when tests exit
 const unhandledRejections = new Map();
@@ -33,8 +40,6 @@ process.on('exit', () => {
     process.exit(1);
   }
 });
-
-Enzyme.configure({ adapter: new Adapter() });
 
 log.setDefaultLevel(5);
 global.log = log;
@@ -95,6 +100,10 @@ if (!window.crypto.getRandomValues) {
   // eslint-disable-next-line node/global-require
   window.crypto.getRandomValues = require('polyfill-crypto.getrandomvalues');
 }
+
+// TextEncoder/TextDecoder
+window.TextEncoder = TextEncoder;
+window.TextDecoder = TextDecoder;
 
 // Used to test `clearClipboard` function
 if (!window.navigator.clipboard) {

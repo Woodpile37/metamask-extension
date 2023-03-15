@@ -5,16 +5,18 @@ const {
   withFixtures,
   createDownloadFolder,
 } = require('../helpers');
+const FixtureBuilder = require('../fixture-builder');
 
 const downloadsFolder = `${process.cwd()}/test-artifacts/downloads`;
 
-const stateLogsExist = async () => {
+const getStateLogsJson = async () => {
   try {
     const stateLogs = `${downloadsFolder}/MetaMask state logs.json`;
     await fs.access(stateLogs);
-    return true;
+    const contents = await fs.readFile(stateLogs);
+    return JSON.parse(contents.toString());
   } catch (e) {
-    return false;
+    return null;
   }
 };
 
@@ -31,7 +33,7 @@ describe('State logs', function () {
   it('should download state logs for the account', async function () {
     await withFixtures(
       {
-        fixtures: 'imported-account',
+        fixtures: new FixtureBuilder().build(),
         ganacheOptions,
         title: this.test.title,
         failOnConsoleError: false,
@@ -52,12 +54,19 @@ describe('State logs', function () {
         });
 
         // Verify download
-        let fileExists;
+        let info;
         await driver.wait(async () => {
-          fileExists = await stateLogsExist();
-          return fileExists === true;
+          info = await getStateLogsJson();
+          return info !== null;
         }, 10000);
-        assert.equal(fileExists, true);
+        assert.notEqual(info, null);
+        // Verify Json
+        assert.equal(
+          info?.metamask?.identities[
+            '0x5cfe73b6021e818b776b421b1c4db2474086a7e1'
+          ].address,
+          '0x5cfe73b6021e818b776b421b1c4db2474086a7e1',
+        );
       },
     );
   });

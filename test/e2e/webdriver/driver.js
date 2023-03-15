@@ -1,6 +1,12 @@
 const { promises: fs } = require('fs');
 const { strict: assert } = require('assert');
-const { until, error: webdriverError, By, Key } = require('selenium-webdriver');
+const {
+  By,
+  Condition,
+  error: webdriverError,
+  Key,
+  until,
+} = require('selenium-webdriver');
 const cssToXPath = require('css-to-xpath');
 
 /**
@@ -33,6 +39,14 @@ function wrapElementWithAPI(element, driver) {
   return element;
 }
 
+until.elementIsNotPresent = function elementIsNotPresent(locator) {
+  return new Condition(`Element not present`, function (driver) {
+    return driver.findElements(By.css(locator)).then(function (elements) {
+      return elements.length === 0;
+    });
+  });
+};
+
 /**
  * For Selenium WebDriver API documentation, see:
  * https://www.selenium.dev/selenium/docs/api/javascript/module/selenium-webdriver/index_exports_WebDriver.html
@@ -49,6 +63,8 @@ class Driver {
     this.browser = browser;
     this.extensionUrl = extensionUrl;
     this.timeout = timeout;
+    this.exceptions = [];
+    this.errors = [];
     // The following values are found in
     // https://github.com/SeleniumHQ/selenium/blob/trunk/javascript/node/selenium-webdriver/lib/input.js#L50-L110
     // These should be replaced with string constants 'Enter' etc for playwright.
@@ -161,6 +177,18 @@ class Driver {
     return wrapElementWithAPI(element, this);
   }
 
+  async waitForNonEmptyElement(element) {
+    await this.driver.wait(async () => {
+      const elemText = await element.getText();
+      const empty = elemText === '';
+      return !empty;
+    }, this.timeout);
+  }
+
+  async waitForElementNotPresent(element) {
+    return await this.driver.wait(until.elementIsNotPresent(element));
+  }
+
   async quit() {
     await this.driver.quit();
   }
@@ -254,9 +282,18 @@ class Driver {
     assert.ok(!dataTab, 'Found element that should not be present');
   }
 
-  async isElementPresent(element) {
+  async isElementPresent(rawLocator) {
     try {
-      await this.findElement(element);
+      await this.findElement(rawLocator);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async isElementPresentAndVisible(rawLocator) {
+    try {
+      await this.findVisibleElement(rawLocator);
       return true;
     } catch (err) {
       return false;
@@ -287,6 +324,10 @@ class Driver {
 
   async navigate(page = Driver.PAGES.HOME) {
     return await this.driver.get(`${this.extensionUrl}/${page}.html`);
+  }
+
+  async getCurrentUrl() {
+    return await this.driver.getCurrentUrl();
   }
 
   // Metrics
@@ -355,6 +396,11 @@ class Driver {
     throw new Error(`No window with title: ${title}`);
   }
 
+  // Close Alert Popup
+  async closeAlertPopup() {
+    return await this.driver.switchTo().alert().accept();
+  }
+
   /**
    * Closes all windows except those in the given list of exceptions
    *
@@ -393,7 +439,9 @@ class Driver {
     const htmlSource = await this.driver.getPageSource();
     await fs.writeFile(`${filepathBase}-dom.html`, htmlSource);
     const uiState = await this.driver.executeScript(
-      () => window.getCleanAppState && window.getCleanAppState(),
+      () =>
+        window.stateHooks?.getCleanAppState &&
+        window.stateHooks.getCleanAppState(),
     );
     await fs.writeFile(
       `${filepathBase}-state.json`,
@@ -415,8 +463,17 @@ class Driver {
     return browserLogs;
   }
 
-  async checkBrowserForConsoleErrors() {
-    const ignoredLogTypes = ['WARNING'];
+  async checkBrowserForExceptions(failOnConsoleError) {
+    const { exceptions } = this;
+    const cdpConnection = await this.driver.createCDPConnection('page');
+    await this.driver.onLogException(cdpConnection, (exception) => {
+      const { description } = exception.exceptionDetails.exception;
+      exceptions.push(description);
+      logBrowserError(failOnConsoleError, description);
+    });
+  }
+
+  async checkBrowserForConsoleErrors(failOnConsoleError) {
     const ignoredErrorMessages = [
       // Third-party Favicon 404s show up as errors
       'favicon.ico - Failed to load resource: the server responded with a status of 404',
@@ -425,17 +482,31 @@ class Driver {
       // 4Byte
       'Failed to load resource: the server responded with a status of 502 (Bad Gateway)',
     ];
-    const browserLogs = await this.driver.manage().logs().get('browser');
-    const errorEntries = browserLogs.filter(
-      (entry) => !ignoredLogTypes.includes(entry.level.toString()),
-    );
-    const errorObjects = errorEntries.map((entry) => entry.toJSON());
-    return errorObjects.filter(
-      (entry) =>
-        !ignoredErrorMessages.some((message) =>
-          entry.message.includes(message),
-        ),
-    );
+    const { errors } = this;
+    const cdpConnection = await this.driver.createCDPConnection('page');
+    await this.driver.onLogEvent(cdpConnection, (event) => {
+      if (event.type === 'error') {
+        const eventDescription = event.args.filter(
+          (err) => err.description !== undefined,
+        );
+        const [{ description }] = eventDescription;
+        const ignore = ignoredErrorMessages.some((message) =>
+          description.includes(message),
+        );
+        if (!ignore) {
+          errors.push(description);
+          logBrowserError(failOnConsoleError, description);
+        }
+      }
+    });
+  }
+}
+
+function logBrowserError(failOnConsoleError, errorMessage) {
+  if (failOnConsoleError) {
+    throw new Error(errorMessage);
+  } else {
+    console.error(new Error(errorMessage));
   }
 }
 

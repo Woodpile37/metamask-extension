@@ -3,25 +3,23 @@ import React, { Component } from 'react';
 
 import { connect } from 'react-redux';
 import * as actions from '../../../store/actions';
-import { resetCustomData as resetCustomGasData } from '../../../ducks/gas/gas.duck';
 import isMobileView from '../../../helpers/utils/is-mobile-view';
 import { getEnvironmentType } from '../../../../app/scripts/lib/util';
 import { ENVIRONMENT_TYPE_POPUP } from '../../../../shared/constants/app';
 
 // Modal Components
-import ConfirmCustomizeGasModal from '../gas-customization/gas-modal-page-container';
+import AddNetworkModal from '../../../pages/onboarding-flow/add-network-modal';
 import AccountDetailsModal from './account-details-modal';
 import ExportPrivateKeyModal from './export-private-key-modal';
 import HideTokenConfirmationModal from './hide-token-confirmation-modal';
 import QRScanner from './qr-scanner';
 
+import HoldToRevealModal from './hold-to-reveal-modal';
 import ConfirmRemoveAccount from './confirm-remove-account';
 import ConfirmResetAccount from './confirm-reset-account';
 import TransactionConfirmed from './transaction-confirmed';
-import CancelTransaction from './cancel-transaction';
 
 import FadeModal from './fade-modal';
-import MetaMetricsOptInModal from './metametrics-opt-in-modal';
 import RejectTransactions from './reject-transactions';
 import ConfirmDeleteNetwork from './confirm-delete-network';
 import EditApprovalPermission from './edit-approval-permission';
@@ -78,6 +76,10 @@ const accountModalStyle = {
 };
 
 const MODALS = {
+  ONBOARDING_ADD_NETWORK: {
+    contents: <AddNetworkModal />,
+    ...accountModalStyle,
+  },
   NEW_ACCOUNT: {
     contents: <NewAccountModal />,
     mobileModalStyle: {
@@ -115,6 +117,19 @@ const MODALS = {
     ...accountModalStyle,
   },
 
+  HOLD_TO_REVEAL_SRP: {
+    contents: <HoldToRevealModal />,
+    mobileModalStyle: {
+      ...modalContainerMobileStyle,
+    },
+    laptopModalStyle: {
+      ...modalContainerLaptopStyle,
+    },
+    contentStyle: {
+      borderRadius: '8px',
+    },
+  },
+
   HIDE_TOKEN_CONFIRMATION: {
     contents: <HideTokenConfirmationModal />,
     mobileModalStyle: {
@@ -129,23 +144,6 @@ const MODALS = {
         getEnvironmentType() === ENVIRONMENT_TYPE_POPUP ? '16px' : null,
       paddingRight:
         getEnvironmentType() === ENVIRONMENT_TYPE_POPUP ? '16px' : null,
-    },
-  },
-
-  METAMETRICS_OPT_IN_MODAL: {
-    contents: <MetaMetricsOptInModal />,
-    mobileModalStyle: {
-      ...modalContainerMobileStyle,
-      width: '100%',
-      height: '100%',
-      top: '0px',
-    },
-    laptopModalStyle: {
-      ...modalContainerLaptopStyle,
-      top: '10%',
-    },
-    contentStyle: {
-      borderRadius: '8px',
     },
   },
 
@@ -201,35 +199,6 @@ const MODALS = {
     },
   },
 
-  LEGACY_CUSTOMIZE_GAS: {
-    contents: <ConfirmCustomizeGasModal />,
-    mobileModalStyle: {
-      width: '100vw',
-      height: '100vh',
-      top: '0',
-      transform: 'none',
-      left: '0',
-      right: '0',
-      margin: '0 auto',
-    },
-    laptopModalStyle: {
-      width: 'auto',
-      height: '0px',
-      top: '80px',
-      left: '0px',
-      transform: 'none',
-      margin: '0 auto',
-      position: 'relative',
-    },
-    contentStyle: {
-      borderRadius: '8px',
-    },
-    customOnHideOpts: {
-      action: resetCustomGasData,
-      args: [],
-    },
-  },
-
   EDIT_APPROVAL_PERMISSION: {
     contents: <EditApprovalPermission />,
     mobileModalStyle: {
@@ -271,19 +240,6 @@ const MODALS = {
 
   QR_SCANNER: {
     contents: <QRScanner />,
-    mobileModalStyle: {
-      ...modalContainerMobileStyle,
-    },
-    laptopModalStyle: {
-      ...modalContainerLaptopStyle,
-    },
-    contentStyle: {
-      borderRadius: '8px',
-    },
-  },
-
-  CANCEL_TRANSACTION: {
-    contents: <CancelTransaction />,
     mobileModalStyle: {
       ...modalContainerMobileStyle,
     },

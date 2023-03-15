@@ -3,38 +3,47 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { memoize } from 'lodash';
 import {
-  ALIGN_ITEMS,
+  AlignItems,
   BLOCK_SIZES,
-  BORDER_STYLE,
-  BACKGROUND_COLORS,
-  BORDER_COLORS,
-  TEXT_COLORS,
-  ICON_COLORS,
+  BorderStyle,
+  BackgroundColor,
+  BorderColor,
+  TextColor,
+  IconColor,
   DISPLAY,
-  JUSTIFY_CONTENT,
-  SIZES,
+  JustifyContent,
   TEXT_ALIGN,
   FLEX_DIRECTION,
   FLEX_WRAP,
   BREAKPOINTS,
+  BorderRadius,
 } from '../../../helpers/constants/design-system';
 
 const BASE_CLASS_NAME = 'box';
 const Sizes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 const ValidSize = PropTypes.oneOf(Sizes);
+const ValidBlockSize = PropTypes.oneOf(Object.values(BLOCK_SIZES));
 const ValidSizeAndAuto = PropTypes.oneOf([...Sizes, 'auto']);
-export const ValidBackgroundColors = PropTypes.oneOf(
-  Object.values(BACKGROUND_COLORS),
+export const ValidBackgroundColor = PropTypes.oneOf(
+  Object.values(BackgroundColor),
 );
-export const ValidBorderColors = PropTypes.oneOf(Object.values(BORDER_COLORS));
-export const ValidTextColors = PropTypes.oneOf(Object.values(TEXT_COLORS));
-export const ValidIconColors = PropTypes.oneOf(Object.values(ICON_COLORS));
+export const ValidBorderColors = PropTypes.oneOf(Object.values(BorderColor));
+export const ValidTextColors = PropTypes.oneOf(Object.values(TextColor));
+export const ValidIconColors = PropTypes.oneOf(Object.values(IconColor));
+const ValidAlignItem = PropTypes.oneOf(Object.values(AlignItems));
+const ValidJustifyContent = PropTypes.oneOf(Object.values(JustifyContent));
 
 const ArrayOfValidSizes = PropTypes.arrayOf(ValidSize);
 export const MultipleSizes = PropTypes.oneOfType([
   ValidSize,
   ArrayOfValidSizes,
+]);
+
+const ArrayOfValidBlockSizes = PropTypes.arrayOf(ValidBlockSize);
+export const MultipleBlockSizes = PropTypes.oneOfType([
+  ValidBlockSize,
+  ArrayOfValidBlockSizes,
 ]);
 
 const ArrayOfValidSizesAndAuto = PropTypes.arrayOf(ValidSizeAndAuto);
@@ -49,10 +58,10 @@ export const MultipleBorderColors = PropTypes.oneOfType([
   ArrayOfValidBorderColors,
 ]);
 
-const ArrayOfValidBackgroundColors = PropTypes.arrayOf(ValidBackgroundColors);
-export const MultipleBackgroundColors = PropTypes.oneOfType([
-  ValidBackgroundColors,
-  ArrayOfValidBackgroundColors,
+const ArrayOfValidBackgroundColor = PropTypes.arrayOf(ValidBackgroundColor);
+export const MultipleBackgroundColor = PropTypes.oneOfType([
+  ValidBackgroundColor,
+  ArrayOfValidBackgroundColor,
 ]);
 
 const ArrayOfValidTextColors = PropTypes.arrayOf(ValidTextColors);
@@ -64,6 +73,18 @@ export const MultipleTextColors = PropTypes.oneOfType([
   ArrayOfValidIconColors,
 ]);
 
+const ArrayOfValidAlignItems = PropTypes.arrayOf(ValidAlignItem);
+export const MultipleAlignItems = PropTypes.oneOfType([
+  ValidAlignItem,
+  ArrayOfValidAlignItems,
+]);
+
+const ArrayOfValidJustifyContents = PropTypes.arrayOf(ValidJustifyContent);
+export const MultipleJustifyContents = PropTypes.oneOfType([
+  ValidJustifyContent,
+  ArrayOfValidJustifyContents,
+]);
+
 function isValidSize(type, value) {
   // Only margin types allow 'auto'
   return (
@@ -72,7 +93,10 @@ function isValidSize(type, value) {
       type === 'margin-top' ||
       type === 'margin-right' ||
       type === 'margin-bottom' ||
-      type === 'margin-left') &&
+      type === 'margin-left' ||
+      type === 'margin-inline' ||
+      type === 'margin-inline-start' ||
+      type === 'margin-inline-end') &&
       value === 'auto')
   );
 }
@@ -163,37 +187,46 @@ const generateClassNames = memoize(
   (type, value) => [type, value],
 );
 
-export default function Box({
-  padding,
-  paddingTop,
-  paddingRight,
-  paddingBottom,
-  paddingLeft,
-  margin,
-  marginTop,
-  marginRight,
-  marginBottom,
-  marginLeft,
-  borderColor,
-  borderWidth,
-  borderRadius,
-  borderStyle,
-  alignItems,
-  justifyContent,
-  textAlign,
-  flexDirection = FLEX_DIRECTION.ROW,
-  flexWrap,
-  gap,
-  display,
-  width,
-  height,
-  children,
-  className,
-  backgroundColor,
-  color,
-  as = 'div',
-  ...props
-}) {
+const Box = React.forwardRef(function Box(
+  {
+    padding,
+    paddingTop,
+    paddingRight,
+    paddingBottom,
+    paddingLeft,
+    paddingInline,
+    paddingInlineStart,
+    paddingInlineEnd,
+    margin,
+    marginTop,
+    marginRight,
+    marginBottom,
+    marginLeft,
+    marginInline,
+    marginInlineStart,
+    marginInlineEnd,
+    borderColor,
+    borderWidth,
+    borderRadius,
+    borderStyle,
+    alignItems,
+    justifyContent,
+    textAlign,
+    flexDirection = FLEX_DIRECTION.ROW,
+    flexWrap,
+    gap,
+    display,
+    width,
+    height,
+    children,
+    className,
+    backgroundColor,
+    color,
+    as = 'div',
+    ...props
+  },
+  ref,
+) {
   const boxClassName = classnames(
     BASE_CLASS_NAME,
     className,
@@ -204,6 +237,12 @@ export default function Box({
     marginBottom &&
       generateClassNames('margin-bottom', marginBottom, isValidSize),
     marginLeft && generateClassNames('margin-left', marginLeft, isValidSize),
+    marginInline &&
+      generateClassNames('margin-inline', marginInline, isValidSize),
+    marginInlineStart &&
+      generateClassNames('margin-inline-start', marginInlineStart, isValidSize),
+    marginInlineEnd &&
+      generateClassNames('margin-inline-end', marginInlineEnd, isValidSize),
     // Padding
     padding && generateClassNames('padding', padding, isValidSize),
     paddingTop && generateClassNames('padding-top', paddingTop, isValidSize),
@@ -212,6 +251,16 @@ export default function Box({
     paddingBottom &&
       generateClassNames('padding-bottom', paddingBottom, isValidSize),
     paddingLeft && generateClassNames('padding-left', paddingLeft, isValidSize),
+    paddingInline &&
+      generateClassNames('padding-inline', paddingInline, isValidSize),
+    paddingInlineStart &&
+      generateClassNames(
+        'padding-inline-start',
+        paddingInlineStart,
+        isValidSize,
+      ),
+    paddingInlineEnd &&
+      generateClassNames('padding-inline-end', paddingInlineEnd, isValidSize),
     display && generateClassNames('display', display, isValidString),
     gap && generateClassNames('gap', gap, isValidSize),
     flexDirection &&
@@ -252,11 +301,11 @@ export default function Box({
   }
   const Component = as;
   return (
-    <Component className={boxClassName} {...props}>
+    <Component className={boxClassName} ref={ref} {...props}>
       {children}
     </Component>
   );
-}
+});
 
 Box.propTypes = {
   children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
@@ -274,32 +323,32 @@ Box.propTypes = {
   marginBottom: MultipleSizesAndAuto,
   marginRight: MultipleSizesAndAuto,
   marginLeft: MultipleSizesAndAuto,
+  marginInline: MultipleSizesAndAuto,
+  marginInlineStart: MultipleSizesAndAuto,
+  marginInlineEnd: MultipleSizesAndAuto,
   padding: MultipleSizes,
   paddingTop: MultipleSizes,
   paddingBottom: MultipleSizes,
   paddingRight: MultipleSizes,
   paddingLeft: MultipleSizes,
+  paddingInline: MultipleSizes,
+  paddingInlineStart: MultipleSizes,
+  paddingInlineEnd: MultipleSizes,
   borderColor: MultipleBorderColors,
   borderWidth: PropTypes.oneOfType([
     PropTypes.number,
     PropTypes.arrayOf(PropTypes.number),
   ]),
   borderRadius: PropTypes.oneOfType([
-    PropTypes.oneOf(Object.values(SIZES)),
-    PropTypes.arrayOf(PropTypes.oneOf(Object.values(SIZES))),
+    PropTypes.oneOf(Object.values(BorderRadius)),
+    PropTypes.arrayOf(PropTypes.oneOf(Object.values(BorderRadius))),
   ]),
   borderStyle: PropTypes.oneOfType([
-    PropTypes.oneOf(Object.values(BORDER_STYLE)),
-    PropTypes.arrayOf(PropTypes.oneOf(Object.values(BORDER_STYLE))),
+    PropTypes.oneOf(Object.values(BorderStyle)),
+    PropTypes.arrayOf(PropTypes.oneOf(Object.values(BorderStyle))),
   ]),
-  alignItems: PropTypes.oneOfType([
-    PropTypes.oneOf(Object.values(ALIGN_ITEMS)),
-    PropTypes.arrayOf(PropTypes.oneOf(Object.values(ALIGN_ITEMS))),
-  ]),
-  justifyContent: PropTypes.oneOfType([
-    PropTypes.oneOf(Object.values(JUSTIFY_CONTENT)),
-    PropTypes.arrayOf(PropTypes.oneOf(Object.values(JUSTIFY_CONTENT))),
-  ]),
+  alignItems: MultipleAlignItems,
+  justifyContent: MultipleJustifyContents,
   textAlign: PropTypes.oneOfType([
     PropTypes.oneOf(Object.values(TEXT_ALIGN)),
     PropTypes.arrayOf(PropTypes.oneOf(Object.values(TEXT_ALIGN))),
@@ -308,16 +357,11 @@ Box.propTypes = {
     PropTypes.oneOf(Object.values(DISPLAY)),
     PropTypes.arrayOf(PropTypes.oneOf(Object.values(DISPLAY))),
   ]),
-  width: PropTypes.oneOfType([
-    PropTypes.oneOf(Object.values(BLOCK_SIZES)),
-    PropTypes.arrayOf(PropTypes.oneOf(Object.values(BLOCK_SIZES))),
-  ]),
-  height: PropTypes.oneOfType([
-    PropTypes.oneOf(Object.values(BLOCK_SIZES)),
-    PropTypes.arrayOf(PropTypes.oneOf(Object.values(BLOCK_SIZES))),
-  ]),
-  backgroundColor: MultipleBackgroundColors,
+  width: MultipleBlockSizes,
+  height: MultipleBlockSizes,
+  backgroundColor: MultipleBackgroundColor,
   className: PropTypes.string,
+  style: PropTypes.object,
   /**
    * The polymorphic `as` prop allows you to change the root HTML element of the Box component
    * Defaults to 'div'
@@ -329,3 +373,5 @@ Box.propTypes = {
    */
   color: MultipleTextColors,
 };
+
+export default Box;

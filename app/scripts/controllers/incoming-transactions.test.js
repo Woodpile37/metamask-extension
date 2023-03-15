@@ -6,14 +6,14 @@ import { cloneDeep } from 'lodash';
 
 import waitUntilCalled from '../../../test/lib/wait-until-called';
 import {
-  CHAIN_ID_TO_TYPE_MAP,
+  ETHERSCAN_SUPPORTED_NETWORKS,
   CHAIN_IDS,
   NETWORK_TYPES,
   NETWORK_IDS,
 } from '../../../shared/constants/network';
 import {
-  TRANSACTION_TYPES,
-  TRANSACTION_STATUSES,
+  TransactionType,
+  TransactionStatus,
 } from '../../../shared/constants/transaction';
 import { MILLISECOND } from '../../../shared/constants/time';
 
@@ -31,20 +31,15 @@ const PREPOPULATED_INCOMING_TXS_BY_HASH = {
 };
 const PREPOPULATED_BLOCKS_BY_NETWORK = {
   [CHAIN_IDS.GOERLI]: 1,
-  [CHAIN_IDS.KOVAN]: 2,
   [CHAIN_IDS.MAINNET]: 3,
-  [CHAIN_IDS.RINKEBY]: 5,
-  [CHAIN_IDS.ROPSTEN]: 4,
   [CHAIN_IDS.SEPOLIA]: 6,
 };
-const EMPTY_BLOCKS_BY_NETWORK = {
-  [CHAIN_IDS.GOERLI]: null,
-  [CHAIN_IDS.KOVAN]: null,
-  [CHAIN_IDS.MAINNET]: null,
-  [CHAIN_IDS.RINKEBY]: null,
-  [CHAIN_IDS.ROPSTEN]: null,
-  [CHAIN_IDS.SEPOLIA]: null,
-};
+const EMPTY_BLOCKS_BY_NETWORK = Object.keys(
+  ETHERSCAN_SUPPORTED_NETWORKS,
+).reduce((network, chainId) => {
+  network[chainId] = null;
+  return network;
+}, {});
 
 function getEmptyInitState() {
   return {
@@ -77,6 +72,17 @@ function getMockPreferencesController({
         featureFlags: {
           showIncomingTransactions,
         },
+      }),
+      subscribe: sinon.spy(),
+    },
+  };
+}
+
+function getMockOnboardingController() {
+  return {
+    store: {
+      getState: sinon.stub().returns({
+        completedOnboarding: true,
       }),
       subscribe: sinon.spy(),
     },
@@ -145,23 +151,13 @@ const getFakeEtherscanTransaction = ({
 };
 
 function nockEtherscanApiForAllChains(mockResponse) {
-  for (const chainId of [
-    CHAIN_IDS.GOERLI,
-    CHAIN_IDS.KOVAN,
-    CHAIN_IDS.MAINNET,
-    CHAIN_IDS.RINKEBY,
-    CHAIN_IDS.ROPSTEN,
-    CHAIN_IDS.SEPOLIA,
-    'undefined',
-  ]) {
-    nock(
-      `https://api${
-        chainId === CHAIN_IDS.MAINNET ? '' : `-${CHAIN_ID_TO_TYPE_MAP[chainId]}`
-      }.etherscan.io`,
-    )
-      .get(/api.+/u)
-      .reply(200, JSON.stringify(mockResponse));
-  }
+  Object.values(ETHERSCAN_SUPPORTED_NETWORKS).forEach(
+    ({ domain, subdomain }) => {
+      nock(`https://${domain}.${subdomain}`)
+        .get(/api.+/u)
+        .reply(200, JSON.stringify(mockResponse));
+    },
+  );
 }
 
 describe('IncomingTransactionsController', function () {
@@ -178,6 +174,7 @@ describe('IncomingTransactionsController', function () {
           blockTracker: getMockBlockTracker(),
           ...mockedNetworkMethods,
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: {},
         },
       );
@@ -208,6 +205,7 @@ describe('IncomingTransactionsController', function () {
           blockTracker: getMockBlockTracker(),
           ...getMockNetworkControllerMethods(),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -226,6 +224,7 @@ describe('IncomingTransactionsController', function () {
           blockTracker: getMockBlockTracker(),
           ...getMockNetworkControllerMethods(),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: {},
         },
       );
@@ -246,16 +245,17 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
       const startBlock =
         getNonEmptyInitState().incomingTxLastFetchedBlockByChainId[
-          CHAIN_IDS.ROPSTEN
+          CHAIN_IDS.GOERLI
         ];
-      nock('https://api-ropsten.etherscan.io')
+      nock('https://api-goerli.etherscan.io')
         .get(
           `/api?module=account&action=txlist&address=${MOCK_SELECTED_ADDRESS}&tag=latest&page=1&startBlock=${startBlock}`,
         )
@@ -305,11 +305,11 @@ describe('IncomingTransactionsController', function () {
             '0xfake': {
               blockNumber: '10',
               hash: '0xfake',
-              metamaskNetworkId: NETWORK_IDS.ROPSTEN,
-              chainId: CHAIN_IDS.ROPSTEN,
-              status: TRANSACTION_STATUSES.CONFIRMED,
+              metamaskNetworkId: NETWORK_IDS.GOERLI,
+              chainId: CHAIN_IDS.GOERLI,
+              status: TransactionStatus.confirmed,
               time: 16000000000000000,
-              type: TRANSACTION_TYPES.INCOMING,
+              type: TransactionType.incoming,
               txParams: {
                 from: '0xfake',
                 gas: '0x0',
@@ -322,11 +322,11 @@ describe('IncomingTransactionsController', function () {
             '0xfakeeip1559': {
               blockNumber: '10',
               hash: '0xfakeeip1559',
-              metamaskNetworkId: NETWORK_IDS.ROPSTEN,
-              chainId: CHAIN_IDS.ROPSTEN,
-              status: TRANSACTION_STATUSES.CONFIRMED,
+              metamaskNetworkId: NETWORK_IDS.GOERLI,
+              chainId: CHAIN_IDS.GOERLI,
+              status: TransactionStatus.confirmed,
               time: 16000000000000000,
-              type: TRANSACTION_TYPES.INCOMING,
+              type: TransactionType.incoming,
               txParams: {
                 from: '0xfake',
                 gas: '0x0',
@@ -340,7 +340,7 @@ describe('IncomingTransactionsController', function () {
           },
           incomingTxLastFetchedBlockByChainId: {
             ...getNonEmptyInitState().incomingTxLastFetchedBlockByChainId,
-            [CHAIN_IDS.ROPSTEN]: 11,
+            [CHAIN_IDS.GOERLI]: 11,
           },
         },
         'State should have been updated after first block was received',
@@ -353,6 +353,7 @@ describe('IncomingTransactionsController', function () {
           blockTracker: getMockBlockTracker(),
           ...getMockNetworkControllerMethods(),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -403,6 +404,7 @@ describe('IncomingTransactionsController', function () {
           preferencesController: getMockPreferencesController({
             showIncomingTransactions: false,
           }),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -448,8 +450,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -493,8 +496,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -540,17 +544,18 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
       const NEW_MOCK_SELECTED_ADDRESS = `${MOCK_SELECTED_ADDRESS}9`;
       const startBlock =
         getNonEmptyInitState().incomingTxLastFetchedBlockByChainId[
-          CHAIN_IDS.ROPSTEN
+          CHAIN_IDS.GOERLI
         ];
-      nock('https://api-ropsten.etherscan.io')
+      nock('https://api-goerli.etherscan.io')
         .get(
           `/api?module=account&action=txlist&address=${NEW_MOCK_SELECTED_ADDRESS}&tag=latest&page=1&startBlock=${startBlock}`,
         )
@@ -603,11 +608,11 @@ describe('IncomingTransactionsController', function () {
             '0xfake': {
               blockNumber: '10',
               hash: '0xfake',
-              metamaskNetworkId: NETWORK_IDS.ROPSTEN,
-              chainId: CHAIN_IDS.ROPSTEN,
-              status: TRANSACTION_STATUSES.CONFIRMED,
+              metamaskNetworkId: NETWORK_IDS.GOERLI,
+              chainId: CHAIN_IDS.GOERLI,
+              status: TransactionStatus.confirmed,
               time: 16000000000000000,
-              type: TRANSACTION_TYPES.INCOMING,
+              type: TransactionType.incoming,
               txParams: {
                 from: '0xfake',
                 gas: '0x0',
@@ -620,7 +625,7 @@ describe('IncomingTransactionsController', function () {
           },
           incomingTxLastFetchedBlockByChainId: {
             ...getNonEmptyInitState().incomingTxLastFetchedBlockByChainId,
-            [CHAIN_IDS.ROPSTEN]: 11,
+            [CHAIN_IDS.GOERLI]: 11,
           },
         },
         'State should have been updated after first block was received',
@@ -633,6 +638,7 @@ describe('IncomingTransactionsController', function () {
           blockTracker: { ...getMockBlockTracker() },
           ...getMockNetworkControllerMethods(),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -687,21 +693,22 @@ describe('IncomingTransactionsController', function () {
 
     it('should update when switching to a supported network', async function () {
       const mockedNetworkMethods = getMockNetworkControllerMethods(
-        CHAIN_IDS.ROPSTEN,
+        CHAIN_IDS.GOERLI,
       );
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
           ...mockedNetworkMethods,
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
       const startBlock =
         getNonEmptyInitState().incomingTxLastFetchedBlockByChainId[
-          CHAIN_IDS.ROPSTEN
+          CHAIN_IDS.GOERLI
         ];
-      nock('https://api-ropsten.etherscan.io')
+      nock('https://api-goerli.etherscan.io')
         .get(
           `/api?module=account&action=txlist&address=${MOCK_SELECTED_ADDRESS}&tag=latest&page=1&startBlock=${startBlock}`,
         )
@@ -723,7 +730,7 @@ describe('IncomingTransactionsController', function () {
 
       const subscription =
         mockedNetworkMethods.onNetworkDidChange.getCall(0).args[0];
-      await subscription(CHAIN_IDS.ROPSTEN);
+      await subscription(CHAIN_IDS.GOERLI);
       await updateStateCalled();
 
       const actualState = incomingTransactionsController.store.getState();
@@ -744,11 +751,11 @@ describe('IncomingTransactionsController', function () {
             '0xfake': {
               blockNumber: '10',
               hash: '0xfake',
-              metamaskNetworkId: NETWORK_IDS.ROPSTEN,
-              chainId: CHAIN_IDS.ROPSTEN,
-              status: TRANSACTION_STATUSES.CONFIRMED,
+              metamaskNetworkId: NETWORK_IDS.GOERLI,
+              chainId: CHAIN_IDS.GOERLI,
+              status: TransactionStatus.confirmed,
               time: 16000000000000000,
-              type: TRANSACTION_TYPES.INCOMING,
+              type: TransactionType.incoming,
               txParams: {
                 from: '0xfake',
                 gas: '0x0',
@@ -761,7 +768,7 @@ describe('IncomingTransactionsController', function () {
           },
           incomingTxLastFetchedBlockByChainId: {
             ...getNonEmptyInitState().incomingTxLastFetchedBlockByChainId,
-            [CHAIN_IDS.ROPSTEN]: 11,
+            [CHAIN_IDS.GOERLI]: 11,
           },
         },
         'State should have been updated after first block was received',
@@ -770,13 +777,14 @@ describe('IncomingTransactionsController', function () {
 
     it('should not update when switching to an unsupported network', async function () {
       const mockedNetworkMethods = getMockNetworkControllerMethods(
-        CHAIN_IDS.ROPSTEN,
+        CHAIN_IDS.GOERLI,
       );
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
           ...mockedNetworkMethods,
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -829,10 +837,11 @@ describe('IncomingTransactionsController', function () {
         const incomingTransactionsController =
           new IncomingTransactionsController({
             blockTracker: getMockBlockTracker(),
-            ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+            ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
             preferencesController: getMockPreferencesController(),
+            onboardingController: getMockOnboardingController(),
             initState: getEmptyInitState(),
-            getCurrentChainId: () => CHAIN_IDS.ROPSTEN,
+            getCurrentChainId: () => CHAIN_IDS.GOERLI,
           });
         sinon.spy(incomingTransactionsController.store, 'updateState');
 
@@ -847,14 +856,14 @@ describe('IncomingTransactionsController', function () {
         assert.deepStrictEqual(
           incomingTransactionsController._getNewIncomingTransactions.getCall(0)
             .args,
-          ['fakeAddress', 999, CHAIN_IDS.ROPSTEN],
+          ['fakeAddress', 999, CHAIN_IDS.GOERLI],
         );
         assert.deepStrictEqual(
           incomingTransactionsController.store.updateState.getCall(0).args[0],
           {
             incomingTxLastFetchedBlockByChainId: {
               ...EMPTY_BLOCKS_BY_NETWORK,
-              [CHAIN_IDS.ROPSTEN]: 1000,
+              [CHAIN_IDS.GOERLI]: 1000,
             },
             incomingTransactions: {},
           },
@@ -865,10 +874,11 @@ describe('IncomingTransactionsController', function () {
         const incomingTransactionsController =
           new IncomingTransactionsController({
             blockTracker: getMockBlockTracker(),
-            ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+            ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
             preferencesController: getMockPreferencesController(),
+            onboardingController: getMockOnboardingController(),
             initState: getEmptyInitState(),
-            getCurrentChainId: () => CHAIN_IDS.ROPSTEN,
+            getCurrentChainId: () => CHAIN_IDS.GOERLI,
           });
 
         const NEW_TRANSACTION_ONE = {
@@ -894,7 +904,7 @@ describe('IncomingTransactionsController', function () {
         assert.deepStrictEqual(
           incomingTransactionsController._getNewIncomingTransactions.getCall(0)
             .args,
-          ['fakeAddress', 10, CHAIN_IDS.ROPSTEN],
+          ['fakeAddress', 10, CHAIN_IDS.GOERLI],
         );
 
         assert.deepStrictEqual(
@@ -902,7 +912,7 @@ describe('IncomingTransactionsController', function () {
           {
             incomingTxLastFetchedBlockByChainId: {
               ...EMPTY_BLOCKS_BY_NETWORK,
-              [CHAIN_IDS.ROPSTEN]: 445,
+              [CHAIN_IDS.GOERLI]: 445,
             },
             incomingTransactions: {
               [NEW_TRANSACTION_ONE.hash]: NEW_TRANSACTION_ONE,
@@ -918,10 +928,11 @@ describe('IncomingTransactionsController', function () {
         const incomingTransactionsController =
           new IncomingTransactionsController({
             blockTracker: getMockBlockTracker(),
-            ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+            ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
             preferencesController: getMockPreferencesController(),
+            onboardingController: getMockOnboardingController(),
             initState: getNonEmptyInitState(),
-            getCurrentChainId: () => CHAIN_IDS.ROPSTEN,
+            getCurrentChainId: () => CHAIN_IDS.GOERLI,
           });
         sinon.spy(incomingTransactionsController.store, 'updateState');
         incomingTransactionsController._getNewIncomingTransactions = sinon
@@ -937,7 +948,7 @@ describe('IncomingTransactionsController', function () {
         assert.deepStrictEqual(
           incomingTransactionsController._getNewIncomingTransactions.getCall(0)
             .args,
-          ['fakeAddress', 4, CHAIN_IDS.ROPSTEN],
+          ['fakeAddress', 1, CHAIN_IDS.GOERLI],
         );
 
         assert.deepStrictEqual(
@@ -945,8 +956,8 @@ describe('IncomingTransactionsController', function () {
           {
             incomingTxLastFetchedBlockByChainId: {
               ...PREPOPULATED_BLOCKS_BY_NETWORK,
-              [CHAIN_IDS.ROPSTEN]:
-                PREPOPULATED_BLOCKS_BY_NETWORK[CHAIN_IDS.ROPSTEN] + 1,
+              [CHAIN_IDS.GOERLI]:
+                PREPOPULATED_BLOCKS_BY_NETWORK[CHAIN_IDS.GOERLI] + 1,
             },
             incomingTransactions: PREPOPULATED_INCOMING_TXS_BY_HASH,
           },
@@ -958,10 +969,11 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
-          getCurrentChainId: () => CHAIN_IDS.ROPSTEN,
+          getCurrentChainId: () => CHAIN_IDS.GOERLI,
         },
       );
 
@@ -988,7 +1000,7 @@ describe('IncomingTransactionsController', function () {
       assert.deepStrictEqual(
         incomingTransactionsController._getNewIncomingTransactions.getCall(0)
           .args,
-        ['fakeAddress', 4, CHAIN_IDS.ROPSTEN],
+        ['fakeAddress', 1, CHAIN_IDS.GOERLI],
       );
 
       assert.deepStrictEqual(
@@ -996,7 +1008,7 @@ describe('IncomingTransactionsController', function () {
         {
           incomingTxLastFetchedBlockByChainId: {
             ...PREPOPULATED_BLOCKS_BY_NETWORK,
-            [CHAIN_IDS.ROPSTEN]: 445,
+            [CHAIN_IDS.GOERLI]: 445,
           },
           incomingTransactions: {
             ...PREPOPULATED_INCOMING_TXS_BY_HASH,
@@ -1033,8 +1045,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -1042,13 +1055,13 @@ describe('IncomingTransactionsController', function () {
       await incomingTransactionsController._getNewIncomingTransactions(
         ADDRESS_TO_FETCH_FOR,
         '789',
-        CHAIN_IDS.ROPSTEN,
+        CHAIN_IDS.GOERLI,
       );
 
       assert(mockFetch.calledOnce);
       assert.strictEqual(
         mockFetch.getCall(0).args[0],
-        `https://api-${NETWORK_TYPES.ROPSTEN}.etherscan.io/api?module=account&action=txlist&address=0xfakeaddress&tag=latest&page=1&startBlock=789`,
+        `https://api-${NETWORK_TYPES.GOERLI}.etherscan.io/api?module=account&action=txlist&address=0xfakeaddress&tag=latest&page=1&startBlock=789`,
       );
     });
 
@@ -1058,6 +1071,7 @@ describe('IncomingTransactionsController', function () {
           blockTracker: getMockBlockTracker(),
           ...getMockNetworkControllerMethods(CHAIN_IDS.MAINNET),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -1079,8 +1093,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -1088,13 +1103,13 @@ describe('IncomingTransactionsController', function () {
       await incomingTransactionsController._getNewIncomingTransactions(
         ADDRESS_TO_FETCH_FOR,
         null,
-        CHAIN_IDS.ROPSTEN,
+        CHAIN_IDS.GOERLI,
       );
 
       assert(mockFetch.calledOnce);
       assert.strictEqual(
         mockFetch.getCall(0).args[0],
-        `https://api-${NETWORK_TYPES.ROPSTEN}.etherscan.io/api?module=account&action=txlist&address=0xfakeaddress&tag=latest&page=1`,
+        `https://api-${NETWORK_TYPES.GOERLI}.etherscan.io/api?module=account&action=txlist&address=0xfakeaddress&tag=latest&page=1`,
       );
     });
 
@@ -1102,8 +1117,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -1112,14 +1128,14 @@ describe('IncomingTransactionsController', function () {
         await incomingTransactionsController._getNewIncomingTransactions(
           ADDRESS_TO_FETCH_FOR,
           '789',
-          CHAIN_IDS.ROPSTEN,
+          CHAIN_IDS.GOERLI,
         );
 
       assert(mockFetch.calledOnce);
       assert.deepStrictEqual(result, [
         incomingTransactionsController._normalizeTxFromEtherscan(
           FETCHED_TX,
-          CHAIN_IDS.ROPSTEN,
+          CHAIN_IDS.GOERLI,
         ),
       ]);
     });
@@ -1135,8 +1151,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -1145,7 +1162,7 @@ describe('IncomingTransactionsController', function () {
         await incomingTransactionsController._getNewIncomingTransactions(
           ADDRESS_TO_FETCH_FOR,
           '789',
-          CHAIN_IDS.ROPSTEN,
+          CHAIN_IDS.GOERLI,
         );
       assert.deepStrictEqual(result, []);
       window.fetch = tempFetchStatusZero;
@@ -1163,8 +1180,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -1173,7 +1191,7 @@ describe('IncomingTransactionsController', function () {
         await incomingTransactionsController._getNewIncomingTransactions(
           ADDRESS_TO_FETCH_FOR,
           '789',
-          CHAIN_IDS.ROPSTEN,
+          CHAIN_IDS.GOERLI,
         );
       assert.deepStrictEqual(result, []);
       window.fetch = tempFetchEmptyResult;
@@ -1186,8 +1204,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -1205,15 +1224,15 @@ describe('IncomingTransactionsController', function () {
           value: '15',
           hash: '0xg',
         },
-        CHAIN_IDS.ROPSTEN,
+        CHAIN_IDS.GOERLI,
       );
 
       assert.deepStrictEqual(result, {
         blockNumber: 333,
         id: 54321,
-        metamaskNetworkId: NETWORK_IDS.ROPSTEN,
-        chainId: CHAIN_IDS.ROPSTEN,
-        status: TRANSACTION_STATUSES.FAILED,
+        metamaskNetworkId: NETWORK_IDS.GOERLI,
+        chainId: CHAIN_IDS.GOERLI,
+        status: TransactionStatus.failed,
         time: 4444000,
         txParams: {
           from: '0xa',
@@ -1224,7 +1243,7 @@ describe('IncomingTransactionsController', function () {
           value: '0xf',
         },
         hash: '0xg',
-        type: TRANSACTION_TYPES.INCOMING,
+        type: TransactionType.incoming,
       });
     });
 
@@ -1232,8 +1251,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -1251,15 +1271,15 @@ describe('IncomingTransactionsController', function () {
           value: '15',
           hash: '0xg',
         },
-        CHAIN_IDS.ROPSTEN,
+        CHAIN_IDS.GOERLI,
       );
 
       assert.deepStrictEqual(result, {
         blockNumber: 333,
         id: 54321,
-        metamaskNetworkId: NETWORK_IDS.ROPSTEN,
-        chainId: CHAIN_IDS.ROPSTEN,
-        status: TRANSACTION_STATUSES.CONFIRMED,
+        metamaskNetworkId: NETWORK_IDS.GOERLI,
+        chainId: CHAIN_IDS.GOERLI,
+        status: TransactionStatus.confirmed,
         time: 4444000,
         txParams: {
           from: '0xa',
@@ -1270,7 +1290,7 @@ describe('IncomingTransactionsController', function () {
           value: '0xf',
         },
         hash: '0xg',
-        type: TRANSACTION_TYPES.INCOMING,
+        type: TransactionType.incoming,
       });
     });
 
@@ -1278,8 +1298,9 @@ describe('IncomingTransactionsController', function () {
       const incomingTransactionsController = new IncomingTransactionsController(
         {
           blockTracker: getMockBlockTracker(),
-          ...getMockNetworkControllerMethods(CHAIN_IDS.ROPSTEN),
+          ...getMockNetworkControllerMethods(CHAIN_IDS.GOERLI),
           preferencesController: getMockPreferencesController(),
+          onboardingController: getMockOnboardingController(),
           initState: getNonEmptyInitState(),
         },
       );
@@ -1298,15 +1319,15 @@ describe('IncomingTransactionsController', function () {
           value: '15',
           hash: '0xg',
         },
-        CHAIN_IDS.ROPSTEN,
+        CHAIN_IDS.GOERLI,
       );
 
       assert.deepStrictEqual(result, {
         blockNumber: 333,
         id: 54321,
-        metamaskNetworkId: NETWORK_IDS.ROPSTEN,
-        chainId: CHAIN_IDS.ROPSTEN,
-        status: TRANSACTION_STATUSES.CONFIRMED,
+        metamaskNetworkId: NETWORK_IDS.GOERLI,
+        chainId: CHAIN_IDS.GOERLI,
+        status: TransactionStatus.confirmed,
         time: 4444000,
         txParams: {
           from: '0xa',
@@ -1318,7 +1339,7 @@ describe('IncomingTransactionsController', function () {
           value: '0xf',
         },
         hash: '0xg',
-        type: TRANSACTION_TYPES.INCOMING,
+        type: TransactionType.incoming,
       });
     });
   });

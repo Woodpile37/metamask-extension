@@ -1,3 +1,4 @@
+import { SubjectType } from '@metamask/subject-metadata-controller';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
@@ -6,7 +7,7 @@ import {
   getPermissionsRequests,
   getSelectedAddress,
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  getSnapUpdateRequests,
+  getSnapInstallOrUpdateRequests,
   ///: END:ONLY_INCLUDE_IN
   getTargetSubjectMetadata,
 } from '../../selectors';
@@ -17,8 +18,11 @@ import {
   approvePermissionsRequest,
   rejectPermissionsRequest,
   showModal,
-  getCurrentWindowTab,
   getRequestAccountTabIds,
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
+  resolvePendingApproval,
+  rejectPendingApproval,
+  ///: END:ONLY_INCLUDE_IN
 } from '../../store/actions';
 import {
   CONNECT_ROUTE,
@@ -28,7 +32,6 @@ import {
   CONNECT_SNAP_UPDATE_ROUTE,
   ///: END:ONLY_INCLUDE_IN
 } from '../../helpers/constants/routes';
-import { SUBJECT_TYPES } from '../../../shared/constants/app';
 import PermissionApproval from './permissions-connect.component';
 
 const mapStateToProps = (state, ownProps) => {
@@ -42,7 +45,7 @@ const mapStateToProps = (state, ownProps) => {
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
   permissionsRequests = [
     ...permissionsRequests,
-    ...getSnapUpdateRequests(state),
+    ...getSnapInstallOrUpdateRequests(state),
   ];
   ///: END:ONLY_INCLUDE_IN
   const currentAddress = getSelectedAddress(state);
@@ -64,11 +67,11 @@ const mapStateToProps = (state, ownProps) => {
     origin,
     iconUrl: null,
     extensionId: null,
-    subjectType: SUBJECT_TYPES.UNKNOWN,
+    subjectType: SubjectType.Unknown,
   };
 
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  const isSnap = targetSubjectMetadata.subjectType === SUBJECT_TYPES.SNAP;
+  const isSnap = targetSubjectMetadata.subjectType === SubjectType.Snap;
   ///: END:ONLY_INCLUDE_IN
 
   const accountsWithLabels = getAccountsWithLabels(state);
@@ -139,6 +142,12 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(approvePermissionsRequest(request)),
     rejectPermissionsRequest: (requestId) =>
       dispatch(rejectPermissionsRequest(requestId)),
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
+    approvePendingApproval: (id, value) =>
+      dispatch(resolvePendingApproval(id, value)),
+    rejectPendingApproval: (id, error) =>
+      dispatch(rejectPendingApproval(id, error)),
+    ///: END:ONLY_INCLUDE_IN
     showNewAccountModal: ({ onCreateNewAccount, newAccountNumber }) => {
       return dispatch(
         showModal({
@@ -149,7 +158,6 @@ const mapDispatchToProps = (dispatch) => {
       );
     },
     getRequestAccountTabIds: () => dispatch(getRequestAccountTabIds()),
-    getCurrentWindowTab: () => dispatch(getCurrentWindowTab()),
   };
 };
 

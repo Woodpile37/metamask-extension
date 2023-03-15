@@ -2,18 +2,23 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import availableCurrencies from '../../../helpers/constants/available-conversions.json';
-import { TYPOGRAPHY, COLORS } from '../../../helpers/constants/design-system';
+import {
+  TypographyVariant,
+  TextColor,
+} from '../../../helpers/constants/design-system';
 import Dropdown from '../../../components/ui/dropdown';
 import ToggleButton from '../../../components/ui/toggle-button';
 import locales from '../../../../app/_locales/index.json';
 import Jazzicon from '../../../components/ui/jazzicon';
 import BlockieIdenticon from '../../../components/ui/identicon/blockieIdenticon';
 import Typography from '../../../components/ui/typography';
+import { EVENT } from '../../../../shared/constants/metametrics';
 
 import {
   getNumberOfSettingsInSection,
   handleSettingsRefs,
 } from '../../../helpers/utils/settings-search';
+import { ThemeType } from '../../../../shared/constants/preferences';
 
 const sortedCurrencies = availableCurrencies.sort((a, b) => {
   return a.name.toLocaleLowerCase().localeCompare(b.name.toLocaleLowerCase());
@@ -37,6 +42,7 @@ export default class SettingsTab extends PureComponent {
   static contextTypes = {
     t: PropTypes.func,
     metricsEvent: PropTypes.func,
+    trackEvent: PropTypes.func,
   };
 
   static propTypes = {
@@ -55,6 +61,8 @@ export default class SettingsTab extends PureComponent {
     lastFetchedConversionDate: PropTypes.number,
     selectedAddress: PropTypes.string,
     tokenList: PropTypes.object,
+    theme: PropTypes.string,
+    setTheme: PropTypes.func,
   };
 
   settingsRefs = Array(
@@ -95,6 +103,7 @@ export default class SettingsTab extends PureComponent {
         <div className="settings-page__content-item">
           <div className="settings-page__content-item-col">
             <Dropdown
+              data-testid="currency-select"
               id="select-currency"
               options={currencyOptions}
               selectedOption={currentCurrency}
@@ -127,6 +136,7 @@ export default class SettingsTab extends PureComponent {
         <div className="settings-page__content-item">
           <div className="settings-page__content-item-col">
             <Dropdown
+              data-testid="locale-select"
               id="select-locale"
               options={localeOptions}
               selectedOption={currentLocale}
@@ -144,7 +154,8 @@ export default class SettingsTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[4]}
+        ref={this.settingsRefs[5]}
+        data-testid="hide-zero-balance-tokens"
         className="settings-page__content-row"
         id="toggle-zero-balance"
       >
@@ -179,12 +190,15 @@ export default class SettingsTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[3]}
+        ref={this.settingsRefs[4]}
         className="settings-page__content-row"
         id="blockie-optin"
       >
         <div className="settings-page__content-item">
-          <Typography variant={TYPOGRAPHY.H5} color={COLORS.TEXT_DEFAULT}>
+          <Typography
+            variant={TypographyVariant.H5}
+            color={TextColor.textDefault}
+          >
             {t('accountIdenticon')}
           </Typography>
           <span className="settings-page__content-item__description">
@@ -192,7 +206,7 @@ export default class SettingsTab extends PureComponent {
           </span>
           <div className="settings-page__content-item__identicon">
             <button
-              data-test-id="jazz_icon"
+              data-testid="jazz_icon"
               onClick={() => setUseBlockie(false)}
               className="settings-page__content-item__identicon__item"
             >
@@ -214,8 +228,8 @@ export default class SettingsTab extends PureComponent {
                 />
               </div>
               <Typography
-                color={COLORS.TEXT_DEFAULT}
-                variant={TYPOGRAPHY.H7}
+                color={TextColor.textDefault}
+                variant={TypographyVariant.H7}
                 marginTop={0}
                 marginRight={12}
                 marginBottom={0}
@@ -225,7 +239,7 @@ export default class SettingsTab extends PureComponent {
               </Typography>
             </button>
             <button
-              data-test-id="blockie_icon"
+              data-testid="blockie_icon"
               onClick={() => setUseBlockie(true)}
               className="settings-page__content-item__identicon__item"
             >
@@ -246,8 +260,8 @@ export default class SettingsTab extends PureComponent {
                 />
               </div>
               <Typography
-                color={COLORS.TEXT_DEFAULT}
-                variant={TYPOGRAPHY.H7}
+                color={TextColor.textDefault}
+                variant={TypographyVariant.H7}
                 marginTop={3}
                 marginRight={0}
                 marginBottom={3}
@@ -269,7 +283,6 @@ export default class SettingsTab extends PureComponent {
       setUseNativeCurrencyAsPrimaryCurrencyPreference,
       useNativeCurrencyAsPrimaryCurrency,
     } = this.props;
-
     return (
       <div ref={this.settingsRefs[1]} className="settings-page__content-row">
         <div className="settings-page__content-item">
@@ -284,6 +297,7 @@ export default class SettingsTab extends PureComponent {
               <div className="settings-tab__radio-button">
                 <input
                   type="radio"
+                  data-testid="toggle-native-currency"
                   id="native-primary-currency"
                   onChange={() =>
                     setUseNativeCurrencyAsPrimaryCurrencyPreference(true)
@@ -300,6 +314,7 @@ export default class SettingsTab extends PureComponent {
               <div className="settings-tab__radio-button">
                 <input
                   type="radio"
+                  data-testid="toggle-fiat-currency"
                   id="fiat-primary-currency"
                   onChange={() =>
                     setUseNativeCurrencyAsPrimaryCurrencyPreference(false)
@@ -320,6 +335,58 @@ export default class SettingsTab extends PureComponent {
     );
   }
 
+  renderTheme() {
+    const { t } = this.context;
+    const { theme, setTheme } = this.props;
+
+    const themesOptions = [
+      {
+        name: t('lightTheme'),
+        value: ThemeType.light,
+      },
+      {
+        name: t('darkTheme'),
+        value: ThemeType.dark,
+      },
+      {
+        name: t('osTheme'),
+        value: ThemeType.os,
+      },
+    ];
+
+    const onChange = (newTheme) => {
+      this.context.trackEvent({
+        category: EVENT.CATEGORIES.SETTINGS,
+        event: 'Theme Changed',
+        properties: {
+          theme_selected: newTheme,
+        },
+      });
+      setTheme(newTheme);
+    };
+
+    return (
+      <div ref={this.settingsRefs[3]} className="settings-page__content-row">
+        <div className="settings-page__content-item">
+          <span>{this.context.t('theme')}</span>
+          <div className="settings-page__content-description">
+            {this.context.t('themeDescription')}
+          </div>
+        </div>
+        <div className="settings-page__content-item">
+          <div className="settings-page__content-item-col">
+            <Dropdown
+              id="select-theme"
+              options={themesOptions}
+              selectedOption={theme}
+              onChange={onChange}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   render() {
     const { warning } = this.props;
 
@@ -329,6 +396,7 @@ export default class SettingsTab extends PureComponent {
         {this.renderCurrentConversion()}
         {this.renderUsePrimaryCurrencyOptions()}
         {this.renderCurrentLocale()}
+        {this.renderTheme()}
         {this.renderBlockieOptIn()}
         {this.renderHideZeroBalanceTokensOptIn()}
       </div>

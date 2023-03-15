@@ -13,6 +13,11 @@ import {
 } from '../../../selectors';
 import { getAccountByAddress } from '../../../helpers/utils/util';
 import { formatMessageParams } from '../../../../shared/modules/siwe';
+import { Icon } from '../../component-library/icon/icon';
+import { IconColor } from '../../../helpers/constants/design-system';
+
+import SecurityProviderBannerMessage from '../security-provider-banner-message/security-provider-banner-message';
+import { SECURITY_PROVIDER_MESSAGE_SEVERITIES } from '../security-provider-banner-message/security-provider-banner-message.constants';
 import Header from './signature-request-siwe-header';
 import Message from './signature-request-siwe-message';
 
@@ -85,6 +90,15 @@ export default function SignatureRequestSIWE({
         isSIWEDomainValid={isSIWEDomainValid}
         subjectMetadata={targetSubjectMetadata}
       />
+      {(txData?.securityProviderResponse?.flagAsDangerous !== undefined &&
+        txData?.securityProviderResponse?.flagAsDangerous !==
+          SECURITY_PROVIDER_MESSAGE_SEVERITIES.NOT_MALICIOUS) ||
+      (txData?.securityProviderResponse &&
+        Object.keys(txData.securityProviderResponse).length === 0) ? (
+        <SecurityProviderBannerMessage
+          securityProviderResponse={txData.securityProviderResponse}
+        />
+      ) : null}
       <Message data={formatMessageParams(parsedMessage, t)} />
       {!isMatchingAddress && (
         <ActionableMessage
@@ -97,16 +111,28 @@ export default function SignatureRequestSIWE({
           iconFillColor="var(--color-warning-default)"
           useIcon
           withRightButton
+          icon={<Icon name="danger" color={IconColor.warningDefault} />}
         />
       )}
       {!isSIWEDomainValid && (
         <ActionableMessage
           className="signature-request-siwe__actionable-message"
           type="danger"
-          message={t('SIWEDomainInvalid', [parsedMessage.domain])}
+          message={
+            <>
+              <p
+                className="typography--weight-bold"
+                style={{ display: 'inline' }}
+              >
+                {t('SIWEDomainInvalidTitle')}
+              </p>{' '}
+              {t('SIWEDomainInvalidText')}
+            </>
+          }
           iconFillColor="var(--color-error-default)"
           useIcon
           withRightButton
+          icon={<Icon name="danger" color={IconColor.errorDefault} />}
         />
       )}
       <PageContainerFooter
@@ -117,6 +143,7 @@ export default function SignatureRequestSIWE({
         }
         cancelText={t('cancel')}
         submitText={t('signin')}
+        submitButtonType={isSIWEDomainValid ? 'primary' : 'danger-primary'}
       />
       {isShowingDomainWarning && (
         <Popover

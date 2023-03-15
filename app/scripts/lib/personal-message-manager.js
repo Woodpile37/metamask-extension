@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import { ObservableStore } from '@metamask/obs-store';
-import { bufferToHex, stripHexPrefix } from 'ethereumjs-util';
+import { bufferToHex } from 'ethereumjs-util';
 import { ethErrors } from 'eth-rpc-errors';
 import log from 'loglevel';
 import { MESSAGE_TYPE } from '../../../shared/constants/app';
@@ -8,6 +8,7 @@ import { METAMASK_CONTROLLER_EVENTS } from '../metamask-controller';
 import createId from '../../../shared/modules/random-id';
 import { EVENT } from '../../../shared/constants/metametrics';
 import { detectSIWE } from '../../../shared/modules/siwe';
+import { stripHexPrefix } from '../../../shared/modules/hexstring-utils';
 import { addHexPrefix } from './util';
 
 const hexRe = /^[0-9A-Fa-f]+$/gu;
@@ -35,15 +36,25 @@ export default class PersonalMessageManager extends EventEmitter {
    *
    * @param options
    * @param options.metricsEvent
+   * @param options.securityProviderRequest
    */
-  constructor({ metricsEvent }) {
+  constructor({ metricsEvent, securityProviderRequest }) {
     super();
     this.memStore = new ObservableStore({
       unapprovedPersonalMsgs: {},
       unapprovedPersonalMsgCount: 0,
     });
+
+    this.resetState = () => {
+      this.memStore.updateState({
+        unapprovedPersonalMsgs: {},
+        unapprovedPersonalMsgCount: 0,
+      });
+    };
+
     this.messages = [];
     this.metricsEvent = metricsEvent;
+    this.securityProviderRequest = securityProviderRequest;
   }
 
   /**
@@ -87,31 +98,32 @@ export default class PersonalMessageManager extends EventEmitter {
         );
         return;
       }
-      const msgId = this.addUnapprovedMessage(msgParams, req);
-      this.once(`${msgId}:finished`, (data) => {
-        switch (data.status) {
-          case 'signed':
-            resolve(data.rawSig);
-            return;
-          case 'rejected':
-            reject(
-              ethErrors.provider.userRejectedRequest(
-                'MetaMask Message Signature: User denied message signature.',
-              ),
-            );
-            return;
-          case 'errored':
-            reject(new Error(`MetaMask Message Signature: ${data.error}`));
-            return;
-          default:
-            reject(
-              new Error(
-                `MetaMask Message Signature: Unknown problem: ${JSON.stringify(
-                  msgParams,
-                )}`,
-              ),
-            );
-        }
+      this.addUnapprovedMessage(msgParams, req).then((msgId) => {
+        this.once(`${msgId}:finished`, (data) => {
+          switch (data.status) {
+            case 'signed':
+              resolve(data.rawSig);
+              return;
+            case 'rejected':
+              reject(
+                ethErrors.provider.userRejectedRequest(
+                  'MetaMask Message Signature: User denied message signature.',
+                ),
+              );
+              return;
+            case 'errored':
+              reject(new Error(`MetaMask Message Signature: ${data.error}`));
+              return;
+            default:
+              reject(
+                new Error(
+                  `MetaMask Message Signature: Unknown problem: ${JSON.stringify(
+                    msgParams,
+                  )}`,
+                ),
+              );
+          }
+        });
       });
     });
   }
@@ -125,7 +137,7 @@ export default class PersonalMessageManager extends EventEmitter {
    * @param {object} [req] - The original request object possibly containing the origin
    * @returns {number} The id of the newly created PersonalMessage.
    */
-  addUnapprovedMessage(msgParams, req) {
+  async addUnapprovedMessage(msgParams, req) {
     log.debug(
       `PersonalMessageManager addUnapprovedMessage: ${JSON.stringify(
         msgParams,
@@ -141,6 +153,15 @@ export default class PersonalMessageManager extends EventEmitter {
     const siwe = detectSIWE(msgParams);
     msgParams.siwe = siwe;
 
+    if (siwe.isSIWEMessage && req.origin) {
+      const { host } = new URL(req.origin);
+      if (siwe.parsedMessage.domain !== host) {
+        throw new Error(
+          `SIWE domain is not valid: "${host}" !== "${siwe.parsedMessage.domain}"`,
+        );
+      }
+    }
+
     // create txData obj with parameters and meta data
     const time = new Date().getTime();
     const msgId = createId();
@@ -152,6 +173,13 @@ export default class PersonalMessageManager extends EventEmitter {
       type: MESSAGE_TYPE.PERSONAL_SIGN,
     };
     this.addMsg(msgData);
+
+    const securityProviderResponse = await this.securityProviderRequest(
+      msgData,
+      msgData.type,
+    );
+
+    msgData.securityProviderResponse = securityProviderResponse;
 
     // signal update
     this.emit('update');
@@ -222,9 +250,9 @@ export default class PersonalMessageManager extends EventEmitter {
    * @param {object} msgParams - The msgParams to modify
    * @returns {Promise<object>} Promises the msgParams with the metamaskId property removed
    */
-  prepMsgForSigning(msgParams) {
+  async prepMsgForSigning(msgParams) {
     delete msgParams.metamaskId;
-    return Promise.resolve(msgParams);
+    return msgParams;
   }
 
   /**

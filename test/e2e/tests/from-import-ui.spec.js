@@ -8,6 +8,7 @@ const {
   completeImportSRPOnboardingFlow,
   completeImportSRPOnboardingFlowWordByWord,
 } = require('../helpers');
+const FixtureBuilder = require('../fixture-builder');
 
 describe('MetaMask Import UI', function () {
   it('Importing wallet using Secret Recovery Phrase', async function () {
@@ -27,7 +28,7 @@ describe('MetaMask Import UI', function () {
 
     await withFixtures(
       {
-        fixtures: 'onboarding',
+        fixtures: new FixtureBuilder({ onboarding: true }).build(),
         ganacheOptions,
         title: this.test.title,
         failOnConsoleError: false,
@@ -145,7 +146,7 @@ describe('MetaMask Import UI', function () {
 
     await withFixtures(
       {
-        fixtures: 'onboarding',
+        fixtures: new FixtureBuilder({ onboarding: true }).build(),
         ganacheOptions,
         title: this.test.title,
         failOnConsoleError: false,
@@ -192,7 +193,10 @@ describe('MetaMask Import UI', function () {
 
     await withFixtures(
       {
-        fixtures: 'import-ui',
+        fixtures: new FixtureBuilder()
+          .withKeyringControllerImportedAccountVault()
+          .withPreferencesControllerImportedAccountIdentities()
+          .build(),
         ganacheOptions,
         title: this.test.title,
       },
@@ -208,7 +212,7 @@ describe('MetaMask Import UI', function () {
 
         // enter private key',
         await driver.fill('#private-key-box', testPrivateKey1);
-        await driver.clickElement({ text: 'Import', tag: 'button' });
+        await driver.clickElement({ text: 'Import', tag: 'span' });
 
         // should show the correct account name
         const importedAccountName = await driver.findElement(
@@ -235,7 +239,7 @@ describe('MetaMask Import UI', function () {
         await driver.clickElement({ text: 'Import account', tag: 'div' });
         // enter private key
         await driver.fill('#private-key-box', testPrivateKey2);
-        await driver.clickElement({ text: 'Import', tag: 'button' });
+        await driver.clickElement({ text: 'Import', tag: 'span' });
 
         // should see new account in account menu
         const importedAccount2Name = await driver.findElement(
@@ -295,7 +299,10 @@ describe('MetaMask Import UI', function () {
 
     await withFixtures(
       {
-        fixtures: 'import-ui',
+        fixtures: new FixtureBuilder()
+          .withKeyringControllerImportedAccountVault()
+          .withPreferencesControllerImportedAccountIdentities()
+          .build(),
         ganacheOptions,
         title: this.test.title,
       },
@@ -308,14 +315,13 @@ describe('MetaMask Import UI', function () {
         await driver.clickElement('.account-menu__icon');
         await driver.clickElement({ text: 'Import account', tag: 'div' });
 
-        await driver.clickElement('.new-account-import-form__select');
+        await driver.clickElement('.dropdown__select');
         await driver.clickElement({ text: 'JSON File', tag: 'option' });
 
         const fileInput = await driver.findElement('input[type="file"]');
         const importJsonFile = path.join(
           __dirname,
           '..',
-          'fixtures',
           'import-utc-json',
           'test-json-import-account-file.json',
         );
@@ -324,7 +330,7 @@ describe('MetaMask Import UI', function () {
 
         await driver.fill('#json-password-box', 'foobarbazqux');
 
-        await driver.clickElement({ text: 'Import', tag: 'button' });
+        await driver.clickElement({ text: 'Import', tag: 'span' });
 
         // should show the correct account name
         const importedAccountName = await driver.findElement(
@@ -368,7 +374,10 @@ describe('MetaMask Import UI', function () {
 
     await withFixtures(
       {
-        fixtures: 'import-ui',
+        fixtures: new FixtureBuilder()
+          .withKeyringControllerImportedAccountVault()
+          .withPreferencesControllerImportedAccountIdentities()
+          .build(),
         ganacheOptions,
         title: this.test.title,
       },
@@ -383,12 +392,12 @@ describe('MetaMask Import UI', function () {
 
         // enter private key',
         await driver.fill('#private-key-box', testPrivateKey);
-        await driver.clickElement({ text: 'Import', tag: 'button' });
+        await driver.clickElement({ text: 'Import', tag: 'span' });
 
         // error should occur
         await driver.waitForSelector({
-          css: '.error',
-          text: "The account you're are trying to import is a duplicate",
+          css: '.mm-help-text',
+          text: 'The account you are trying to import is a duplicate',
         });
       },
     );
@@ -407,7 +416,7 @@ describe('MetaMask Import UI', function () {
 
     await withFixtures(
       {
-        fixtures: 'import-ui',
+        fixtures: new FixtureBuilder().build(),
         ganacheOptions,
         title: this.test.title,
       },

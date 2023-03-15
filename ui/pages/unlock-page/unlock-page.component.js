@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import getCaretCoordinates from 'textarea-caret';
 import Button from '../../components/ui/button';
 import TextField from '../../components/ui/text-field';
 import Mascot from '../../components/ui/mascot';
@@ -12,6 +11,8 @@ import {
   CONTEXT_PROPS,
 } from '../../../shared/constants/metametrics';
 import { SUPPORT_LINK } from '../../../shared/lib/ui-utils';
+import { isBeta } from '../../helpers/utils/build-types';
+import { getCaretCoordinates } from './unlock-page.util';
 
 export default class UnlockPage extends Component {
   static contextTypes = {
@@ -33,17 +34,13 @@ export default class UnlockPage extends Component {
      */
     onRestore: PropTypes.func,
     /**
-     * onSumbit handler when form is submitted
+     * onSubmit handler when form is submitted
      */
     onSubmit: PropTypes.func,
     /**
      * Force update metamask data state
      */
     forceUpdateMetamaskState: PropTypes.func,
-    /**
-     * Event handler to show metametrics modal
-     */
-    showOptInModal: PropTypes.func,
   };
 
   state = {
@@ -70,7 +67,7 @@ export default class UnlockPage extends Component {
     event.stopPropagation();
 
     const { password } = this.state;
-    const { onSubmit, forceUpdateMetamaskState, showOptInModal } = this.props;
+    const { onSubmit, forceUpdateMetamaskState } = this.props;
 
     if (password === '' || this.submitting) {
       return;
@@ -81,7 +78,6 @@ export default class UnlockPage extends Component {
 
     try {
       await onSubmit(password);
-      const newState = await forceUpdateMetamaskState();
       this.context.trackEvent(
         {
           category: EVENT.CATEGORIES.NAVIGATION,
@@ -94,13 +90,6 @@ export default class UnlockPage extends Component {
           isNewVisit: true,
         },
       );
-
-      if (
-        newState.participateInMetaMetrics === null ||
-        newState.participateInMetaMetrics === undefined
-      ) {
-        showOptInModal();
-      }
     } catch ({ message }) {
       this.failed_attempts += 1;
 
@@ -123,7 +112,6 @@ export default class UnlockPage extends Component {
 
   handleInputChange({ target }) {
     this.setState({ password: target.value, error: null });
-
     // tell mascot to look at page action
     if (target.getBoundingClientRect) {
       const element = target;
@@ -150,6 +138,7 @@ export default class UnlockPage extends Component {
     return (
       <Button
         type="submit"
+        data-testid="unlock-submit"
         style={style}
         disabled={!this.state.password}
         variant="contained"
@@ -175,12 +164,18 @@ export default class UnlockPage extends Component {
               width="120"
               height="120"
             />
+            {isBeta() ? (
+              <div className="unlock-page__mascot-container__beta">
+                {t('beta')}
+              </div>
+            ) : null}
           </div>
           <h1 className="unlock-page__title">{t('welcomeBack')}</h1>
           <div>{t('unlockMessage')}</div>
           <form className="unlock-page__form" onSubmit={this.handleSubmit}>
             <TextField
               id="password"
+              data-testid="unlock-password"
               label={t('password')}
               type="password"
               value={password}

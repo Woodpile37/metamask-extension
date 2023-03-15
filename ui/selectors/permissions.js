@@ -1,3 +1,6 @@
+///: BEGIN:ONLY_INCLUDE_IN(flask)
+import { WALLET_SNAP_PERMISSION_KEY } from '@metamask/rpc-methods';
+///: END:ONLY_INCLUDE_IN
 import { CaveatTypes } from '../../shared/constants/permissions';
 import {
   getMetaMaskAccountsOrdered,
@@ -117,6 +120,28 @@ export function getSubjectsWithPermission(state, permissionName) {
   });
   return connectedSubjects;
 }
+
+///: BEGIN:ONLY_INCLUDE_IN(flask)
+export function getSubjectsWithSnapPermission(state, snapId) {
+  const subjects = getPermissionSubjects(state);
+
+  return Object.entries(subjects)
+    .filter(
+      ([_origin, { permissions }]) =>
+        permissions[WALLET_SNAP_PERMISSION_KEY]?.caveats[0].value[snapId],
+    )
+    .map(([origin, _subject]) => {
+      const { extensionId, name, iconUrl } =
+        getTargetSubjectMetadata(state, origin) || {};
+      return {
+        extensionId,
+        origin,
+        name,
+        iconUrl,
+      };
+    });
+}
+///: END:ONLY_INCLUDE_IN
 
 /**
  * Returns an object mapping addresses to objects mapping origins to connected
@@ -242,13 +267,13 @@ export function getPermissionsForActiveTab(state) {
   const { activeTab, metamask } = state;
   const { subjects = {} } = metamask;
 
-  return Object.keys(subjects[activeTab.origin]?.permissions || {}).map(
-    (parentCapability) => {
-      return {
-        key: parentCapability,
-      };
-    },
-  );
+  const permissions = subjects[activeTab.origin]?.permissions ?? {};
+  return Object.keys(permissions).map((parentCapability) => {
+    return {
+      key: parentCapability,
+      value: permissions[parentCapability],
+    };
+  });
 }
 
 export function activeTabHasPermissions(state) {
@@ -281,15 +306,17 @@ export function getLastConnectedInfo(state) {
 }
 
 ///: BEGIN:ONLY_INCLUDE_IN(flask)
-export function getSnapUpdateRequests(state) {
+export function getSnapInstallOrUpdateRequests(state) {
   return Object.values(state.metamask.pendingApprovals)
-    .filter(({ type }) => type === 'wallet_updateSnap')
+    .filter(
+      ({ type }) =>
+        type === 'wallet_installSnap' || type === 'wallet_updateSnap',
+    )
     .map(({ requestData }) => requestData);
 }
 
-export function getFirstSnapUpdateRequest(state) {
-  const requests = getSnapUpdateRequests(state);
-  return requests && requests[0] ? requests[0] : null;
+export function getFirstSnapInstallOrUpdateRequest(state) {
+  return getSnapInstallOrUpdateRequests(state)?.[0] ?? null;
 }
 ///: END:ONLY_INCLUDE_IN
 
@@ -305,5 +332,5 @@ export function getFirstPermissionRequest(state) {
 }
 
 export function getPermissions(state, origin) {
-  return getPermissionSubjects(state)[origin].permissions;
+  return getPermissionSubjects(state)[origin]?.permissions;
 }

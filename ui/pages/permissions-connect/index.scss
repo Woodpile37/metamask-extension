@@ -31,10 +31,6 @@
     color: var(--color-icon-default);
     font-weight: bold;
     cursor: pointer;
-
-    i {
-      margin-right: 10px;
-    }
   }
 
   &__page-count {
@@ -42,7 +38,7 @@
 
     color: var(--color-text-default);
     grid-column: 2;
-    justify-self: end;
+    justify-self: flex-end;
     font-weight: bold;
   }
 }

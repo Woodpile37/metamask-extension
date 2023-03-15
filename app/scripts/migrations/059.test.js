@@ -1,16 +1,16 @@
 import { cloneDeep } from 'lodash';
 import { CHAIN_IDS } from '../../../shared/constants/network';
 import {
-  TRANSACTION_TYPES,
-  TRANSACTION_STATUSES,
+  TransactionType,
+  TransactionStatus,
 } from '../../../shared/constants/transaction';
 import migration59 from './059';
 
-const SENT_ETHER = 'sentEther'; // a legacy transaction type replaced now by TRANSACTION_TYPES.SIMPLE_SEND
+const SENT_ETHER = 'sentEther'; // a legacy transaction type replaced now by TransactionType.simpleSend
 
 const ERRONEOUS_TRANSACTION_STATE = {
   0: {
-    type: TRANSACTION_TYPES.CANCEL,
+    type: TransactionType.cancel,
     id: 0,
     chainId: CHAIN_IDS.MAINNET,
     txParams: {
@@ -28,7 +28,7 @@ const ERRONEOUS_TRANSACTION_STATE = {
   2: {
     type: SENT_ETHER,
     id: 2,
-    chainId: CHAIN_IDS.KOVAN,
+    chainId: '0x2a',
     txParams: {
       nonce: '0x2',
     },
@@ -36,7 +36,7 @@ const ERRONEOUS_TRANSACTION_STATE = {
   3: {
     type: SENT_ETHER,
     id: 3,
-    chainId: CHAIN_IDS.RINKEBY,
+    chainId: '0x4',
     txParams: {
       nonce: '0x3',
     },
@@ -44,7 +44,7 @@ const ERRONEOUS_TRANSACTION_STATE = {
   4: {
     type: SENT_ETHER,
     id: 4,
-    chainId: CHAIN_IDS.RINKEBY,
+    chainId: '0x4',
     txParams: {
       nonce: '0x4',
     },
@@ -60,7 +60,7 @@ const ERRONEOUS_TRANSACTION_STATE = {
   6: {
     type: SENT_ETHER,
     id: 6,
-    chainId: CHAIN_IDS.KOVAN,
+    chainId: '0x2a',
     txParams: {
       nonce: '0x6',
     },
@@ -68,7 +68,7 @@ const ERRONEOUS_TRANSACTION_STATE = {
   7: {
     type: SENT_ETHER,
     id: 7,
-    chainId: CHAIN_IDS.RINKEBY,
+    chainId: '0x4',
     txParams: {
       nonce: '0x7',
     },
@@ -76,7 +76,7 @@ const ERRONEOUS_TRANSACTION_STATE = {
   8: {
     type: SENT_ETHER,
     id: 8,
-    chainId: CHAIN_IDS.RINKEBY,
+    chainId: '0x4',
     txParams: {
       nonce: '0x8',
     },
@@ -84,8 +84,8 @@ const ERRONEOUS_TRANSACTION_STATE = {
   9: {
     type: SENT_ETHER,
     id: 9,
-    chainId: CHAIN_IDS.RINKEBY,
-    status: TRANSACTION_STATUSES.UNAPPROVED,
+    chainId: '0x4',
+    status: TransactionStatus.unapproved,
   },
 };
 
@@ -93,14 +93,14 @@ const ERRONEOUS_TRANSACTION_STATE_RETRY = {
   ...ERRONEOUS_TRANSACTION_STATE,
   0: {
     ...ERRONEOUS_TRANSACTION_STATE[0],
-    type: TRANSACTION_TYPES.RETRY,
+    type: TransactionType.retry,
   },
 };
 
 const ERRONEOUS_TRANSACTION_STATE_MIXED = {
   ...ERRONEOUS_TRANSACTION_STATE,
   10: {
-    type: TRANSACTION_TYPES.RETRY,
+    type: TransactionType.retry,
     id: 10,
     chainId: CHAIN_IDS.MAINNET,
     txParams: {
@@ -108,7 +108,7 @@ const ERRONEOUS_TRANSACTION_STATE_MIXED = {
     },
   },
   11: {
-    type: TRANSACTION_TYPES.RETRY,
+    type: TransactionType.retry,
     id: 11,
     chainId: CHAIN_IDS.MAINNET,
     txParams: {

@@ -1,17 +1,16 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  formatCurrency,
-  getValueFromWeiHex,
-} from '../helpers/utils/confirm-tx.util';
+import { formatCurrency } from '../helpers/utils/confirm-tx.util';
 import { getCurrentCurrency } from '../selectors';
 import {
   getConversionRate,
   getNativeCurrency,
 } from '../ducks/metamask/metamask';
 
-import { conversionUtil } from '../../shared/modules/conversion.utils';
+import { getValueFromWeiHex } from '../../shared/modules/conversion.utils';
 import { TEST_NETWORK_TICKER_MAP } from '../../shared/constants/network';
+import { Numeric } from '../../shared/modules/Numeric';
+import { EtherDenomination } from '../../shared/constants/common';
 
 /**
  * Defines the shape of the options parameter for useCurrencyDisplay
@@ -61,13 +60,11 @@ export function useCurrencyDisplay(
       currency === nativeCurrency ||
       (!isUserPreferredCurrency && !nativeCurrency)
     ) {
-      return conversionUtil(inputValue, {
-        fromNumericBase: 'hex',
-        toNumericBase: 'dec',
-        fromDenomination: 'WEI',
-        numberOfDecimals: numberOfDecimals || 2,
-        toDenomination: denomination,
-      });
+      return new Numeric(inputValue, 16, EtherDenomination.WEI)
+        .toDenomination(denomination || EtherDenomination.ETH)
+        .round(numberOfDecimals || 2)
+        .toBase(10)
+        .toString();
     } else if (isUserPreferredCurrency && conversionRate) {
       return formatCurrency(
         getValueFromWeiHex({
@@ -96,7 +93,7 @@ export function useCurrencyDisplay(
   let suffix;
 
   if (!opts.hideLabel) {
-    // if the currency we are displaying is the native currency of one of our preloaded test-nets (rinkeby, ropsten etc.)
+    // if the currency we are displaying is the native currency of one of our preloaded test-nets (goerli, sepolia etc.)
     // then we allow lowercase characters, otherwise we force to uppercase any suffix passed as a currency
     const currencyTickerSymbol = Object.values(
       TEST_NETWORK_TICKER_MAP,

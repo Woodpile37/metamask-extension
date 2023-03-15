@@ -8,9 +8,10 @@ import { PageContainerFooter } from '../../../ui/page-container';
 import ErrorMessage from '../../../ui/error-message';
 import { INSUFFICIENT_FUNDS_ERROR_KEY } from '../../../../helpers/constants/error-keys';
 import Typography from '../../../ui/typography';
-import { TYPOGRAPHY } from '../../../../helpers/constants/design-system';
-import { TRANSACTION_TYPES } from '../../../../../shared/constants/transaction';
+import { TypographyVariant } from '../../../../helpers/constants/design-system';
 
+import SecurityProviderBannerMessage from '../../security-provider-banner-message/security-provider-banner-message';
+import { SECURITY_PROVIDER_MESSAGE_SEVERITIES } from '../../security-provider-banner-message/security-provider-banner-message.constants';
 import { ConfirmPageContainerSummary, ConfirmPageContainerWarning } from '.';
 
 export default class ConfirmPageContainerContent extends Component {
@@ -23,6 +24,9 @@ export default class ConfirmPageContainerContent extends Component {
     dataComponent: PropTypes.node,
     dataHexComponent: PropTypes.node,
     detailsComponent: PropTypes.node,
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
+    insightComponent: PropTypes.node,
+    ///: END:ONLY_INCLUDE_IN
     errorKey: PropTypes.string,
     errorMessage: PropTypes.string,
     hideSubtitle: PropTypes.bool,
@@ -45,49 +49,84 @@ export default class ConfirmPageContainerContent extends Component {
     unapprovedTxCount: PropTypes.number,
     rejectNText: PropTypes.string,
     hideTitle: PropTypes.bool,
-    supportsEIP1559V2: PropTypes.bool,
+    supportsEIP1559: PropTypes.bool,
     hasTopBorder: PropTypes.bool,
-    currentTransaction: PropTypes.object,
     nativeCurrency: PropTypes.string,
     networkName: PropTypes.string,
-    showBuyModal: PropTypes.func,
     toAddress: PropTypes.string,
     transactionType: PropTypes.string,
     isBuyableChain: PropTypes.bool,
+    txData: PropTypes.object,
   };
 
   renderContent() {
     const { detailsComponent, dataComponent } = this.props;
 
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
+    const { insightComponent } = this.props;
+
+    if (insightComponent && (detailsComponent || dataComponent)) {
+      return this.renderTabs();
+    }
+    ///: END:ONLY_INCLUDE_IN
+
     if (detailsComponent && dataComponent) {
       return this.renderTabs();
     }
-    return detailsComponent || dataComponent;
+
+    return (
+      detailsComponent ||
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      insightComponent ||
+      ///: END:ONLY_INCLUDE_IN
+      dataComponent
+    );
   }
 
   renderTabs() {
     const { t } = this.context;
-    const { detailsComponent, dataComponent, dataHexComponent } = this.props;
+    const {
+      detailsComponent,
+      dataComponent,
+      dataHexComponent,
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      insightComponent,
+      ///: END:ONLY_INCLUDE_IN
+    } = this.props;
 
     return (
       <Tabs>
         <Tab
           className="confirm-page-container-content__tab"
           name={t('details')}
+          tabKey="details"
         >
           {detailsComponent}
         </Tab>
-        <Tab className="confirm-page-container-content__tab" name={t('data')}>
-          {dataComponent}
-        </Tab>
+        {dataComponent && (
+          <Tab
+            className="confirm-page-container-content__tab"
+            name={t('data')}
+            tabKey="data"
+          >
+            {dataComponent}
+          </Tab>
+        )}
         {dataHexComponent && (
           <Tab
             className="confirm-page-container-content__tab"
             name={t('dataHex')}
+            tabKey="dataHex"
           >
             {dataHexComponent}
           </Tab>
         )}
+
+        {
+          ///: BEGIN:ONLY_INCLUDE_IN(flask)
+          insightComponent
+          ///: END:ONLY_INCLUDE_IN
+        }
       </Tabs>
     );
   }
@@ -118,21 +157,20 @@ export default class ConfirmPageContainerContent extends Component {
       origin,
       ethGasPriceWarning,
       hideTitle,
-      supportsEIP1559V2,
+      supportsEIP1559,
       hasTopBorder,
-      currentTransaction,
       nativeCurrency,
       networkName,
-      showBuyModal,
       toAddress,
       transactionType,
       isBuyableChain,
+      txData,
     } = this.props;
 
     const { t } = this.context;
 
     const showInsuffienctFundsError =
-      supportsEIP1559V2 &&
+      supportsEIP1559 &&
       (errorKey || errorMessage) &&
       errorKey === INSUFFICIENT_FUNDS_ERROR_KEY;
 
@@ -146,6 +184,15 @@ export default class ConfirmPageContainerContent extends Component {
         {ethGasPriceWarning && (
           <ConfirmPageContainerWarning warning={ethGasPriceWarning} />
         )}
+        {(txData?.securityProviderResponse?.flagAsDangerous !== undefined &&
+          txData?.securityProviderResponse?.flagAsDangerous !==
+            SECURITY_PROVIDER_MESSAGE_SEVERITIES.NOT_MALICIOUS) ||
+        (txData?.securityProviderResponse &&
+          Object.keys(txData.securityProviderResponse).length === 0) ? (
+          <SecurityProviderBannerMessage
+            securityProviderResponse={txData.securityProviderResponse}
+          />
+        ) : null}
         <ConfirmPageContainerSummary
           className={classnames({
             'confirm-page-container-summary--border':
@@ -165,28 +212,30 @@ export default class ConfirmPageContainerContent extends Component {
           transactionType={transactionType}
         />
         {this.renderContent()}
-        {!supportsEIP1559V2 &&
-          (errorKey || errorMessage) &&
-          currentTransaction.type !== TRANSACTION_TYPES.SIMPLE_SEND && (
-            <div className="confirm-page-container-content__error-container">
-              <ErrorMessage errorMessage={errorMessage} errorKey={errorKey} />
-            </div>
-          )}
+        {!supportsEIP1559 && (errorKey || errorMessage) && (
+          <div className="confirm-page-container-content__error-container">
+            <ErrorMessage errorMessage={errorMessage} errorKey={errorKey} />
+          </div>
+        )}
         {showInsuffienctFundsError && (
           <div className="confirm-page-container-content__error-container">
             <ActionableMessage
               className="actionable-message--warning"
               message={
                 isBuyableChain ? (
-                  <Typography variant={TYPOGRAPHY.H7} align="left">
+                  <Typography variant={TypographyVariant.H7} align="left">
                     {t('insufficientCurrencyBuyOrDeposit', [
                       nativeCurrency,
                       networkName,
-
                       <Button
                         type="inline"
                         className="confirm-page-container-content__link"
-                        onClick={showBuyModal}
+                        onClick={() => {
+                          const portfolioUrl = process.env.PORTFOLIO_URL;
+                          global.platform.openTab({
+                            url: `${portfolioUrl}/buy?metamaskEntry=ext_buy_button`,
+                          });
+                        }}
                         key={`${nativeCurrency}-buy-button`}
                       >
                         {t('buyAsset', [nativeCurrency])}
@@ -194,7 +243,7 @@ export default class ConfirmPageContainerContent extends Component {
                     ])}
                   </Typography>
                 ) : (
-                  <Typography variant={TYPOGRAPHY.H7} align="left">
+                  <Typography variant={TypographyVariant.H7} align="left">
                     {t('insufficientCurrencyDeposit', [
                       nativeCurrency,
                       networkName,
@@ -208,7 +257,6 @@ export default class ConfirmPageContainerContent extends Component {
             />
           </div>
         )}
-
         <PageContainerFooter
           onCancel={onCancel}
           cancelText={cancelText}

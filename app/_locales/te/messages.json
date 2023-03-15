@@ -68,9 +68,6 @@
   "forgetDevice": {
     "message": "ఈ పరికరాన్ని విస్మరించు"
   },
-  "getStarted": {
-    "message": "ప్రారంభించండి"
-  },
   "hide": {
     "message": "దాచిపెట్టు"
   },
@@ -136,9 +133,6 @@
   "settings": {
     "message": "సెట్టింగ్‌లు"
   },
-  "slow": {
-    "message": "నెమ్మదిగా"
-  },
   "tryAgain": {
     "message": "మళ్లీ ప్రయత్నించు"
   },
@@ -150,8 +144,5 @@
   },
   "userName": {
     "message": "యూజర్‌పేరు"
-  },
-  "viewAccount": {
-    "message": "ఖాతాను వీక్షించండి"
   }
 }
