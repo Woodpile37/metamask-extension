@@ -1262,7 +1262,6 @@ export function getIstokenDetectionInactiveOnNonMainnetSupportedNetwork(state) {
 }
 
 /**
- * To get the `transactionSecurityCheckEnabled` value which determines whether we use the transaction security check
  *
  * @param {*} state
  * @returns Boolean
