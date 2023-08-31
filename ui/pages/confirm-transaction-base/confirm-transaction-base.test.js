@@ -162,7 +162,6 @@ const baseStore = {
       originalGasEstimate: '0x5208',
       userEditedGasLimit: false,
       chainId: '0x5',
-
       dappSuggestedGasFees: null,
       sendFlowHistory: [],
       origin: 'metamask',
