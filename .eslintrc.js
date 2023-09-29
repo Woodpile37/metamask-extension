@@ -91,6 +91,7 @@ module.exports = {
         'test/jest/**/*.js',
         'test/stub/**/*.js',
         'test/unit-global/**/*.js',
+        'test/fuzz/JsonRpcFuzz.js',
       ],
       // TODO: Convert these files to modern JS
       excludedFiles: ['test/lib/wait-until-called.js'],
@@ -252,6 +253,7 @@ module.exports = {
         'ui/**/*.test.js',
         'ui/__mocks__/*.js',
         'test/e2e/helpers.test.js',
+        'test/fuzz/*.fuzz.test.js',
       ],
       extends: ['@metamask/eslint-config-mocha'],
       rules: {
@@ -290,6 +292,7 @@ module.exports = {
         'ui/**/*.test.js',
         'ui/__mocks__/*.js',
         'shared/lib/error-utils.test.js',
+        'test/fuzz/*.fuzz.test.js',
       ],
       extends: ['@metamask/eslint-config-jest'],
       parserOptions: {
