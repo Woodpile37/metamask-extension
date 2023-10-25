@@ -190,8 +190,10 @@ export default class SwapsController extends PollingControllerOnly {
   }
 
   // Sets the network config from the MetaSwap API.
-  async _setSwapsNetworkConfig() {
-    const chainId = this._getCurrentChainId();
+  async _setSwapsNetworkConfig(networkClientId) {
+    const { configuration } = this._getNetworkClientById(networkClientId);
+
+    const chainId = configuration?.chainId ?? this._getCurrentChainId();
     let swapsNetworkConfig;
     try {
       swapsNetworkConfig = await this.fetchSwapsNetworkConfig(chainId);
@@ -304,7 +306,7 @@ export default class SwapsController extends PollingControllerOnly {
       this._fetchTradesInfo(fetchParams, {
         ...fetchParamsMetaData,
       }),
-      this._setSwapsNetworkConfig(),
+      this._setSwapsNetworkConfig(networkClientId),
     ]);
 
     const {

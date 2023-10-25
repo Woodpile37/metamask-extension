@@ -64,6 +64,7 @@ import {
   checkNetworkAndAccountSupports1559,
   getUSDConversionRate,
   getIsMultiLayerFeeNetwork,
+  getSelectedNetworkClientId,
 } from '../../../selectors';
 import { getNativeCurrency, getTokens } from '../../../ducks/metamask/metamask';
 import {
@@ -181,6 +182,9 @@ export default function ReviewQuote({ setReceiveToAmount }) {
       history.push(AWAITING_SWAP_ROUTE);
     }
   }, [history, quotes, routeState]);
+
+  // TODO replace this with a passed contextual prop(?) once there is no longer a globally selected network
+  const networkClientId = useSelector(getSelectedNetworkClientId);
 
   const quotesLastFetched = useSelector(getQuotesLastFetched);
   const prevQuotesLastFetched = usePrevious(quotesLastFetched);
