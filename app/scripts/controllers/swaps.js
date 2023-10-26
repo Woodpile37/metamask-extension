@@ -161,6 +161,14 @@ export default class SwapsController extends PollingControllerOnly {
     this._ethersProviderChainId = this._getCurrentChainId();
   }
 
+  getChainId({ networkClientId } = {}) {
+    const { configuration } = this._getNetworkClientById(networkClientId);
+
+    const chainId = configuration?.chainId ?? this._getCurrentChainId();
+
+    return chainId;
+  }
+
   async fetchSwapsNetworkConfig(chainId) {
     const response = await fetchWithCache({
       url: getBaseApi('network', chainId),
@@ -191,9 +199,7 @@ export default class SwapsController extends PollingControllerOnly {
 
   // Sets the network config from the MetaSwap API.
   async _setSwapsNetworkConfig(networkClientId) {
-    const { configuration } = this._getNetworkClientById(networkClientId);
-
-    const chainId = configuration?.chainId ?? this._getCurrentChainId();
+    const chainId = this.getChainId({ networkClientId });
     let swapsNetworkConfig;
     try {
       swapsNetworkConfig = await this.fetchSwapsNetworkConfig(chainId);
@@ -228,7 +234,7 @@ export default class SwapsController extends PollingControllerOnly {
   // that quotes will no longer be available after 1 or 2 minutes. When fetchAndSetQuotes is first called, it receives fetch parameters that are stored in
   // state. These stored parameters are used on subsequent calls made during polling.
   // Note: we stop polling after 3 requests, until new quotes are explicitly asked for. The logic that enforces that maximum is in the body of fetchAndSetQuotes
-  pollForNewQuotes() {
+  pollForNewQuotes({ networkClientId }) {
     const {
       swapsState: {
         swapsQuoteRefreshTime,
@@ -301,7 +307,7 @@ export default class SwapsController extends PollingControllerOnly {
     if (!saveFetchedQuotes) {
       this.setSaveFetchedQuotes(true);
     }
-
+    // TODO check if this needs networkClientId parameterization
     let [newQuotes] = await Promise.all([
       this._fetchTradesInfo(fetchParams, {
         ...fetchParamsMetaData,
@@ -407,7 +413,9 @@ export default class SwapsController extends PollingControllerOnly {
       this.setSwapsErrorKey(QUOTES_NOT_AVAILABLE_ERROR);
     } else {
       const [_topAggId, quotesWithSavingsAndFeeData] =
-        await this._findTopQuoteAndCalculateSavings(newQuotes);
+        await this._findTopQuoteAndCalculateSavings(newQuotes, {
+          networkClientId,
+        });
       topAggId = _topAggId;
       newQuotes = quotesWithSavingsAndFeeData;
     }
@@ -442,7 +450,8 @@ export default class SwapsController extends PollingControllerOnly {
     }
 
     if (!quotesPollingLimitEnabled || this.pollCount < POLL_COUNT_LIMIT + 1) {
-      this.pollForNewQuotes();
+      // TODO add networkClientId here
+      this.pollForNewQuotes({ networkClientId });
     } else {
       this.resetPostFetchState();
       this.setSwapsErrorKey(QUOTES_EXPIRED_ERROR);
@@ -545,7 +554,7 @@ export default class SwapsController extends PollingControllerOnly {
         value: tradeTxParams.value,
       };
 
-      // TODO depends on transactions controller refactor:
+      // Depends on changes to TransactionsController/TxGasUtil:
       // getBufferedGasLimit is from the transactions controller (https://github.com/MetaMask/metamask-extension/blob/0a261a802231200276c8aae0d7271785c3a015e3/app/scripts/metamask-controller.js#L1546)
       // and it is method on the txGasUtil sub class which is instantiated with the globally selected provider proxy: https://github.com/MetaMask/metamask-extension/blob/0a261a802231200276c8aae0d7271785c3a015e3/app/scripts/controllers/transactions/index.js#L166
       this.getBufferedGasLimit({ txParams: tradeTxParamsForGasEstimate }, 1, {
@@ -729,13 +738,17 @@ export default class SwapsController extends PollingControllerOnly {
     clearTimeout(this.pollingTimeout);
   }
 
-  async _findTopQuoteAndCalculateSavings(quotes = {}) {
+  async _findTopQuoteAndCalculateSavings(
+    quotes = {},
+    { networkClientId } = {},
+  ) {
     const { contractExchangeRates: tokenConversionRates } =
       this.getTokenRatesState();
     const {
       swapsState: { customGasPrice, customMaxPriorityFeePerGas },
     } = this.store.getState();
-    const chainId = this._getCurrentChainId();
+
+    const chainId = this.getChainId({ networkClientId });
 
     const numQuotes = Object.keys(quotes).length;
     if (!numQuotes) {
@@ -745,7 +758,7 @@ export default class SwapsController extends PollingControllerOnly {
     const newQuotes = cloneDeep(quotes);
 
     const { gasFeeEstimates, gasEstimateType } =
-      await this._getEIP1559GasFeeEstimates();
+      await this._getEIP1559GasFeeEstimates({ networkClientId });
 
     let usedGasPrice = '0x0';
 
