@@ -144,7 +144,8 @@ export default class SwapsController extends PollingControllerOnly {
     this.store = new ObservableStore({
       singleChainSwapsState: {
         ...singleChainSwapsStateBase,
-        swapsFeatureFlags: state?.singleChainSwapsState?.swapsFeatureFlags || {},
+        swapsFeatureFlags:
+          state?.singleChainSwapsState?.swapsFeatureFlags || {},
       },
       swapsFeatureFlags: state?.singleChainSwapsState?.swapsFeatureFlags || {},
 
@@ -344,7 +345,9 @@ export default class SwapsController extends PollingControllerOnly {
     ]);
 
     const {
-      singleChainSwapsState: { saveFetchedQuotes: saveFetchedQuotesAfterResponse },
+      singleChainSwapsState: {
+        saveFetchedQuotes: saveFetchedQuotesAfterResponse,
+      },
     } = this.store.getState();
 
     // If saveFetchedQuotesAfterResponse is false, it means a user left Swaps (we cleaned the state)
@@ -498,22 +501,30 @@ export default class SwapsController extends PollingControllerOnly {
 
   setSelectedQuoteAggId(selectedAggId) {
     const { singleChainSwapsState } = this.store.getState();
-    this.store.updateState({ singleChainSwapsState: { ...singleChainSwapsState, selectedAggId } });
+    this.store.updateState({
+      singleChainSwapsState: { ...singleChainSwapsState, selectedAggId },
+    });
   }
 
   setSwapsTokens(tokens) {
     const { singleChainSwapsState } = this.store.getState();
-    this.store.updateState({ singleChainSwapsState: { ...singleChainSwapsState, tokens } });
+    this.store.updateState({
+      singleChainSwapsState: { ...singleChainSwapsState, tokens },
+    });
   }
 
   clearSwapsQuotes() {
     const { singleChainSwapsState } = this.store.getState();
-    this.store.updateState({ singleChainSwapsState: { ...singleChainSwapsState, quotes: {} } });
+    this.store.updateState({
+      singleChainSwapsState: { ...singleChainSwapsState, quotes: {} },
+    });
   }
 
   setSwapsErrorKey(errorKey) {
     const { singleChainSwapsState } = this.store.getState();
-    this.store.updateState({ singleChainSwapsState: { ...singleChainSwapsState, errorKey } });
+    this.store.updateState({
+      singleChainSwapsState: { ...singleChainSwapsState, errorKey },
+    });
   }
 
   async getAllQuotesWithGasEstimates(quotes, networkClientId) {
@@ -634,19 +645,26 @@ export default class SwapsController extends PollingControllerOnly {
     this.store.updateState({
       singleChainSwapsState: {
         ...singleChainSwapsState,
-        quotes: { ...singleChainSwapsState.quotes, [initialAggId]: quoteToUpdate },
+        quotes: {
+          ...singleChainSwapsState.quotes,
+          [initialAggId]: quoteToUpdate,
+        },
       },
     });
   }
 
   setApproveTxId(approveTxId) {
     const { singleChainSwapsState } = this.store.getState();
-    this.store.updateState({ singleChainSwapsState: { ...singleChainSwapsState, approveTxId } });
+    this.store.updateState({
+      singleChainSwapsState: { ...singleChainSwapsState, approveTxId },
+    });
   }
 
   setTradeTxId(tradeTxId) {
     const { singleChainSwapsState } = this.store.getState();
-    this.store.updateState({ singleChainSwapsState: { ...singleChainSwapsState, tradeTxId } });
+    this.store.updateState({
+      singleChainSwapsState: { ...singleChainSwapsState, tradeTxId },
+    });
   }
 
   setQuotesLastFetched(quotesLastFetched) {
@@ -659,14 +677,20 @@ export default class SwapsController extends PollingControllerOnly {
   setSwapsTxGasPrice(gasPrice) {
     const { singleChainSwapsState } = this.store.getState();
     this.store.updateState({
-      singleChainSwapsState: { ...singleChainSwapsState, customGasPrice: gasPrice },
+      singleChainSwapsState: {
+        ...singleChainSwapsState,
+        customGasPrice: gasPrice,
+      },
     });
   }
 
   setSwapsTxMaxFeePerGas(maxFeePerGas) {
     const { singleChainSwapsState } = this.store.getState();
     this.store.updateState({
-      singleChainSwapsState: { ...singleChainSwapsState, customMaxFeePerGas: maxFeePerGas },
+      singleChainSwapsState: {
+        ...singleChainSwapsState,
+        customMaxFeePerGas: maxFeePerGas,
+      },
     });
   }
 
@@ -680,7 +704,10 @@ export default class SwapsController extends PollingControllerOnly {
   setSwapsQuotesPollingLimitEnabled(quotesPollingLimitEnabled) {
     const { singleChainSwapsState } = this.store.getState();
     this.store.updateState({
-      singleChainSwapsState: { ...singleChainSwapsState, quotesPollingLimitEnabled },
+      singleChainSwapsState: {
+        ...singleChainSwapsState,
+        quotesPollingLimitEnabled,
+      },
     });
   }
 
@@ -697,26 +724,37 @@ export default class SwapsController extends PollingControllerOnly {
   setSwapsTxGasLimit(gasLimit) {
     const { singleChainSwapsState } = this.store.getState();
     this.store.updateState({
-      singleChainSwapsState: { ...singleChainSwapsState, customMaxGas: gasLimit },
+      singleChainSwapsState: {
+        ...singleChainSwapsState,
+        customMaxGas: gasLimit,
+      },
     });
   }
 
   setCustomApproveTxData(data) {
     const { singleChainSwapsState } = this.store.getState();
     this.store.updateState({
-      singleChainSwapsState: { ...singleChainSwapsState, customApproveTxData: data },
+      singleChainSwapsState: {
+        ...singleChainSwapsState,
+        customApproveTxData: data,
+      },
     });
   }
 
   setBackgroundSwapRouteState(routeState) {
     const { singleChainSwapsState } = this.store.getState();
-    this.store.updateState({ singleChainSwapsState: { ...singleChainSwapsState, routeState } });
+    this.store.updateState({
+      singleChainSwapsState: { ...singleChainSwapsState, routeState },
+    });
   }
 
   setSaveFetchedQuotes(status) {
     const { singleChainSwapsState } = this.store.getState();
     this.store.updateState({
-      singleChainSwapsState: { ...singleChainSwapsState, saveFetchedQuotes: status },
+      singleChainSwapsState: {
+        ...singleChainSwapsState,
+        saveFetchedQuotes: status,
+      },
     });
   }
 
