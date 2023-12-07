@@ -186,7 +186,7 @@ import {
   getTokenIdParam,
   fetchTokenBalance,
   fetchERC1155Balance,
-} from '../../shared/lib/token-util.ts';
+} from '../../shared/lib/token-util';
 import { isEqualCaseInsensitive } from '../../shared/modules/string-utils';
 import { parseStandardTokenTransactionData } from '../../shared/modules/transaction.utils';
 import { STATIC_MAINNET_TOKEN_LIST } from '../../shared/constants/tokens';
@@ -1448,7 +1448,7 @@ export default class MetamaskController extends EventEmitter {
         getPermittedAccounts: this.getPermittedAccounts.bind(this),
         getSavedGasFees: () =>
           this.preferencesController.store.getState().advancedGasFee[
-            this.networkController.state.providerConfig.chainId
+          this.networkController.state.providerConfig.chainId
           ],
         getSelectedAddress: () =>
           this.preferencesController.store.getState().selectedAddress,
@@ -1458,9 +1458,9 @@ export default class MetamaskController extends EventEmitter {
             Boolean(
               this.preferencesController.store.getState()
                 .incomingTransactionsPreferences?.[
-                this.networkController.state.providerConfig.chainId
+              this.networkController.state.providerConfig.chainId
               ] &&
-                this.onboardingController.store.getState().completedOnboarding,
+              this.onboardingController.store.getState().completedOnboarding,
             ),
           queryEntireHistory: false,
           updateTransactions: false,
@@ -3918,9 +3918,8 @@ export default class MetamaskController extends EventEmitter {
    */
 
   getAccountLabel(name, index, hdPathDescription) {
-    return `${name[0].toUpperCase()}${name.slice(1)} ${
-      parseInt(index, 10) + 1
-    } ${hdPathDescription || ''}`.trim();
+    return `${name[0].toUpperCase()}${name.slice(1)} ${parseInt(index, 10) + 1
+      } ${hdPathDescription || ''}`.trim();
   }
 
   /**
@@ -5586,10 +5585,10 @@ export default class MetamaskController extends EventEmitter {
         params:
           newAccounts.length < 2
             ? // If the length is 1 or 0, the accounts are sorted by definition.
-              newAccounts
+            newAccounts
             : // If the length is 2 or greater, we have to execute
-              // `eth_accounts` vi this method.
-              await this.getPermittedAccounts(origin),
+            // `eth_accounts` vi this method.
+            await this.getPermittedAccounts(origin),
       });
     }
 
