@@ -1,28 +1,42 @@
-const path = require('path');
-const { PassThrough, Transform } = require('stream');
-const {
+import path from 'node:path';
+import { PassThrough, Transform } from 'stream';
+import {
   removeFencedCode,
   lintTransformedFile,
-} = require('@metamask/build-utils');
-const { getESLintInstance } = require('./utils');
+} from '@metamask/build-utils';
+import { getESLintInstance } from './utils';
 
-module.exports = {
-  createRemoveFencedCodeTransform,
+
+export type Features = {
+  /**
+   * Features that should be included in the output.
+   */
+  active: ReadonlySet<string>;
+
+  /**
+   * All features that can be toggled.
+   */
+  all: ReadonlySet<string>;
 };
 
+
 class RemoveFencedCodeTransform extends Transform {
+  filePath: string;
+  features: Features;
+  shouldLintTransformedFiles: boolean;
+  private _fileBuffers: Buffer[];
   /**
    * A transform stream that calls {@link removeFencedCode} on the complete
    * string contents of the file read by Browserify.
    *
    * Optionally lints the file if it was modified.
    *
-   * @param {string} filePath - The path to the file being transformed.
-   * @param {import('./remove-fenced-code').Features} features - Features that are currently enabled.
-   * @param {boolean} shouldLintTransformedFiles - Whether the file should be
+   * @param filePath - The path to the file being transformed.
+   * @param features - Features that are currently enabled.
+   * @param shouldLintTransformedFiles - Whether the file should be
    * linted if modified by the transform.
    */
-  constructor(filePath, features, shouldLintTransformedFiles) {
+  constructor(filePath: string, features: Features, shouldLintTransformedFiles: boolean) {
     super();
     this.filePath = filePath;
     this.features = features;
@@ -32,7 +46,7 @@ class RemoveFencedCodeTransform extends Transform {
 
   // This function is called whenever data is written to the stream.
   // It concatenates all buffers for the current file into a single buffer.
-  _transform(buffer, _encoding, next) {
+  _transform(buffer: Buffer, _encoding: string, next: () => void) {
     this._fileBuffers.push(buffer);
     next();
   }
@@ -40,15 +54,15 @@ class RemoveFencedCodeTransform extends Transform {
   // "flush" is called when all data has been written to the
   // stream, immediately before the "end" event is emitted.
   // It applies the transform to the concatenated file contents.
-  _flush(end) {
-    let fileContent, didModify;
+  _flush(end: (error?: Error) => void) {
+    let fileContent: string, didModify;
     try {
       [fileContent, didModify] = removeFencedCode(
         this.filePath,
         Buffer.concat(this._fileBuffers).toString('utf8'),
         this.features,
       );
-    } catch (error) {
+    } catch (error: any) {
       return end(error);
     }
 
@@ -64,7 +78,7 @@ class RemoveFencedCodeTransform extends Transform {
         fileContent,
       )
         .then(pushAndEnd)
-        .catch((error) => end(error));
+        .catch((error: Error) => end(error));
     }
     return pushAndEnd();
   }
@@ -86,14 +100,14 @@ class RemoveFencedCodeTransform extends Transform {
  * file is ignored by ESLint, since linting is our first line of defense against
  * making un-syntactic modifications to files using code fences.
  *
- * @param {import('./remove-fenced-code').Features} features - Features that are currently enabled.
- * @param {boolean} shouldLintTransformedFiles - Whether to lint transformed files.
- * @returns {(filePath: string) => Transform} The transform function.
+ * @param features - Features that are currently enabled.
+ * @param shouldLintTransformedFiles - Whether to lint transformed files.
+ * @returns The transform function.
  */
-function createRemoveFencedCodeTransform(
-  features,
-  shouldLintTransformedFiles = true,
-) {
+export function createRemoveFencedCodeTransform(
+  features: Features,
+  shouldLintTransformedFiles: boolean = true,
+): (filePath: string) => Transform {
   // Browserify transforms are functions that receive a file name and return a
   // duplex stream. The stream receives the file contents piecemeal in the form
   // of Buffers.
