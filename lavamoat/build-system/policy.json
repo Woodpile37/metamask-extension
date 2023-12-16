@@ -1189,6 +1189,11 @@
         "readable-stream>util-deprecate": true
       }
     },
+    "@metamask/build-utils": {
+      "packages": {
+        "@metamask/utils": true
+      }
+    },
     "@metamask/eth-token-tracker>deep-equal>is-date-object": {
       "packages": {
         "koa>is-generator-function>has-tostringtag": true
@@ -1197,6 +1202,33 @@
     "@metamask/jazzicon>color>clone": {
       "globals": {
         "Buffer": true
+      }
+    },
+    "@metamask/utils": {
+      "globals": {
+        "Buffer": true,
+        "TextDecoder": true,
+        "TextEncoder": true
+      },
+      "packages": {
+        "@metamask/utils>@noble/hashes": true,
+        "@metamask/utils>@scure/base": true,
+        "@metamask/utils>pony-cause": true,
+        "nock>debug": true,
+        "semver": true,
+        "superstruct": true
+      }
+    },
+    "@metamask/utils>@noble/hashes": {
+      "globals": {
+        "TextEncoder": true,
+        "crypto": true
+      }
+    },
+    "@metamask/utils>@scure/base": {
+      "globals": {
+        "TextDecoder": true,
+        "TextEncoder": true
       }
     },
     "@sentry/cli>which": {
@@ -1371,34 +1403,13 @@
         "process.env.AUTOPREFIXER_GRID": true
       },
       "packages": {
-        "autoprefixer>browserslist": true,
         "autoprefixer>caniuse-lite": true,
         "autoprefixer>fraction.js": true,
         "autoprefixer>normalize-range": true,
         "postcss": true,
         "postcss>picocolors": true,
-        "stylelint>postcss-value-parser": true
-      }
-    },
-    "autoprefixer>browserslist": {
-      "builtin": {
-        "fs.existsSync": true,
-        "fs.readFileSync": true,
-        "fs.statSync": true,
-        "path.basename": true,
-        "path.dirname": true,
-        "path.join": true,
-        "path.resolve": true
-      },
-      "globals": {
-        "console.warn": true,
-        "process.env": true,
-        "process.versions.node": true
-      },
-      "packages": {
-        "autoprefixer>browserslist>electron-to-chromium": true,
-        "autoprefixer>browserslist>node-releases": true,
-        "autoprefixer>caniuse-lite": true
+        "stylelint>postcss-value-parser": true,
+        "webpack>browserslist": true
       }
     },
     "babelify": {
@@ -7881,13 +7892,13 @@
         "process.env.AUTOPREFIXER_GRID": true
       },
       "packages": {
+        "autoprefixer>caniuse-lite": true,
         "autoprefixer>normalize-range": true,
         "stylelint>autoprefixer>num2fraction": true,
         "stylelint>postcss": true,
         "stylelint>postcss-value-parser": true,
         "stylelint>postcss>picocolors": true,
-        "webpack>browserslist": true,
-        "webpack>browserslist>caniuse-lite": true
+        "webpack>browserslist": true
       }
     },
     "stylelint>cosmiconfig": {
@@ -8844,7 +8855,7 @@
         "process.versions.node": true
       },
       "packages": {
-        "webpack>browserslist>caniuse-lite": true,
+        "autoprefixer>caniuse-lite": true,
         "webpack>browserslist>electron-to-chromium": true,
         "webpack>browserslist>node-releases": true
       }
