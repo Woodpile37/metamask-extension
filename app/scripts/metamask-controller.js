@@ -1459,9 +1459,9 @@ export default class MetamaskController extends EventEmitter {
             Boolean(
               this.preferencesController.store.getState()
                 .incomingTransactionsPreferences?.[
-                this.networkController.state.providerConfig.chainId
+              this.networkController.state.providerConfig.chainId
               ] &&
-                this.onboardingController.store.getState().completedOnboarding,
+              this.onboardingController.store.getState().completedOnboarding,
             ),
           queryEntireHistory: false,
           updateTransactions: false,
@@ -3896,9 +3896,8 @@ export default class MetamaskController extends EventEmitter {
    */
 
   getAccountLabel(name, index, hdPathDescription) {
-    return `${name[0].toUpperCase()}${name.slice(1)} ${
-      parseInt(index, 10) + 1
-    } ${hdPathDescription || ''}`.trim();
+    return `${name[0].toUpperCase()}${name.slice(1)} ${parseInt(index, 10) + 1
+      } ${hdPathDescription || ''}`.trim();
   }
 
   /**
@@ -4137,6 +4136,7 @@ export default class MetamaskController extends EventEmitter {
   }
 
   async addTransaction(txParams, options) {
+    ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
     let securityAlertResponse;
 
     try {
@@ -4162,6 +4162,7 @@ export default class MetamaskController extends EventEmitter {
     } catch (e) {
       log.debug();
     }
+    ///: END:ONLY_INCLUDE_IF
 
     const { transactionMeta, result } = await this.txController.addTransaction(
       txParams,
@@ -5595,10 +5596,10 @@ export default class MetamaskController extends EventEmitter {
         params:
           newAccounts.length < 2
             ? // If the length is 1 or 0, the accounts are sorted by definition.
-              newAccounts
+            newAccounts
             : // If the length is 2 or greater, we have to execute
-              // `eth_accounts` vi this method.
-              await this.getPermittedAccounts(origin),
+            // `eth_accounts` vi this method.
+            await this.getPermittedAccounts(origin),
       });
     }
 
