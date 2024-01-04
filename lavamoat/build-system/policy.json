@@ -2658,8 +2658,22 @@
         "__dirname": true
       },
       "packages": {
-        "del>rimraf": true,
-        "eslint>file-entry-cache>flat-cache>flatted": true
+        "eslint>file-entry-cache>flat-cache>flatted": true,
+        "eslint>file-entry-cache>flat-cache>rimraf": true
+      }
+    },
+    "eslint>file-entry-cache>flat-cache>rimraf": {
+      "builtin": {
+        "assert": true,
+        "fs": true,
+        "path.join": true
+      },
+      "globals": {
+        "process.platform": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "nyc>glob": true
       }
     },
     "eslint>glob-parent": {
@@ -5781,13 +5795,6 @@
         "chalk>supports-color>has-flag": true
       }
     },
-    "mockttp>portfinder>mkdirp": {
-      "builtin": {
-        "fs": true,
-        "path.dirname": true,
-        "path.resolve": true
-      }
-    },
     "nock>debug": {
       "builtin": {
         "tty.isatty": true,
@@ -6545,7 +6552,14 @@
         "path.dirname": true
       },
       "packages": {
-        "mockttp>portfinder>mkdirp": true
+        "stylelint>file-entry-cache>flat-cache>write>mkdirp": true
+      }
+    },
+    "stylelint>file-entry-cache>flat-cache>write>mkdirp": {
+      "builtin": {
+        "fs": true,
+        "path.dirname": true,
+        "path.resolve": true
       }
     },
     "stylelint>global-modules": {
