@@ -27,6 +27,10 @@ import {
 } from '../ducks/metamask/metamask';
 import { LISTED_CONTRACT_ADDRESSES } from '../../shared/constants/tokens';
 import { toChecksumHexAddress } from '../../shared/modules/hexstring-utils';
+import {
+  LEDGER_TRANSPORT_TYPES,
+  LEDGER_USB_VENDOR_ID,
+} from '../../shared/constants/hardware-wallets';
 import * as actionConstants from './actionConstants';
 
 let background = null;
@@ -396,13 +400,33 @@ export function forgetDevice(deviceName) {
 
 export function connectHardware(deviceName, page, hdPath) {
   log.debug(`background.connectHardware`, deviceName, page, hdPath);
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
     dispatch(
       showLoadingIndication(`Looking for your ${capitalize(deviceName)}...`),
     );
 
     let accounts;
     try {
+      const browserSupportsHid = 'hid' in window.navigator;
+      const { ledgerTransportType } = getState().metamask;
+
+      if (
+        browserSupportsHid &&
+        deviceName === 'ledger' &&
+        ledgerTransportType !== LEDGER_TRANSPORT_TYPES.LIVE
+      ) {
+        try {
+          await window.navigator.hid.requestDevice({
+            filters: [{ vendorId: LEDGER_USB_VENDOR_ID }],
+          });
+          await promisifiedBackground.setLedgerTransportPreference(
+            LEDGER_TRANSPORT_TYPES.WEBHID,
+          );
+        } catch (e) {
+          log.error(e);
+        }
+      }
+
       accounts = await promisifiedBackground.connectHardware(
         deviceName,
         page,
@@ -2727,7 +2751,7 @@ export function getCurrentWindowTab() {
 export function setLedgerLivePreference(value) {
   return async (dispatch) => {
     dispatch(showLoadingIndication());
-    await promisifiedBackground.setLedgerLivePreference(value);
+    await promisifiedBackground.setLedgerTransportPreference(value);
     dispatch(hideLoadingIndication());
   };
 }

@@ -8,20 +8,17 @@ import Button from '../../../components/ui/button';
 import { MOBILE_SYNC_ROUTE } from '../../../helpers/constants/routes';
 
 import { getPlatform } from '../../../../app/scripts/lib/util';
-
 import { PLATFORM_FIREFOX } from '../../../../shared/constants/app';
-import {
-  getNumberOfSettingsInSection,
-  handleSettingsRefs,
-} from '../../../helpers/utils/settings-search';
+import { LEDGER_TRANSPORT_TYPES } from '../../../../shared/constants/hardware-wallets';
 
-import { EVENT } from '../../../../shared/constants/metametrics';
-import LedgerTransportDropdown from '../../../components/app/ledger-transport-dropdown';
+const defaultTransportType = window.navigator.hid
+  ? LEDGER_TRANSPORT_TYPES.WEBHID
+  : LEDGER_TRANSPORT_TYPES.U2F;
 
 export default class AdvancedTab extends PureComponent {
   static contextTypes = {
     t: PropTypes.func,
-    trackEvent: PropTypes.func,
+    metricsEvent: PropTypes.func,
   };
 
   static propTypes = {
@@ -36,20 +33,18 @@ export default class AdvancedTab extends PureComponent {
     setAdvancedInlineGasFeatureFlag: PropTypes.func,
     advancedInlineGas: PropTypes.bool,
     showFiatInTestnets: PropTypes.bool,
-    showTestNetworks: PropTypes.bool,
     autoLockTimeLimit: PropTypes.number,
     setAutoLockTimeLimit: PropTypes.func.isRequired,
     setShowFiatConversionOnTestnetsPreference: PropTypes.func.isRequired,
-    setShowTestNetworks: PropTypes.func.isRequired,
     threeBoxSyncingAllowed: PropTypes.bool.isRequired,
     setThreeBoxSyncingPermission: PropTypes.func.isRequired,
     threeBoxDisabled: PropTypes.bool.isRequired,
     setIpfsGateway: PropTypes.func.isRequired,
     ipfsGateway: PropTypes.string.isRequired,
+    ledgerTransportType: PropTypes.string.isRequired,
+    setLedgerLivePreference: PropTypes.func.isRequired,
     setDismissSeedBackUpReminder: PropTypes.func.isRequired,
     dismissSeedBackUpReminder: PropTypes.bool.isRequired,
-    useTokenDetection: PropTypes.bool.isRequired,
-    setUseTokenDetection: PropTypes.func.isRequired,
   };
 
   state = {
@@ -59,31 +54,12 @@ export default class AdvancedTab extends PureComponent {
     ipfsGatewayError: '',
   };
 
-  settingsRefs = Array(
-    getNumberOfSettingsInSection(this.context.t, this.context.t('advanced')),
-  )
-    .fill(undefined)
-    .map(() => {
-      return React.createRef();
-    });
-
-  componentDidUpdate() {
-    const { t } = this.context;
-    handleSettingsRefs(t, t('advanced'), this.settingsRefs);
-  }
-
-  componentDidMount() {
-    const { t } = this.context;
-    handleSettingsRefs(t, t('advanced'), this.settingsRefs);
-  }
-
   renderMobileSync() {
     const { t } = this.context;
     const { history } = this.props;
 
     return (
       <div
-        ref={this.settingsRefs[1]}
         className="settings-page__content-row"
         data-testid="advanced-setting-mobile-sync"
       >
@@ -114,7 +90,6 @@ export default class AdvancedTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[0]}
         className="settings-page__content-row"
         data-testid="advanced-setting-state-logs"
       >
@@ -153,7 +128,6 @@ export default class AdvancedTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[2]}
         className="settings-page__content-row"
         data-testid="advanced-setting-reset-account"
       >
@@ -166,17 +140,16 @@ export default class AdvancedTab extends PureComponent {
         <div className="settings-page__content-item">
           <div className="settings-page__content-item-col">
             <Button
-              type="danger"
+              type="warning"
               large
               className="settings-tab__button--red"
               onClick={(event) => {
                 event.preventDefault();
-                this.context.trackEvent({
-                  category: EVENT.CATEGORIES.SETTINGS,
-                  event: 'Reset Account',
-                  properties: {
+                this.context.metricsEvent({
+                  eventOpts: {
+                    category: 'Settings',
                     action: 'Reset Account',
-                    legacy_event: true,
+                    name: 'Reset Account',
                   },
                 });
                 showResetAccountConfirmationModal();
@@ -196,7 +169,6 @@ export default class AdvancedTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[4]}
         className="settings-page__content-row"
         data-testid="advanced-setting-hex-data"
       >
@@ -226,7 +198,6 @@ export default class AdvancedTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[3]}
         className="settings-page__content-row"
         data-testid="advanced-setting-advanced-gas-inline"
       >
@@ -250,36 +221,6 @@ export default class AdvancedTab extends PureComponent {
     );
   }
 
-  renderToggleTestNetworks() {
-    const { t } = this.context;
-    const { showTestNetworks, setShowTestNetworks } = this.props;
-
-    return (
-      <div
-        ref={this.settingsRefs[6]}
-        className="settings-page__content-row"
-        data-testid="advanced-setting-show-testnet-conversion"
-      >
-        <div className="settings-page__content-item">
-          <span>{t('showTestnetNetworks')}</span>
-          <div className="settings-page__content-description">
-            {t('showTestnetNetworksDescription')}
-          </div>
-        </div>
-        <div className="settings-page__content-item">
-          <div className="settings-page__content-item-col">
-            <ToggleButton
-              value={showTestNetworks}
-              onToggle={(value) => setShowTestNetworks(!value)}
-              offLabel={t('off')}
-              onLabel={t('on')}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   renderShowConversionInTestnets() {
     const { t } = this.context;
     const {
@@ -289,7 +230,6 @@ export default class AdvancedTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[5]}
         className="settings-page__content-row"
         data-testid="advanced-setting-show-testnet-conversion"
       >
@@ -321,7 +261,6 @@ export default class AdvancedTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[7]}
         className="settings-page__content-row"
         data-testid="advanced-setting-custom-nonce"
       >
@@ -366,11 +305,10 @@ export default class AdvancedTab extends PureComponent {
   renderAutoLockTimeLimit() {
     const { t } = this.context;
     const { lockTimeError } = this.state;
-    const { setAutoLockTimeLimit } = this.props;
+    const { autoLockTimeLimit, setAutoLockTimeLimit } = this.props;
 
     return (
       <div
-        ref={this.settingsRefs[8]}
         className="settings-page__content-row"
         data-testid="advanced-setting-auto-lock"
       >
@@ -387,6 +325,7 @@ export default class AdvancedTab extends PureComponent {
               id="autoTimeout"
               placeholder="5"
               value={this.state.autoLockTimeLimit}
+              defaultValue={autoLockTimeLimit}
               onChange={(e) => this.handleLockChange(e.target.value)}
               error={lockTimeError}
               fullWidth
@@ -426,7 +365,6 @@ export default class AdvancedTab extends PureComponent {
     }
     return (
       <div
-        ref={this.settingsRefs[9]}
         className="settings-page__content-row"
         data-testid="advanced-setting-3box"
       >
@@ -459,9 +397,32 @@ export default class AdvancedTab extends PureComponent {
   }
 
   renderLedgerLiveControl() {
+    const { t } = this.context;
+    const { ledgerTransportType, setLedgerLivePreference } = this.props;
+
     return (
-      <div>
-        <LedgerTransportDropdown />
+      <div className="settings-page__content-row">
+        <div className="settings-page__content-item">
+          <span>{t('ledgerLiveAdvancedSetting')}</span>
+          <div className="settings-page__content-description">
+            {t('ledgerLiveAdvancedSettingDescription')}
+          </div>
+        </div>
+        <div className="settings-page__content-item">
+          <div className="settings-page__content-item-col">
+            <ToggleButton
+              value={ledgerTransportType === LEDGER_TRANSPORT_TYPES.LIVE}
+              onToggle={(value) =>
+                setLedgerLivePreference(
+                  value ? defaultTransportType : LEDGER_TRANSPORT_TYPES.LIVE,
+                )
+              }
+              offLabel={t('off')}
+              onLabel={t('on')}
+              disabled={getPlatform() === PLATFORM_FIREFOX}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -509,7 +470,6 @@ export default class AdvancedTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[10]}
         className="settings-page__content-row"
         data-testid="advanced-setting-ipfs-gateway"
       >
@@ -554,7 +514,6 @@ export default class AdvancedTab extends PureComponent {
 
     return (
       <div
-        ref={this.settingsRefs[12]}
         className="settings-page__content-row"
         data-testid="advanced-setting-dismiss-reminder"
       >
@@ -578,71 +537,23 @@ export default class AdvancedTab extends PureComponent {
     );
   }
 
-  renderTokenDetectionToggle() {
-    if (!process.env.TOKEN_DETECTION_V2) {
-      return null;
-    }
-
-    const { t } = this.context;
-    const { useTokenDetection, setUseTokenDetection } = this.props;
-
-    return (
-      <div
-        ref={this.settingsRefs[13]}
-        className="settings-page__content-row"
-        data-testid="advanced-setting-token-detection"
-      >
-        <div className="settings-page__content-item">
-          <span>{t('tokenDetection')}</span>
-          <div className="settings-page__content-description">
-            {t('tokenDetectionToggleDescription')}
-          </div>
-        </div>
-        <div className="settings-page__content-item">
-          <div className="settings-page__content-item-col">
-            <ToggleButton
-              value={useTokenDetection}
-              onToggle={(value) => {
-                this.context.trackEvent({
-                  category: EVENT.CATEGORIES.SETTINGS,
-                  event: 'Token Detection',
-                  properties: {
-                    action: 'Token Detection',
-                    legacy_event: true,
-                  },
-                });
-                setUseTokenDetection(!value);
-              }}
-              offLabel={t('off')}
-              onLabel={t('on')}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   render() {
     const { warning } = this.props;
 
-    const notUsingFirefox = getPlatform() !== PLATFORM_FIREFOX;
-
     return (
       <div className="settings-page__body">
-        {warning ? <div className="settings-tab__error">{warning}</div> : null}
+        {warning && <div className="settings-tab__error">{warning}</div>}
         {this.renderStateLogs()}
         {this.renderMobileSync()}
         {this.renderResetAccount()}
         {this.renderAdvancedGasInputInline()}
-        {this.renderTokenDetectionToggle()}
         {this.renderHexDataOptIn()}
         {this.renderShowConversionInTestnets()}
-        {this.renderToggleTestNetworks()}
         {this.renderUseNonceOptIn()}
         {this.renderAutoLockTimeLimit()}
         {this.renderThreeBoxControl()}
         {this.renderIpfsGatewayControl()}
-        {notUsingFirefox ? this.renderLedgerLiveControl() : null}
+        {this.renderLedgerLiveControl()}
         {this.renderDismissSeedBackupReminderControl()}
       </div>
     );
