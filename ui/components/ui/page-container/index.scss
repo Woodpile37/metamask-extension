@@ -95,7 +95,7 @@
   &__back-button {
     @include Paragraph;
 
-    color: var(--color-primary-default);
+    color: #2f9ae0;
     cursor: pointer;
   }
 
@@ -115,7 +115,7 @@
     @include H6;
 
     padding-top: 0.5rem;
-    color: var(--color-text-alternative);
+    color: var(--color-icon-default);
   }
 
   &__tabs {
@@ -127,7 +127,7 @@
     @include Paragraph;
 
     min-width: 5rem;
-    color: var(--color-text-alternative);
+    color: var(--color-icon-default);
     border-bottom: none;
     margin-right: 16px;
 
@@ -152,8 +152,8 @@
   }
 
   &__warning-container {
-    background: var(--color-error-muted);
-    padding: 5px;
+    background: var(--color-warning-muted);
+    padding: 20px;
     display: flex;
     align-items: start;
   }
@@ -168,7 +168,6 @@
 
   &__warning-icon {
     padding-top: 5px;
-    color: var(--color-error-default);
   }
 }
 

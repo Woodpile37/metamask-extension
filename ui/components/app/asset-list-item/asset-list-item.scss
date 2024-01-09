@@ -1,17 +1,14 @@
 .asset-list-item {
-  background: transparent;
-
   & .list-item__heading {
     max-width: 100%;
   }
 
   &__token-button {
-    color: var(--color-text-default);
     padding-inline-start: 0;
     min-width: 0;
     min-height: 0;
     text-align: start;
-    color: var(--primary-text) !important;
+    color: var(--color-text-default);
 
     & h2 {
       display: flex;
