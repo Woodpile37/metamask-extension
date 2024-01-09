@@ -15,13 +15,10 @@ describe('TransactionActivityLog container', () => {
     it('should return the correct props', () => {
       const mockState = {
         metamask: {
-          currencyRates: {
-            ETH: {
-              conversionRate: 280.45,
-            },
-          },
+          conversionRate: 280.45,
+          nativeCurrency: 'ETH',
           networkConfigurations: {},
-          providerConfig: {
+          provider: {
             ticker: 'ETH',
           },
         },
@@ -37,17 +34,14 @@ describe('TransactionActivityLog container', () => {
     it('should return the correct props when on a custom network', () => {
       const mockState = {
         metamask: {
-          currencyRates: {
-            ETH: {
-              conversionRate: 280.45,
-            },
-          },
+          conversionRate: 280.45,
+          nativeCurrency: 'ETH',
           networkConfigurations: {
             networkConfigurationId: {
               rpcUrl: 'https://customnetwork.com/',
             },
           },
-          providerConfig: {
+          provider: {
             rpcUrl: 'https://customnetwork.com/',
             ticker: 'ETH',
             rpcPrefs: {

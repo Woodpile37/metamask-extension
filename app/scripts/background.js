@@ -2,12 +2,6 @@
  * @file The entry point for the web extension singleton process.
  */
 
-// Disabled to allow setting up initial state hooks first
-
-// This import sets up global functions required for Sentry to function.
-// It must be run first in case an error is thrown later during initialization.
-import './lib/setup-initial-state-hooks';
-
 import EventEmitter from 'events';
 import endOfStream from 'end-of-stream';
 import pump from 'pump';
@@ -15,10 +9,6 @@ import debounce from 'debounce-stream';
 import log from 'loglevel';
 import browser from 'webextension-polyfill';
 import { storeAsStream } from '@metamask/obs-store';
-import { hasProperty, isObject } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { ApprovalType } from '@metamask/controller-utils';
-///: END:ONLY_INCLUDE_IF
 import PortStream from 'extension-port-stream';
 
 import { ethErrors } from 'eth-rpc-errors';
@@ -28,17 +18,17 @@ import {
   ENVIRONMENT_TYPE_FULLSCREEN,
   EXTENSION_MESSAGES,
   PLATFORM_FIREFOX,
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
   MESSAGE_TYPE,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES,
-  ///: END:ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IN
 } from '../../shared/constants/app';
+import { SECOND } from '../../shared/constants/time';
 import {
-  REJECT_NOTIFICATION_CLOSE,
-  REJECT_NOTIFICATION_CLOSE_SIG,
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-  MetaMetricsUserTrait,
+  REJECT_NOTFICIATION_CLOSE,
+  REJECT_NOTFICIATION_CLOSE_SIG,
+  EVENT,
+  EVENT_NAMES,
+  TRAITS,
 } from '../../shared/constants/metametrics';
 import { checkForLastErrorAndLog } from '../../shared/modules/browser-runtime.utils';
 import { isManifestV3 } from '../../shared/modules/mv3.utils';
@@ -48,7 +38,7 @@ import Migrator from './lib/migrator';
 import ExtensionPlatform from './platforms/extension';
 import LocalStore from './lib/local-store';
 import ReadOnlyNetworkStore from './lib/network-store';
-import { SENTRY_BACKGROUND_STATE } from './lib/setupSentry';
+import { SENTRY_STATE } from './lib/setupSentry';
 
 import createStreamSink from './lib/createStreamSink';
 import NotificationManager, {
@@ -66,20 +56,14 @@ import { deferredPromise, getPlatform } from './lib/util';
 /* eslint-enable import/first */
 
 /* eslint-disable import/order */
-///: BEGIN:ONLY_INCLUDE_IF(desktop)
+///: BEGIN:ONLY_INCLUDE_IN(flask)
 import {
   CONNECTION_TYPE_EXTERNAL,
   CONNECTION_TYPE_INTERNAL,
 } from '@metamask/desktop/dist/constants';
 import DesktopManager from '@metamask/desktop/dist/desktop-manager';
-///: END:ONLY_INCLUDE_IF
+///: END:ONLY_INCLUDE_IN
 /* eslint-enable import/order */
-
-// Setup global hook for improved Sentry state snapshots during initialization
-const inTest = process.env.IN_TEST;
-const localStore = inTest ? new ReadOnlyNetworkStore() : new LocalStore();
-global.stateHooks.getMostRecentPersistedState = () =>
-  localStore.mostRecentRetrievedState;
 
 const { sentry } = global;
 const firstTimeState = { ...rawFirstTimeState };
@@ -92,10 +76,11 @@ const metamaskInternalProcessHash = {
 
 const metamaskBlockedPorts = ['trezor-connect'];
 
-log.setLevel(process.env.METAMASK_DEBUG ? 'debug' : 'info', false);
+log.setDefaultLevel(process.env.METAMASK_DEBUG ? 'debug' : 'info');
 
 const platform = new ExtensionPlatform();
 const notificationManager = new NotificationManager();
+global.METAMASK_NOTIFIER = notificationManager;
 
 let popupIsOpen = false;
 let notificationIsOpen = false;
@@ -103,8 +88,11 @@ let uiIsTriggering = false;
 const openMetamaskTabsIDs = {};
 const requestAccountTabIds = {};
 let controller;
+
+// state persistence
+const inTest = process.env.IN_TEST;
+const localStore = inTest ? new ReadOnlyNetworkStore() : new LocalStore();
 let versionedData;
-const tabOriginMapping = {};
 
 if (inTest || process.env.METAMASK_DEBUG) {
   global.stateHooks.metamaskGetState = localStore.get.bind(localStore);
@@ -116,12 +104,15 @@ const ONE_SECOND_IN_MILLISECONDS = 1_000;
 // Timeout for initializing phishing warning page.
 const PHISHING_WARNING_PAGE_TIMEOUT = ONE_SECOND_IN_MILLISECONDS;
 
-///: BEGIN:ONLY_INCLUDE_IF(desktop)
+const ACK_KEEP_ALIVE_MESSAGE = 'ACK_KEEP_ALIVE_MESSAGE';
+const WORKER_KEEP_ALIVE_MESSAGE = 'WORKER_KEEP_ALIVE_MESSAGE';
+
+///: BEGIN:ONLY_INCLUDE_IN(flask)
 const OVERRIDE_ORIGIN = {
   EXTENSION: 'EXTENSION',
   DESKTOP: 'DESKTOP_APP',
 };
-///: END:ONLY_INCLUDE_IF
+///: END:ONLY_INCLUDE_IN
 
 // Event emitter for state persistence
 export const statePersistenceEvents = new EventEmitter();
@@ -202,18 +193,13 @@ browser.runtime.onConnect.addListener(async (...args) => {
 browser.runtime.onConnectExternal.addListener(async (...args) => {
   // Queue up connection attempts here, waiting until after initialization
   await isInitialized;
+
   // This is set in `setupController`, which is called as part of initialization
   connectExternal(...args);
 });
 
-function saveTimestamp() {
-  const timestamp = new Date().toISOString();
-
-  browser.storage.session.set({ timestamp });
-}
-
 /**
- * @typedef {import('@metamask/transaction-controller').TransactionMeta} TransactionMeta
+ * @typedef {import('../../shared/constants/transaction').TransactionMeta} TransactionMeta
  */
 
 /**
@@ -223,26 +209,24 @@ function saveTimestamp() {
  * @property {boolean} isInitialized - Whether the first vault has been created.
  * @property {boolean} isUnlocked - Whether the vault is currently decrypted and accounts are available for selection.
  * @property {boolean} isAccountMenuOpen - Represents whether the main account selection UI is currently displayed.
- * @property {boolean} isNetworkMenuOpen - Represents whether the main network selection UI is currently displayed.
  * @property {object} identities - An object matching lower-case hex addresses to Identity objects with "address" and "name" (nickname) keys.
+ * @property {object} unapprovedTxs - An object mapping transaction hashes to unapproved transactions.
  * @property {object} networkConfigurations - A list of network configurations, containing RPC provider details (eg chainId, rpcUrl, rpcPreferences).
  * @property {Array} addressBook - A list of previously sent to addresses.
- * @property {object} contractExchangeRatesByChainId - Info about current token prices keyed by chainId.
- * @property {object} contractExchangeRates - Info about current token prices on current chain.
+ * @property {object} contractExchangeRates - Info about current token prices.
  * @property {Array} tokens - Tokens held by the current user, including their balances.
  * @property {object} send - TODO: Document
  * @property {boolean} useBlockie - Indicates preferred user identicon format. True for blockie, false for Jazzicon.
  * @property {object} featureFlags - An object for optional feature flags.
  * @property {boolean} welcomeScreen - True if welcome screen should be shown.
  * @property {string} currentLocale - A locale string matching the user's preferred display language.
- * @property {object} providerConfig - The current selected network provider.
- * @property {string} providerConfig.rpcUrl - The address for the RPC API, if using an RPC API.
- * @property {string} providerConfig.type - An identifier for the type of network selected, allows MetaMask to use custom provider strategies for known networks.
- * @property {string} networkStatus - Either "unknown", "available", "unavailable", or "blocked", depending on the status of the currently selected network.
+ * @property {object} provider - The current selected network provider.
+ * @property {string} provider.rpcUrl - The address for the RPC API, if using an RPC API.
+ * @property {string} provider.type - An identifier for the type of network selected, allows MetaMask to use custom provider strategies for known networks.
+ * @property {string} network - A stringified number of the current network ID.
  * @property {object} accounts - An object mapping lower-case hex addresses to objects with "balance" and "address" keys, both storing hex string values.
- * @property {object} accountsByChainId - An object mapping lower-case hex addresses to objects with "balance" and "address" keys, both storing hex string values keyed by chain id.
  * @property {hex} currentBlockGasLimit - The most recently seen block gas limit, in a lower case hex prefixed string.
- * @property {object} currentBlockGasLimitByChainId - The most recently seen block gas limit, in a lower case hex prefixed string keyed by chain id.
+ * @property {TransactionMeta[]} currentNetworkTxList - An array of transactions associated with the currently selected network.
  * @property {object} unapprovedMsgs - An object of messages pending approval, mapping a unique ID to the options.
  * @property {number} unapprovedMsgCount - The number of messages in unapprovedMsgs.
  * @property {object} unapprovedPersonalMsgs - An object of messages pending approval, mapping a unique ID to the options.
@@ -254,10 +238,12 @@ function saveTimestamp() {
  * @property {object} unapprovedTypedMsgs - An object of messages pending approval, mapping a unique ID to the options.
  * @property {number} unapprovedTypedMsgCount - The number of messages in unapprovedTypedMsgs.
  * @property {number} pendingApprovalCount - The number of pending request in the approval controller.
+ * @property {string[]} keyringTypes - An array of unique keyring identifying strings, representing available strategies for creating accounts.
  * @property {Keyring[]} keyrings - An array of keyring descriptions, summarizing the accounts that are available for use, and what keyrings they belong to.
  * @property {string} selectedAddress - A lower case hex string of the currently selected address.
  * @property {string} currentCurrency - A string identifying the user's preferred display currency, for use in showing conversion rates.
- * @property {number} currencyRates - An object mapping of nativeCurrency to conversion rate and date
+ * @property {number} conversionRate - A number representing the current exchange rate from the user's preferred currency to Ether.
+ * @property {number} conversionDate - A unix epoch date (ms) for the time the current conversion rate was last retrieved.
  * @property {boolean} forgottenPassword - Returns true if the user has initiated the password recovery screen, is recovering from seed phrase.
  */
 
@@ -274,45 +260,19 @@ function saveTimestamp() {
  */
 async function initialize() {
   try {
-    const initData = await loadStateFromPersistence();
-    const initState = initData.data;
+    const initState = await loadStateFromPersistence();
     const initLangCode = await getFirstPreferredLangCode();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(desktop)
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
     await DesktopManager.init(platform.getVersion());
-    ///: END:ONLY_INCLUDE_IF
+    ///: END:ONLY_INCLUDE_IN
 
-    let isFirstMetaMaskControllerSetup;
-    if (isManifestV3) {
-      // Save the timestamp immediately and then every `SAVE_TIMESTAMP_INTERVAL`
-      // miliseconds. This keeps the service worker alive.
-      const SAVE_TIMESTAMP_INTERVAL_MS = 2 * 1000;
-
-      saveTimestamp();
-      setInterval(saveTimestamp, SAVE_TIMESTAMP_INTERVAL_MS);
-
-      const sessionData = await browser.storage.session.get([
-        'isFirstMetaMaskControllerSetup',
-      ]);
-
-      isFirstMetaMaskControllerSetup =
-        sessionData?.isFirstMetaMaskControllerSetup === undefined;
-      await browser.storage.session.set({ isFirstMetaMaskControllerSetup });
-    }
-
-    setupController(
-      initState,
-      initLangCode,
-      {},
-      isFirstMetaMaskControllerSetup,
-      initData.meta,
-    );
+    setupController(initState, initLangCode);
     if (!isManifestV3) {
       await loadPhishingWarningPage();
     }
     await sendReadyMessageToTabs();
     log.info('MetaMask initialization complete.');
-
     resolveInitialization();
   } catch (error) {
     rejectInitialization(error);
@@ -373,7 +333,7 @@ async function loadPhishingWarningPage() {
   } catch (error) {
     if (error instanceof PhishingWarningPageTimeoutError) {
       console.warn(
-        'Phishing warning page timeout; page not guaranteed to work offline.',
+        'Phishing warning page timeout; page not guaraneteed to work offline.',
       );
     } else {
       console.error('Failed to initialize phishing warning page', error);
@@ -429,19 +389,6 @@ export async function loadStateFromPersistence() {
   versionedData = await migrator.migrateData(versionedData);
   if (!versionedData) {
     throw new Error('MetaMask - migrator returned undefined');
-  } else if (!isObject(versionedData.meta)) {
-    throw new Error(
-      `MetaMask - migrator metadata has invalid type '${typeof versionedData.meta}'`,
-    );
-  } else if (typeof versionedData.meta.version !== 'number') {
-    throw new Error(
-      `MetaMask - migrator metadata version has invalid type '${typeof versionedData
-        .meta.version}'`,
-    );
-  } else if (!isObject(versionedData.data)) {
-    throw new Error(
-      `MetaMask - migrator data has invalid type '${typeof versionedData.data}'`,
-    );
   }
   // this initializes the meta/version data as a class variable to be used for future writes
   localStore.setMetadata(versionedData.meta);
@@ -449,62 +396,8 @@ export async function loadStateFromPersistence() {
   // write to disk
   localStore.set(versionedData.data);
 
-  // {
-  //   KeyringController: {
-  //     vault: 'encrypted string'
-  //     keyrings: [],
-  //   },
-  //   // other state
-  // }
-
-  // {
-  //   vault: "",
-  //   // other state
-  // }
-
   // return just the data
-  return versionedData;
-}
-
-/**
- * Emit event of DappViewed,
- * which should only be tracked only after a user opts into metrics and connected to the dapp
- *
- * @param {string} origin - URL of visited dapp
- * @param {object} connectSitePermissions - Permission state to get connected accounts
- * @param {object} preferencesController - Preference Controller to get total created accounts
- */
-function emitDappViewedMetricEvent(
-  origin,
-  connectSitePermissions,
-  preferencesController,
-) {
-  // A dapp may have other permissions than eth_accounts.
-  // Since we are only interested in dapps that use Ethereum accounts, we bail out otherwise.
-  if (!hasProperty(connectSitePermissions.permissions, 'eth_accounts')) {
-    return;
-  }
-
-  const numberOfTotalAccounts = Object.keys(
-    preferencesController.store.getState().identities,
-  ).length;
-  const connectAccountsCollection =
-    connectSitePermissions.permissions.eth_accounts.caveats;
-  if (connectAccountsCollection) {
-    const numberOfConnectedAccounts = connectAccountsCollection[0].value.length;
-    controller.metaMetricsController.trackEvent({
-      event: MetaMetricsEventName.DappViewed,
-      category: MetaMetricsEventCategory.InpageProvider,
-      referrer: {
-        url: origin,
-      },
-      properties: {
-        is_first_visit: false,
-        number_of_accounts: numberOfTotalAccounts,
-        number_of_accounts_connected: numberOfConnectedAccounts,
-      },
-    });
-  }
+  return versionedData.data;
 }
 
 /**
@@ -516,16 +409,8 @@ function emitDappViewedMetricEvent(
  * @param {object} initState - The initial state to start the controller with, matches the state that is emitted from the controller.
  * @param {string} initLangCode - The region code for the language preferred by the current user.
  * @param {object} overrides - object with callbacks that are allowed to override the setup controller logic (usefull for desktop app)
- * @param isFirstMetaMaskControllerSetup
- * @param {object} stateMetadata - Metadata about the initial state and migrations, including the most recent migration version
  */
-export function setupController(
-  initState,
-  initLangCode,
-  overrides,
-  isFirstMetaMaskControllerSetup,
-  stateMetadata,
-) {
+export function setupController(initState, initLangCode, overrides) {
   //
   // MetaMask Controller
   //
@@ -534,6 +419,7 @@ export function setupController(
     infuraProjectId: process.env.INFURA_PROJECT_ID,
     // User confirmation callbacks:
     showUserConfirmation: triggerUi,
+    openPopup,
     // initial state
     initState,
     // initial locale code
@@ -550,20 +436,14 @@ export function setupController(
     },
     localStore,
     overrides,
-    isFirstMetaMaskControllerSetup,
-    currentMigrationVersion: stateMetadata.version,
-    featureFlags: {},
   });
 
   setupEnsIpfsResolver({
     getCurrentChainId: () =>
-      controller.networkController.state.providerConfig.chainId,
+      controller.networkController.store.getState().provider.chainId,
     getIpfsGateway: controller.preferencesController.getIpfsGateway.bind(
       controller.preferencesController,
     ),
-    getUseAddressBarEnsResolution: () =>
-      controller.preferencesController.store.getState()
-        .useAddressBarEnsResolution,
     provider: controller.provider,
   });
 
@@ -574,25 +454,6 @@ export function setupController(
     createStreamSink(async (state) => {
       await localStore.set(state);
       statePersistenceEvents.emit('state-persisted', state);
-    }),
-    (error) => {
-      log.error('MetaMask - Persistence pipeline failed', error);
-    },
-  );
-
-  const vault = null;
-
-  // setup vault state persistence
-  pump(
-    storeAsStream(controller.vaultStore),
-    debounce(1000),
-    createStreamSink(async (key, keyedState) => {
-      await vault.set(key, keyedState);
-      const encryptedKeyedState = vault.get(key);
-      const existingEncryptedVault = null; // get existing vault somehow
-      await localStore.set({
-        vault: { ...existingEncryptedVault, [key]: encryptedKeyedState },
-      });
     }),
     (error) => {
       log.error('MetaMask - Persistence pipeline failed', error);
@@ -642,7 +503,7 @@ export function setupController(
    * @param {Port} remotePort - The port provided by a new context.
    */
   connectRemote = async (remotePort) => {
-    ///: BEGIN:ONLY_INCLUDE_IF(desktop)
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
     if (
       DesktopManager.isDesktopEnabled() &&
       OVERRIDE_ORIGIN.DESKTOP !== overrides?.getOrigin?.()
@@ -660,7 +521,7 @@ export function setupController(
       );
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
+    ///: END:ONLY_INCLUDE_IN
 
     const processName = remotePort.name;
 
@@ -687,6 +548,16 @@ export function setupController(
       // communication with popup
       controller.isClientOpen = true;
       controller.setupTrustedCommunication(portStream, remotePort.sender);
+
+      if (isManifestV3) {
+        // If we get a WORKER_KEEP_ALIVE message, we respond with an ACK
+        remotePort.onMessage.addListener((message) => {
+          if (message.name === WORKER_KEEP_ALIVE_MESSAGE) {
+            // To test un-comment this line and wait for 1 minute. An error should be shown on MetaMask UI.
+            remotePort.postMessage({ name: ACK_KEEP_ALIVE_MESSAGE });
+          }
+        });
+      }
 
       if (processName === ENVIRONMENT_TYPE_POPUP) {
         popupIsOpen = true;
@@ -737,39 +608,13 @@ export function setupController(
         connectionStream: portStream,
       });
     } else {
-      // this is triggered when a new tab is opened, or origin(url) is changed
       if (remotePort.sender && remotePort.sender.tab && remotePort.sender.url) {
         const tabId = remotePort.sender.tab.id;
         const url = new URL(remotePort.sender.url);
         const { origin } = url;
 
-        // store the orgin to corresponding tab so it can provide infor for onActivated listener
-        if (!Object.keys(tabOriginMapping).includes(tabId)) {
-          tabOriginMapping[tabId] = origin;
-        }
-        const connectSitePermissions =
-          controller.permissionController.state.subjects[origin];
-        // when the dapp is not connected, connectSitePermissions is undefined
-        const isConnectedToDapp = connectSitePermissions !== undefined;
-        // when open a new tab, this event will trigger twice, only 2nd time is with dapp loaded
-        const isTabLoaded = remotePort.sender.tab.title !== 'New Tab';
-
-        // *** Emit DappViewed metric event when ***
-        // - refresh the dapp
-        // - open dapp in a new tab
-        if (isConnectedToDapp && isTabLoaded) {
-          emitDappViewedMetricEvent(
-            origin,
-            connectSitePermissions,
-            controller.preferencesController,
-          );
-        }
-
         remotePort.onMessage.addListener((msg) => {
-          if (
-            msg.data &&
-            msg.data.method === MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS
-          ) {
+          if (msg.data && msg.data.method === 'eth_requestAccounts') {
             requestAccountTabIds[origin] = tabId;
           }
         });
@@ -780,7 +625,7 @@ export function setupController(
 
   // communication with page or other extension
   connectExternal = (remotePort) => {
-    ///: BEGIN:ONLY_INCLUDE_IF(desktop)
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
     if (
       DesktopManager.isDesktopEnabled() &&
       OVERRIDE_ORIGIN.DESKTOP !== overrides?.getOrigin?.()
@@ -788,7 +633,7 @@ export function setupController(
       DesktopManager.createStream(remotePort, CONNECTION_TYPE_EXTERNAL);
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
+    ///: END:ONLY_INCLUDE_IN
 
     const portStream =
       overrides?.getPortStream?.(remotePort) || new PortStream(remotePort);
@@ -805,17 +650,29 @@ export function setupController(
   //
   // User Interface setup
   //
-  updateBadge();
 
-  controller.decryptMessageController.hub.on(
+  updateBadge();
+  controller.txController.on(
     METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
     updateBadge,
   );
-  controller.encryptionPublicKeyController.hub.on(
+  controller.messageManager.on(
     METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
     updateBadge,
   );
-  controller.signatureController.hub.on(
+  controller.personalMessageManager.on(
+    METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
+    updateBadge,
+  );
+  controller.decryptMessageManager.on(
+    METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
+    updateBadge,
+  );
+  controller.encryptionPublicKeyManager.on(
+    METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
+    updateBadge,
+  );
+  controller.typedMessageManager.on(
     METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
     updateBadge,
   );
@@ -828,8 +685,6 @@ export function setupController(
     METAMASK_CONTROLLER_EVENTS.APPROVAL_STATE_CHANGE,
     updateBadge,
   );
-
-  controller.txController.initApprovals();
 
   /**
    * Updates the Web Extension's "badge" number, on the little fox in the toolbar.
@@ -852,76 +707,100 @@ export function setupController(
   }
 
   function getUnapprovedTransactionCount() {
-    let count = controller.appStateController.waitingForUnlock.length;
-    if (controller.preferencesController.getUseRequestQueue()) {
-      count += controller.queuedRequestController.length();
-    } else {
-      count += controller.approvalController.getTotalApprovalCount();
-    }
-    return count;
+    const unapprovedTxCount = controller.txController.getUnapprovedTxCount();
+    const { unapprovedMsgCount } = controller.messageManager;
+    const { unapprovedPersonalMsgCount } = controller.personalMessageManager;
+    const { unapprovedDecryptMsgCount } = controller.decryptMessageManager;
+    const { unapprovedEncryptionPublicKeyMsgCount } =
+      controller.encryptionPublicKeyManager;
+    const { unapprovedTypedMessagesCount } = controller.typedMessageManager;
+    const pendingApprovalCount =
+      controller.approvalController.getTotalApprovalCount();
+    const waitingForUnlockCount =
+      controller.appStateController.waitingForUnlock.length;
+    return (
+      unapprovedTxCount +
+      unapprovedMsgCount +
+      unapprovedPersonalMsgCount +
+      unapprovedDecryptMsgCount +
+      unapprovedEncryptionPublicKeyMsgCount +
+      unapprovedTypedMessagesCount +
+      pendingApprovalCount +
+      waitingForUnlockCount
+    );
   }
-
-  controller.controllerMessenger.subscribe(
-    'QueuedRequestController:countChanged',
-    (count) => {
-      updateBadge();
-      if (count > 0) {
-        triggerUi();
-      }
-    },
-  );
 
   notificationManager.on(
     NOTIFICATION_MANAGER_EVENTS.POPUP_CLOSED,
     ({ automaticallyClosed }) => {
-      if (controller.preferencesController.getUseRequestQueue()) {
-        // when the feature flag is on, rejecting unnapproved notifications in this way does nothing (since the controllers havent seen the requests yet)
-        // Also, the updating of badge / triggering of UI happens from the countChanged event when the feature flag is on, so we dont need that here either.
-        // The only thing that we might want to add here is possibly calling a method to empty the queue / do the same thing as rejecting all confirmed?
-        return;
-      }
-
       if (!automaticallyClosed) {
         rejectUnapprovedNotifications();
       } else if (getUnapprovedTransactionCount() > 0) {
         triggerUi();
       }
-
-      updateBadge();
     },
   );
 
   function rejectUnapprovedNotifications() {
-    controller.signatureController.rejectUnapproved(
-      REJECT_NOTIFICATION_CLOSE_SIG,
+    Object.keys(
+      controller.txController.txStateManager.getUnapprovedTxList(),
+    ).forEach((txId) =>
+      controller.txController.txStateManager.setTxStatusRejected(txId),
     );
-    controller.decryptMessageController.rejectUnapproved(
-      REJECT_NOTIFICATION_CLOSE,
-    );
-    controller.encryptionPublicKeyController.rejectUnapproved(
-      REJECT_NOTIFICATION_CLOSE,
-    );
+    controller.messageManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.messageManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE_SIG,
+        ),
+      );
+    controller.personalMessageManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.personalMessageManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE_SIG,
+        ),
+      );
+    controller.typedMessageManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.typedMessageManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE_SIG,
+        ),
+      );
+    controller.decryptMessageManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.decryptMessageManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE,
+        ),
+      );
+    controller.encryptionPublicKeyManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.encryptionPublicKeyManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE,
+        ),
+      );
 
     // Finally, resolve snap dialog approvals on Flask and reject all the others managed by the ApprovalController.
     Object.values(controller.approvalController.state.pendingApprovals).forEach(
       ({ id, type }) => {
         switch (type) {
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-          case ApprovalType.SnapDialogAlert:
-          case ApprovalType.SnapDialogPrompt:
+          ///: BEGIN:ONLY_INCLUDE_IN(flask)
+          case MESSAGE_TYPE.SNAP_DIALOG_ALERT:
+          case MESSAGE_TYPE.SNAP_DIALOG_PROMPT:
             controller.approvalController.accept(id, null);
             break;
-          case ApprovalType.SnapDialogConfirmation:
+          case MESSAGE_TYPE.SNAP_DIALOG_CONFIRMATION:
             controller.approvalController.accept(id, false);
             break;
-          ///: END:ONLY_INCLUDE_IF
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.confirmAccountCreation:
-          case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.confirmAccountRemoval:
-          case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showSnapAccountRedirect:
-            controller.approvalController.accept(id, false);
-            break;
-          ///: END:ONLY_INCLUDE_IF
+          ///: END:ONLY_INCLUDE_IN
           default:
             controller.approvalController.reject(
               id,
@@ -931,22 +810,17 @@ export function setupController(
         }
       },
     );
+
+    updateBadge();
   }
 
-  ///: BEGIN:ONLY_INCLUDE_IF(desktop)
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
   if (OVERRIDE_ORIGIN.DESKTOP !== overrides?.getOrigin?.()) {
     controller.store.subscribe((state) => {
       DesktopManager.setState(state);
     });
   }
-  ///: END:ONLY_INCLUDE_IF
-
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  // Updates the snaps registry and check for newly blocked snaps to block if the user has at least one snap installed.
-  if (Object.keys(controller.snapController.state.snaps).length > 0) {
-    controller.snapController.updateBlockedSnaps();
-  }
-  ///: END:ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IN
 }
 
 //
@@ -986,17 +860,31 @@ async function triggerUi() {
   }
 }
 
+/**
+ * Opens the browser popup for user confirmation of watchAsset
+ * then it waits until user interact with the UI
+ */
+async function openPopup() {
+  await triggerUi();
+  await new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (!notificationIsOpen) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, SECOND);
+  });
+}
+
 // It adds the "App Installed" event into a queue of events, which will be tracked only after a user opts into metrics.
 const addAppInstalledEvent = () => {
   if (controller) {
     controller.metaMetricsController.updateTraits({
-      [MetaMetricsUserTrait.InstallDateExt]: new Date()
-        .toISOString()
-        .split('T')[0], // yyyy-mm-dd
+      [TRAITS.INSTALL_DATE_EXT]: new Date().toISOString().split('T')[0], // yyyy-mm-dd
     });
     controller.metaMetricsController.addEventBeforeMetricsOptIn({
-      category: MetaMetricsEventCategory.App,
-      event: MetaMetricsEventName.AppInstalled,
+      category: EVENT.CATEGORIES.APP,
+      event: EVENT_NAMES.APP_INSTALLED,
       properties: {},
     });
     return;
@@ -1008,52 +896,29 @@ const addAppInstalledEvent = () => {
 };
 
 // On first install, open a new tab with MetaMask
-async function onInstall() {
-  const storeAlreadyExisted = Boolean(await localStore.get());
-  // If the store doesn't exist, then this is the first time running this script,
-  // and is therefore an install
-  if (process.env.IN_TEST) {
-    addAppInstalledEvent();
-  } else if (!storeAlreadyExisted && !process.env.METAMASK_DEBUG) {
+browser.runtime.onInstalled.addListener(({ reason }) => {
+  if (
+    reason === 'install' &&
+    !(process.env.METAMASK_DEBUG || process.env.IN_TEST)
+  ) {
     addAppInstalledEvent();
     platform.openExtensionInBrowser();
   }
-  onNavigateToTab();
-}
-
-function onNavigateToTab() {
-  browser.tabs.onActivated.addListener((onActivatedTab) => {
-    if (controller) {
-      const { tabId } = onActivatedTab;
-      const currentOrigin = tabOriginMapping[tabId];
-      // *** Emit DappViewed metric event when ***
-      // - navigate to a connected dapp
-      if (currentOrigin) {
-        const connectSitePermissions =
-          controller.permissionController.state.subjects[currentOrigin];
-        // when the dapp is not connected, connectSitePermissions is undefined
-        const isConnectedToDapp = connectSitePermissions !== undefined;
-        if (isConnectedToDapp) {
-          emitDappViewedMetricEvent(
-            currentOrigin,
-            connectSitePermissions,
-            controller.preferencesController,
-          );
-        }
-      }
-    }
-  });
-}
+});
 
 function setupSentryGetStateGlobal(store) {
-  global.stateHooks.getSentryAppState = function () {
-    const backgroundState = store.memStore.getState();
-    return maskObject(backgroundState, SENTRY_BACKGROUND_STATE);
+  global.stateHooks.getSentryState = function () {
+    const fullState = store.getState();
+    const debugState = maskObject({ metamask: fullState }, SENTRY_STATE);
+    return {
+      browser: window.navigator.userAgent,
+      store: debugState,
+      version: platform.getVersion(),
+    };
   };
 }
 
-async function initBackground() {
-  await onInstall();
+function initBackground() {
   initialize().catch(log.error);
 }
 

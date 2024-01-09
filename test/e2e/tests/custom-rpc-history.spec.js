@@ -1,14 +1,17 @@
 const { strict: assert } = require('assert');
-const {
-  defaultGanacheOptions,
-  generateGanacheOptions,
-  withFixtures,
-  regularDelayMs,
-  unlockWallet,
-} = require('../helpers');
+const { convertToHexValue, withFixtures } = require('../helpers');
 const FixtureBuilder = require('../fixture-builder');
 
 describe('Stores custom RPC history', function () {
+  const ganacheOptions = {
+    accounts: [
+      {
+        secretKey:
+          '0x7C9529A67102755B7E6102D6D950AC5D5863C98713805CEC576B945B15B71EAC',
+        balance: convertToHexValue(25000000000000000000),
+      },
+    ],
+  };
   it(`creates first custom RPC entry`, async function () {
     const port = 8546;
     const chainId = 1338;
@@ -16,19 +19,19 @@ describe('Stores custom RPC history', function () {
     await withFixtures(
       {
         fixtures: new FixtureBuilder().build(),
-        ganacheOptions: generateGanacheOptions({
-          concurrent: { port, chainId },
-        }),
-        title: this.test.fullTitle(),
+        ganacheOptions: { ...ganacheOptions, concurrent: { port, chainId } },
+        title: this.test.title,
       },
       async ({ driver }) => {
-        await unlockWallet(driver);
+        await driver.navigate();
+        await driver.fill('#password', 'correct horse battery staple');
+        await driver.press('#password', driver.Key.ENTER);
 
         const rpcUrl = `http://127.0.0.1:${port}`;
         const networkName = 'Secondary Ganache Testnet';
 
         await driver.waitForElementNotPresent('.loading-overlay');
-        await driver.clickElement('[data-testid="network-display"]');
+        await driver.clickElement('.network-display');
 
         await driver.clickElement({ text: 'Add network', tag: 'button' });
 
@@ -72,17 +75,19 @@ describe('Stores custom RPC history', function () {
     await withFixtures(
       {
         fixtures: new FixtureBuilder().build(),
-        ganacheOptions: defaultGanacheOptions,
-        title: this.test.fullTitle(),
+        ganacheOptions,
+        title: this.test.title,
       },
       async ({ driver }) => {
-        await unlockWallet(driver);
+        await driver.navigate();
+        await driver.fill('#password', 'correct horse battery staple');
+        await driver.press('#password', driver.Key.ENTER);
 
         // duplicate network
         const duplicateRpcUrl = 'https://mainnet.infura.io/v3/';
 
         await driver.waitForElementNotPresent('.loading-overlay');
-        await driver.clickElement('[data-testid="network-display"]');
+        await driver.clickElement('.network-display');
 
         await driver.clickElement({ text: 'Add network', tag: 'button' });
 
@@ -112,19 +117,21 @@ describe('Stores custom RPC history', function () {
     await withFixtures(
       {
         fixtures: new FixtureBuilder().build(),
-        ganacheOptions: defaultGanacheOptions,
-        title: this.test.fullTitle(),
+        ganacheOptions,
+        title: this.test.title,
         failOnConsoleError: false,
       },
       async ({ driver }) => {
-        await unlockWallet(driver);
+        await driver.navigate();
+        await driver.fill('#password', 'correct horse battery staple');
+        await driver.press('#password', driver.Key.ENTER);
 
         // duplicate network
         const newRpcUrl = 'http://localhost:8544';
         const duplicateChainId = '1';
 
         await driver.waitForElementNotPresent('.loading-overlay');
-        await driver.clickElement('[data-testid="network-display"]');
+        await driver.clickElement('.network-display');
 
         await driver.clickElement({ text: 'Add network', tag: 'button' });
 
@@ -149,15 +156,7 @@ describe('Stores custom RPC history', function () {
         });
 
         await rpcUrlInput.clear();
-
-        // We cannot use sendKeys() here, because a network request will be fired after each
-        // keypress, and the privacy snapshot will show:
-        // `New hosts found: l,lo,loc,loca,local,localh,localho,localhos`
-        // In the longer term, we may want to debounce this
-        await driver.pasteIntoField(
-          '.form-field:nth-of-type(2) input[type="text"]',
-          newRpcUrl,
-        );
+        await rpcUrlInput.sendKeys(newRpcUrl);
 
         await driver.findElement({
           text: 'Could not fetch chain ID. Is your RPC URL correct?',
@@ -171,16 +170,18 @@ describe('Stores custom RPC history', function () {
     await withFixtures(
       {
         fixtures: new FixtureBuilder().build(),
-        ganacheOptions: defaultGanacheOptions,
-        title: this.test.fullTitle(),
+        ganacheOptions,
+        title: this.test.title,
       },
       async ({ driver }) => {
-        await unlockWallet(driver);
+        await driver.navigate();
+        await driver.fill('#password', 'correct horse battery staple');
+        await driver.press('#password', driver.Key.ENTER);
 
         await driver.waitForElementNotPresent('.loading-overlay');
-        await driver.clickElement('[data-testid="network-display"]');
+        await driver.clickElement('.network-display');
 
-        await driver.clickElement({ text: 'Ethereum Mainnet', tag: 'p' });
+        await driver.clickElement({ text: 'Ethereum Mainnet', tag: 'span' });
       },
     );
   });
@@ -191,46 +192,42 @@ describe('Stores custom RPC history', function () {
         fixtures: new FixtureBuilder()
           .withNetworkController({
             networkConfigurations: {
-              networkConfigurationIdOne: {
+              networkConfigurationId: {
                 rpcUrl: 'http://127.0.0.1:8545/1',
                 chainId: '0x539',
                 ticker: 'ETH',
                 nickname: 'http://127.0.0.1:8545/1',
                 rpcPrefs: {},
-                type: 'rpc',
               },
-              networkConfigurationIdTwo: {
+              networkConfigurationId2: {
                 rpcUrl: 'http://127.0.0.1:8545/2',
                 chainId: '0x539',
                 ticker: 'ETH',
                 nickname: 'http://127.0.0.1:8545/2',
                 rpcPrefs: {},
-                type: 'rpc',
               },
             },
           })
           .build(),
-        ganacheOptions: defaultGanacheOptions,
-        title: this.test.fullTitle(),
+        ganacheOptions,
+        title: this.test.title,
       },
       async ({ driver }) => {
-        await unlockWallet(driver);
+        await driver.navigate();
+        await driver.fill('#password', 'correct horse battery staple');
+        await driver.press('#password', driver.Key.ENTER);
 
         await driver.waitForElementNotPresent('.loading-overlay');
-        await driver.clickElement('[data-testid="network-display"]');
-
-        await driver.clickElement('.toggle-button');
-
-        await driver.delay(regularDelayMs);
+        await driver.clickElement('.network-display');
 
         // only recent 3 are found and in correct order (most recent at the top)
         const customRpcs = await driver.findElements({
           text: 'http://127.0.0.1:8545/',
-          tag: 'div',
+          tag: 'span',
         });
 
         // click Mainnet to dismiss network dropdown
-        await driver.clickElement({ text: 'Ethereum Mainnet', tag: 'p' });
+        await driver.clickElement({ text: 'Ethereum Mainnet', tag: 'span' });
 
         assert.equal(customRpcs.length, 2);
       },
@@ -243,14 +240,14 @@ describe('Stores custom RPC history', function () {
         fixtures: new FixtureBuilder()
           .withNetworkController({
             networkConfigurations: {
-              networkConfigurationIdOne: {
+              networkConfigurationId: {
                 rpcUrl: 'http://127.0.0.1:8545/1',
                 chainId: '0x539',
                 ticker: 'ETH',
                 nickname: 'http://127.0.0.1:8545/1',
                 rpcPrefs: {},
               },
-              networkConfigurationIdTwo: {
+              networkConfigurationId2: {
                 rpcUrl: 'http://127.0.0.1:8545/2',
                 chainId: '0x539',
                 ticker: 'ETH',
@@ -260,15 +257,17 @@ describe('Stores custom RPC history', function () {
             },
           })
           .build(),
-        ganacheOptions: defaultGanacheOptions,
-        title: this.test.fullTitle(),
+        ganacheOptions,
+        title: this.test.title,
         failOnConsoleError: false,
       },
       async ({ driver }) => {
-        await unlockWallet(driver);
+        await driver.navigate();
+        await driver.fill('#password', 'correct horse battery staple');
+        await driver.press('#password', driver.Key.ENTER);
 
         await driver.waitForElementNotPresent('.loading-overlay');
-        await driver.clickElement('[data-testid="network-display"]');
+        await driver.clickElement('.network-display');
 
         await driver.clickElement({ text: 'Add network', tag: 'button' });
 
@@ -290,11 +289,6 @@ describe('Stores custom RPC history', function () {
         const lastNetworkListItem =
           networkListItems[networkListItems.length - 1];
         await lastNetworkListItem.click();
-
-        await driver.waitForSelector({
-          css: '.form-field .form-field__input:nth-of-type(1)',
-          value: 'http://127.0.0.1:8545/2',
-        });
 
         await driver.clickElement('.btn-danger');
 

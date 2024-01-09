@@ -17,15 +17,11 @@ import { ENVIRONMENT_TYPE_FULLSCREEN } from '../../../../shared/constants/app';
 import {
   getNetworkConfigurations,
   getNetworksTabSelectedNetworkConfigurationId,
+  getProvider,
 } from '../../../selectors';
-import {
-  getProviderConfig,
-  isLineaMainnetNetworkReleased,
-} from '../../../ducks/metamask/metamask';
 import {
   NETWORK_TYPES,
   TEST_CHAINS,
-  BUILT_IN_NETWORKS,
 } from '../../../../shared/constants/network';
 import { defaultNetworksData } from './networks-tab.constants';
 import NetworksTabContent from './networks-tab-content';
@@ -52,11 +48,10 @@ const NetworksTab = ({ addNewNetwork }) => {
     window.location.hash.split('#')[2] === 'blockExplorerUrl';
 
   const networkConfigurations = useSelector(getNetworkConfigurations);
-  const providerConfig = useSelector(getProviderConfig);
+  const provider = useSelector(getProvider);
   const networksTabSelectedNetworkConfigurationId = useSelector(
     getNetworksTabSelectedNetworkConfigurationId,
   );
-  const isLineaMainnetReleased = useSelector(isLineaMainnetNetworkReleased);
 
   const networkConfigurationsList = Object.entries(networkConfigurations).map(
     ([networkConfigurationId, networkConfiguration]) => {
@@ -74,14 +69,7 @@ const NetworksTab = ({ addNewNetwork }) => {
     },
   );
 
-  let networksToRender = [...defaultNetworks, ...networkConfigurationsList];
-  if (!isLineaMainnetReleased) {
-    networksToRender = networksToRender.filter(
-      (network) =>
-        network.chainId !==
-        BUILT_IN_NETWORKS[NETWORK_TYPES.LINEA_MAINNET].chainId,
-    );
-  }
+  const networksToRender = [...defaultNetworks, ...networkConfigurationsList];
   let selectedNetwork =
     networksToRender.find(
       (network) =>
@@ -95,9 +83,9 @@ const NetworksTab = ({ addNewNetwork }) => {
     selectedNetwork =
       networksToRender.find((network) => {
         return (
-          network.rpcUrl === providerConfig.rpcUrl ||
+          network.rpcUrl === provider.rpcUrl ||
           (network.providerType !== NETWORK_TYPES.RPC &&
-            network.providerType === providerConfig.type)
+            network.providerType === provider.type)
         );
       }) || {};
     networkDefaultedToProvider = true;
@@ -133,7 +121,7 @@ const NetworksTab = ({ addNewNetwork }) => {
               networkDefaultedToProvider={networkDefaultedToProvider}
               networkIsSelected={networkIsSelected}
               networksToRender={networksToRender}
-              providerUrl={providerConfig.rpcUrl}
+              providerUrl={provider.rpcUrl}
               selectedNetwork={selectedNetwork}
               shouldRenderNetworkForm={shouldRenderNetworkForm}
             />
