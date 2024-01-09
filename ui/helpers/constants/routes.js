@@ -11,6 +11,9 @@ const ABOUT_US_ROUTE = '/settings/about-us';
 const ALERTS_ROUTE = '/settings/alerts';
 const NETWORKS_ROUTE = '/settings/networks';
 const NETWORKS_FORM_ROUTE = '/settings/networks/form';
+const ADD_NETWORK_ROUTE = '/settings/networks/add-network';
+const SNAPS_LIST_ROUTE = '/settings/snaps-list';
+const SNAPS_VIEW_ROUTE = '/settings/snaps-view';
 const CONTACT_LIST_ROUTE = '/settings/contact-list';
 const CONTACT_EDIT_ROUTE = '/settings/contact-list/edit-contact';
 const CONTACT_ADD_ROUTE = '/settings/contact-list/add-contact';
@@ -25,8 +28,13 @@ const NEW_ACCOUNT_ROUTE = '/new-account';
 const IMPORT_ACCOUNT_ROUTE = '/new-account/import';
 const CONNECT_HARDWARE_ROUTE = '/new-account/connect';
 const SEND_ROUTE = '/send';
+const TOKEN_DETAILS = '/token-details';
 const CONNECT_ROUTE = '/connect';
 const CONNECT_CONFIRM_PERMISSIONS_ROUTE = '/confirm-permissions';
+///: BEGIN:ONLY_INCLUDE_IN(flask)
+const CONNECT_SNAP_INSTALL_ROUTE = '/snap-install';
+const NOTIFICATIONS_ROUTE = '/notifications';
+///: END:ONLY_INCLUDE_IN
 const CONNECTED_ROUTE = '/connected';
 const CONNECTED_ACCOUNTS_ROUTE = '/connected/accounts';
 const SWAPS_ROUTE = '/swaps';
@@ -34,9 +42,11 @@ const BUILD_QUOTE_ROUTE = '/swaps/build-quote';
 const VIEW_QUOTE_ROUTE = '/swaps/view-quote';
 const LOADING_QUOTES_ROUTE = '/swaps/loading-quotes';
 const AWAITING_SIGNATURES_ROUTE = '/swaps/awaiting-signatures';
+const SMART_TRANSACTION_STATUS_ROUTE = '/swaps/smart-transaction-status';
 const AWAITING_SWAP_ROUTE = '/swaps/awaiting-swap';
 const SWAPS_ERROR_ROUTE = '/swaps/swaps-error';
 const SWAPS_MAINTENANCE_ROUTE = '/swaps/maintenance';
+const ADD_COLLECTIBLE_ROUTE = '/add-collectible';
 
 const INITIALIZE_ROUTE = '/initialize';
 const INITIALIZE_WELCOME_ROUTE = '/initialize/welcome';
@@ -53,18 +63,25 @@ const INITIALIZE_CONFIRM_SEED_PHRASE_ROUTE = '/initialize/seed-phrase/confirm';
 const INITIALIZE_METAMETRICS_OPT_IN_ROUTE = '/initialize/metametrics-opt-in';
 
 const ONBOARDING_ROUTE = '/onboarding';
-const ONBOARDING_GET_STARTED_ROUTE = '/onboarding/get-started';
-const ONBOARDING_HELP_US_IMPROVE_ROUTE = '/onboarding/help-us-improve';
+const ONBOARDING_REVIEW_SRP_ROUTE = '/onboarding/review-recovery-phrase';
+const ONBOARDING_CONFIRM_SRP_ROUTE = '/onboarding/confirm-recovery-phrase';
 const ONBOARDING_CREATE_PASSWORD_ROUTE = '/onboarding/create-password';
-const ONBOARDING_IMPORT_WITH_SRP_ROUTE =
-  '/onboarding/create-password/import-with-sre';
-const ONBOARDING_IMPORT_MOBILE_ROUTE = '/onboarding/create-password';
-const ONBOARDING_SECURE_YOUR_WALLET_ROUTE = '/onboarding/secure-your-wallet';
-const ONBOARDING_REVIEW_SRP_ROUTE = '/onboarding/review-srp';
-const ONBOARDING_CONFIRM_SRP_ROUTE = '/onboarding/confirm-srp';
-const ONBOARDING_PRIVACY_SETTINGS_ROUTE = '/onboarding/privacy-settings';
 const ONBOARDING_COMPLETION_ROUTE = '/onboarding/completion';
 const ONBOARDING_UNLOCK_ROUTE = '/onboarding/unlock';
+const ONBOARDING_HELP_US_IMPROVE_ROUTE = '/onboarding/help-us-improve';
+const ONBOARDING_IMPORT_WITH_SRP_ROUTE =
+  '/onboarding/import-with-recovery-phrase';
+const ONBOARDING_IMPORT_MOBILE_ROUTE = '/onboarding/import-mobile';
+const ONBOARDING_SECURE_YOUR_WALLET_ROUTE = '/onboarding/secure-your-wallet';
+const ONBOARDING_PRIVACY_SETTINGS_ROUTE = '/onboarding/privacy-settings';
+const ONBOARDING_PIN_EXTENSION_ROUTE = '/onboarding/pin-extension';
+const ONBOARDING_WELCOME_ROUTE = '/onboarding/welcome';
+const ONBOARDING_METAMETRICS = '/onboarding/metametrics';
+
+///: BEGIN:ONLY_INCLUDE_IN(flask)
+const INITIALIZE_EXPERIMENTAL_AREA = '/initialize/experimental-area';
+const ONBOARDING_EXPERIMENTAL_AREA = '/onboarding/experimental-area';
+///: END:ONLY_INCLUDE_IN
 
 const CONFIRM_TRANSACTION_ROUTE = '/confirm-transaction';
 const CONFIRM_SEND_ETHER_PATH = '/send-ether';
@@ -72,6 +89,7 @@ const CONFIRM_SEND_TOKEN_PATH = '/send-token';
 const CONFIRM_DEPLOY_CONTRACT_PATH = '/deploy-contract';
 const CONFIRM_APPROVE_PATH = '/approve';
 const CONFIRM_TRANSFER_FROM_PATH = '/transfer-from';
+const CONFIRM_SAFE_TRANSFER_FROM_PATH = '/safe-transfer-from';
 const CONFIRM_TOKEN_METHOD_PATH = '/token-method';
 const SIGNATURE_REQUEST_PATH = '/signature-request';
 const DECRYPT_MESSAGE_REQUEST_PATH = '/decrypt-message-request';
@@ -84,7 +102,7 @@ const PATH_NAME_MAP = {
   [DEFAULT_ROUTE]: 'Home',
   [UNLOCK_ROUTE]: 'Unlock Page',
   [LOCK_ROUTE]: 'Lock Page',
-  [`${ASSET_ROUTE}/:asset`]: `Asset Page`,
+  [`${ASSET_ROUTE}/:asset/:id`]: `Asset Page`,
   [SETTINGS_ROUTE]: 'Settings Page',
   [GENERAL_ROUTE]: 'General Settings Page',
   [ADVANCED_ROUTE]: 'Advanced Settings Page',
@@ -94,6 +112,7 @@ const PATH_NAME_MAP = {
   [ALERTS_ROUTE]: 'Alerts Settings Page',
   [NETWORKS_ROUTE]: 'Network Settings Page',
   [NETWORKS_FORM_ROUTE]: 'Network Settings Page Form',
+  [ADD_NETWORK_ROUTE]: 'Add Network From Settings Page Form',
   [CONTACT_LIST_ROUTE]: 'Contact List Settings Page',
   [`${CONTACT_EDIT_ROUTE}/:address`]: 'Edit Contact Settings Page',
   [CONTACT_ADD_ROUTE]: 'Add Contact Settings Page',
@@ -108,6 +127,7 @@ const PATH_NAME_MAP = {
   [IMPORT_ACCOUNT_ROUTE]: 'Import Account Page',
   [CONNECT_HARDWARE_ROUTE]: 'Connect Hardware Wallet Page',
   [SEND_ROUTE]: 'Send Page',
+  [`${TOKEN_DETAILS}/:address`]: 'Token Details Page',
   [`${CONNECT_ROUTE}/:id`]: 'Connect To Site Confirmation Page',
   [`${CONNECT_ROUTE}/:id${CONNECT_CONFIRM_PERMISSIONS_ROUTE}`]: 'Grant Connected Site Permissions Confirmation Page',
   [CONNECTED_ROUTE]: 'Sites Connected To This Account Page',
@@ -122,6 +142,7 @@ const PATH_NAME_MAP = {
   [`${CONFIRM_TRANSACTION_ROUTE}/:id${CONFIRM_DEPLOY_CONTRACT_PATH}`]: 'Confirm Deploy Contract Transaction Page',
   [`${CONFIRM_TRANSACTION_ROUTE}/:id${CONFIRM_APPROVE_PATH}`]: 'Confirm Approve Transaction Page',
   [`${CONFIRM_TRANSACTION_ROUTE}/:id${CONFIRM_TRANSFER_FROM_PATH}`]: 'Confirm Transfer From Transaction Page',
+  [`${CONFIRM_TRANSACTION_ROUTE}/:id${CONFIRM_SAFE_TRANSFER_FROM_PATH}`]: 'Confirm Safe Transfer From Transaction Page',
   [`${CONFIRM_TRANSACTION_ROUTE}/:id${SIGNATURE_REQUEST_PATH}`]: 'Signature Request Page',
   [`${CONFIRM_TRANSACTION_ROUTE}/:id${DECRYPT_MESSAGE_REQUEST_PATH}`]: 'Decrypt Message Request Page',
   [`${CONFIRM_TRANSACTION_ROUTE}/:id${ENCRYPTION_PUBLIC_KEY_REQUEST_PATH}`]: 'Encryption Public Key Request Page',
@@ -166,6 +187,7 @@ export {
   IMPORT_ACCOUNT_ROUTE,
   CONNECT_HARDWARE_ROUTE,
   SEND_ROUTE,
+  TOKEN_DETAILS,
   INITIALIZE_ROUTE,
   INITIALIZE_WELCOME_ROUTE,
   INITIALIZE_UNLOCK_ROUTE,
@@ -181,6 +203,7 @@ export {
   CONFIRM_DEPLOY_CONTRACT_PATH,
   CONFIRM_APPROVE_PATH,
   CONFIRM_TRANSFER_FROM_PATH,
+  CONFIRM_SAFE_TRANSFER_FROM_PATH,
   CONFIRM_TOKEN_METHOD_PATH,
   SIGNATURE_REQUEST_PATH,
   DECRYPT_MESSAGE_REQUEST_PATH,
@@ -192,16 +215,23 @@ export {
   SECURITY_ROUTE,
   GENERAL_ROUTE,
   ABOUT_US_ROUTE,
+  SNAPS_LIST_ROUTE,
+  SNAPS_VIEW_ROUTE,
   CONTACT_LIST_ROUTE,
   CONTACT_EDIT_ROUTE,
   CONTACT_ADD_ROUTE,
   CONTACT_VIEW_ROUTE,
   NETWORKS_ROUTE,
   NETWORKS_FORM_ROUTE,
+  ADD_NETWORK_ROUTE,
   INITIALIZE_BACKUP_SEED_PHRASE_ROUTE,
   INITIALIZE_SEED_PHRASE_INTRO_ROUTE,
   CONNECT_ROUTE,
   CONNECT_CONFIRM_PERMISSIONS_ROUTE,
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
+  CONNECT_SNAP_INSTALL_ROUTE,
+  NOTIFICATIONS_ROUTE,
+  ///: END:ONLY_INCLUDE_IN
   CONNECTED_ROUTE,
   CONNECTED_ACCOUNTS_ROUTE,
   PATH_NAME_MAP,
@@ -213,8 +243,9 @@ export {
   AWAITING_SIGNATURES_ROUTE,
   SWAPS_ERROR_ROUTE,
   SWAPS_MAINTENANCE_ROUTE,
+  SMART_TRANSACTION_STATUS_ROUTE,
+  ADD_COLLECTIBLE_ROUTE,
   ONBOARDING_ROUTE,
-  ONBOARDING_GET_STARTED_ROUTE,
   ONBOARDING_HELP_US_IMPROVE_ROUTE,
   ONBOARDING_CREATE_PASSWORD_ROUTE,
   ONBOARDING_IMPORT_WITH_SRP_ROUTE,
@@ -225,4 +256,11 @@ export {
   ONBOARDING_PRIVACY_SETTINGS_ROUTE,
   ONBOARDING_COMPLETION_ROUTE,
   ONBOARDING_UNLOCK_ROUTE,
+  ONBOARDING_PIN_EXTENSION_ROUTE,
+  ONBOARDING_WELCOME_ROUTE,
+  ONBOARDING_METAMETRICS,
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
+  INITIALIZE_EXPERIMENTAL_AREA,
+  ONBOARDING_EXPERIMENTAL_AREA,
+  ///: END:ONLY_INCLUDE_IN
 };

@@ -1,14 +1,9 @@
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'redux';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  getUnreadNotificationsCount,
-  ///: END:ONLY_INCLUDE_IN
-  ///: BEGIN:ONLY_INCLUDE_IN(beta)
-  getShowBetaHeader,
-  ///: END:ONLY_INCLUDE_IN
-} from '../../../selectors';
+///: BEGIN:ONLY_INCLUDE_IN(flask)
+import { getUnreadNotificationCount } from '../../../selectors';
+///: END:ONLY_INCLUDE_IN
 
 import * as actions from '../../../store/actions';
 import AppHeader from './app-header.component';
@@ -16,21 +11,10 @@ import AppHeader from './app-header.component';
 const mapStateToProps = (state) => {
   const { appState, metamask } = state;
   const { networkDropdownOpen } = appState;
-  const {
-    selectedAddress,
-    isUnlocked,
-    isAccountMenuOpen,
-    ///: BEGIN:ONLY_INCLUDE_IN(flask)
-    desktopEnabled,
-    ///: END:ONLY_INCLUDE_IN
-  } = metamask;
+  const { selectedAddress, isUnlocked, isAccountMenuOpen } = metamask;
 
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  const unreadNotificationsCount = getUnreadNotificationsCount(state);
-  ///: END:ONLY_INCLUDE_IN
-
-  ///: BEGIN:ONLY_INCLUDE_IN(beta)
-  const showBetaHeader = getShowBetaHeader(state);
+  const unreadNotificationCount = getUnreadNotificationCount(state);
   ///: END:ONLY_INCLUDE_IN
 
   return {
@@ -39,11 +23,7 @@ const mapStateToProps = (state) => {
     isUnlocked,
     isAccountMenuOpen,
     ///: BEGIN:ONLY_INCLUDE_IN(flask)
-    unreadNotificationsCount,
-    desktopEnabled,
-    ///: END:ONLY_INCLUDE_IN
-    ///: BEGIN:ONLY_INCLUDE_IN(beta)
-    showBetaHeader,
+    unreadNotificationCount,
     ///: END:ONLY_INCLUDE_IN
   };
 };

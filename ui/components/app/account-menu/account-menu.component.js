@@ -12,6 +12,7 @@ import SiteIcon from '../../ui/site-icon';
 import UserPreferencedCurrencyDisplay from '../user-preferenced-currency-display';
 import {
   PRIMARY,
+  SUPPORT_LINK,
   ///: BEGIN:ONLY_INCLUDE_IN(beta,flask)
   SUPPORT_REQUEST_LINK,
   ///: END:ONLY_INCLUDE_IN
@@ -27,6 +28,7 @@ import {
   ///: END:ONLY_INCLUDE_IN
 } from '../../../helpers/constants/routes';
 import TextField from '../../ui/text-field';
+import SearchIcon from '../../ui/search-icon';
 import IconCheck from '../../ui/icon/icon-check';
 import IconSpeechBubbles from '../../ui/icon/icon-speech-bubbles';
 import IconConnect from '../../ui/icon/icon-connect';
@@ -35,8 +37,6 @@ import IconPlus from '../../ui/icon/icon-plus';
 import IconImport from '../../ui/icon/icon-import';
 
 import Button from '../../ui/button';
-import SearchIcon from '../../ui/icon/search-icon';
-import { SUPPORT_LINK } from '../../../../app/scripts/constants/ui-utils';
 import KeyRingLabel from './keyring-label';
 
 export function AccountMenuItem(props) {
@@ -50,13 +50,13 @@ export function AccountMenuItem(props) {
       {children}
     </div>
   ) : (
-    <button className={itemClassName} onClick={onClick}>
+    <div className={itemClassName} onClick={onClick}>
       {icon ? <div className="account-menu__item__icon">{icon}</div> : null}
       {text ? <div className="account-menu__item__text">{text}</div> : null}
       {subText ? (
         <div className="account-menu__item__subtext">{subText}</div>
       ) : null}
-    </button>
+    </div>
   );
 }
 
@@ -88,7 +88,7 @@ export default class AccountMenu extends Component {
     addressConnectedSubjectMap: PropTypes.object,
     originOfCurrentTab: PropTypes.string,
     ///: BEGIN:ONLY_INCLUDE_IN(flask)
-    unreadNotificationsCount: PropTypes.number,
+    unreadNotificationCount: PropTypes.number,
     ///: END:ONLY_INCLUDE_IN
   };
 
@@ -100,12 +100,11 @@ export default class AccountMenu extends Component {
   };
 
   addressFuse = new Fuse([], {
-    threshold: 0.55,
+    threshold: 0.45,
     location: 0,
     distance: 100,
     maxPatternLength: 32,
     minMatchCharLength: 1,
-    ignoreFieldNorm: true,
     keys: [
       { name: 'name', weight: 0.5 },
       { name: 'address', weight: 0.5 },
@@ -131,11 +130,6 @@ export default class AccountMenu extends Component {
   }
 
   renderAccountsSearch() {
-    const handleChange = (e) => {
-      const val = e.target.value.length > 1 ? e.target.value : '';
-      this.setSearchQuery(val);
-    };
-
     const inputAdornment = (
       <InputAdornment
         position="start"
@@ -145,7 +139,7 @@ export default class AccountMenu extends Component {
           marginLeft: '8px',
         }}
       >
-        <SearchIcon color="var(--color-icon-muted)" />
+        <SearchIcon color="currentColor" />
       </InputAdornment>
     );
 
@@ -155,7 +149,8 @@ export default class AccountMenu extends Component {
         id="search-accounts"
         placeholder={this.context.t('searchAccounts')}
         type="text"
-        onChange={handleChange}
+        value={this.state.searchQuery}
+        onChange={(e) => this.setSearchQuery(e.target.value)}
         startAdornment={inputAdornment}
         fullWidth
         theme="material-white-padded"
@@ -205,7 +200,7 @@ export default class AccountMenu extends Component {
       const iconAndNameForOpenSubject = addressSubjects[originOfCurrentTab];
 
       return (
-        <button
+        <div
           className="account-menu__account account-menu__item--clickable"
           onClick={() => {
             this.context.trackEvent({
@@ -244,7 +239,7 @@ export default class AccountMenu extends Component {
               />
             </div>
           ) : null}
-        </button>
+        </div>
       );
     });
   }
@@ -305,7 +300,7 @@ export default class AccountMenu extends Component {
       lockMetamask,
       history,
       ///: BEGIN:ONLY_INCLUDE_IN(flask)
-      unreadNotificationsCount,
+      unreadNotificationCount,
       ///: END:ONLY_INCLUDE_IN
     } = this.props;
 
@@ -364,7 +359,7 @@ export default class AccountMenu extends Component {
             });
             history.push(NEW_ACCOUNT_ROUTE);
           }}
-          icon={<IconPlus color="var(--color-icon-alternative)" />}
+          icon={<IconPlus color="var(--color-icon-default)" />}
           text={t('createAccount')}
         />
         <AccountMenuItem
@@ -382,7 +377,7 @@ export default class AccountMenu extends Component {
           }}
           icon={
             <IconImport
-              color="var(--color-icon-alternative)"
+              color="var(--color-icon-default)"
               ariaLabel={t('importAccount')}
             />
           }
@@ -407,7 +402,7 @@ export default class AccountMenu extends Component {
           }}
           icon={
             <IconConnect
-              color="var(--color-icon-alternative)"
+              color="var(--color-icon-default)"
               ariaLabel={t('connectHardwareWallet')}
             />
           }
@@ -424,10 +419,13 @@ export default class AccountMenu extends Component {
               }}
               icon={
                 <div className="account-menu__notifications">
-                  <i className="fa fa-bell fa-xl" />
-                  {unreadNotificationsCount > 0 && (
+                  <i
+                    className="fa fa-bell fa-xl"
+                    color="var(--color-icon-default)"
+                  />
+                  {unreadNotificationCount > 0 && (
                     <div className="account-menu__notifications__count">
-                      {unreadNotificationsCount}
+                      {unreadNotificationCount}
                     </div>
                   )}
                 </div>
@@ -444,7 +442,7 @@ export default class AccountMenu extends Component {
           }}
           icon={
             <IconSpeechBubbles
-              color="var(--color-icon-alternative)"
+              color="var(--color-icon-default)"
               ariaLabel={supportText}
             />
           }
@@ -466,7 +464,7 @@ export default class AccountMenu extends Component {
           }}
           icon={
             <IconCog
-              color="var(--color-icon-alternative)"
+              color="var(--color-icon-default)"
               ariaLabel={t('settings')}
             />
           }
