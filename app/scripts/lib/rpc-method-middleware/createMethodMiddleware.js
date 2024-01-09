@@ -1,72 +1,61 @@
-import { permissionRpcMethods } from '@metamask/permission-controller';
-import { selectHooks } from '@metamask/snaps-rpc-methods';
+import { permittedMethods, selectHooks } from '@mm-snap/rpc-methods';
 import { ethErrors } from 'eth-rpc-errors';
-import { flatten } from 'lodash';
-import { UNSUPPORTED_RPC_METHODS } from '../../../../shared/constants/network';
-import localHandlers from './handlers';
+import handlers from './handlers';
 
-const allHandlers = [...localHandlers, ...permissionRpcMethods.handlers];
+const getImplementation = ({ implementation, hookNames }) => {
+  return (req, res, next, end, hooks) => {
+    implementation(req, res, next, end, selectHooks(hooks, hookNames));
+  };
+};
 
-const handlerMap = allHandlers.reduce((map, handler) => {
+const handlerMap = handlers.reduce((map, handler) => {
   for (const methodName of handler.methodNames) {
-    map.set(methodName, handler);
+    map.set(methodName, getImplementation(handler));
   }
   return map;
 }, new Map());
 
-const expectedHookNames = Array.from(
-  new Set(
-    flatten(allHandlers.map(({ hookNames }) => Object.keys(hookNames))),
-  ).values(),
-);
+const pluginHandlerMap = permittedMethods.reduce((map, handler) => {
+  for (const methodName of handler.methodNames) {
+    map.set(methodName, getImplementation(handler));
+  }
+  return map;
+}, new Map());
 
 /**
- * Creates a json-rpc-engine middleware of RPC method implementations.
+ * Returns a middleware that implements the RPC methods defined in the handlers
+ * directory.
+ *
+ * The purpose of this middleware is to create portable RPC method
+ * implementations that are decoupled from the rest of our background
+ * architecture.
  *
  * Handlers consume functions that hook into the background, and only depend
  * on their signatures, not e.g. controller internals.
  *
- * @param {Record<string, unknown>} hooks - Required "hooks" into our
- * controllers.
- * @returns {(req: object, res: object, next: Function, end: Function) => void}
+ * Eventually, we'll want to extract this middleware into its own package.
+ *
+ * @param {Object} hooks - The middleware options
+ * @param {Function} hooks.sendMetrics - A function for sending a metrics event
+ * @returns {(req: Object, res: Object, next: Function, end: Function) => void}
  */
 export function createMethodMiddleware(hooks) {
-  // Fail immediately if we forgot to provide any expected hooks.
-  const missingHookNames = expectedHookNames.filter(
-    (hookName) => !Object.hasOwnProperty.call(hooks, hookName),
-  );
-  if (missingHookNames.length > 0) {
-    throw new Error(
-      `Missing expected hooks:\n\n${missingHookNames.join('\n')}\n`,
-    );
-  }
-
-  return async function methodMiddleware(req, res, next, end) {
-    // Reject unsupported methods.
-    if (UNSUPPORTED_RPC_METHODS.has(req.method)) {
-      return end(ethErrors.rpc.methodNotSupported());
+  return function methodMiddleware(req, res, next, end) {
+    if (handlerMap.has(req.method)) {
+      return handlerMap.get(req.method)(req, res, next, end, hooks);
     }
+    return next();
+  };
+}
 
-    const handler = handlerMap.get(req.method);
-    if (handler) {
-      const { implementation, hookNames } = handler;
-      try {
-        // Implementations may or may not be async, so we must await them.
-        return await implementation(
-          req,
-          res,
-          next,
-          end,
-          selectHooks(hooks, hookNames),
-        );
-      } catch (error) {
-        if (process.env.METAMASK_DEBUG) {
-          console.error(error);
-        }
-        return end(error);
+export function createPluginMethodMiddleware(isPlugin, hooks) {
+  return function methodMiddleware(req, res, next, end) {
+    if (pluginHandlerMap.has(req.method)) {
+      if (/^snap_/iu.test(req.method) && !isPlugin) {
+        return end(ethErrors.rpc.methodNotFound());
       }
+      return pluginHandlerMap.get(req.method)(req, res, next, end, hooks);
     }
-
     return next();
   };
 }

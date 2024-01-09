@@ -1,12 +1,8 @@
+import { getPersistentState } from '@metamask/controllers';
 import { ObservableStore } from '@metamask/obs-store';
-import { getVaultState, getPersistentState } from '@metamask/base-controller';
 
 /**
- * @typedef {import('@metamask/base-controller').ControllerMessenger} ControllerMessenger
- */
-
-/**
- * @typedef {'Memory' | 'Persistent' | 'Vault'} StoreType
+ * @typedef {import('@metamask/controllers').ControllerMessenger} ControllerMessenger
  */
 
 /**
@@ -17,27 +13,26 @@ export default class ComposableObservableStore extends ObservableStore {
   /**
    * Describes which stores are being composed. The key is the name of the
    * store, and the value is either an ObserableStore, or a controller that
-   * extends one of the two base controllers in the `@metamask/base-controller`
+   * extends one of the two base controllers in the `@metamask/controllers`
    * package.
-   *
-   * @type {Record<string, object>}
+   * @type {Record<string, Object>}
    */
   config = {};
 
   /**
    * Create a new store
    *
-   * @param {object} options
-   * @param {object} [options.config] - Map of internal state keys to child stores
+   * @param {Object} options
+   * @param {Object} [options.config] - Map of internal state keys to child stores
    * @param {ControllerMessenger} options.controllerMessenger - The controller
    *   messenger, used for subscribing to events from BaseControllerV2-based
    *   controllers.
-   * @param {object} [options.state] - The initial store state
-   * @param {StoreType} [options.type] - The type of store this is (in-memory, persistent, or vault)
+   * @param {Object} [options.state] - The initial store state
+   * @param {boolean} [options.persist] - Wether or not to apply the persistence for v2 controllers
    */
-  constructor({ config, controllerMessenger, state, type = 'Memory' }) {
+  constructor({ config, controllerMessenger, state, persist }) {
     super(state);
-    this.type = type;
+    this.persist = persist;
     this.controllerMessenger = controllerMessenger;
     if (config) {
       this.updateStructure(config);
@@ -47,15 +42,14 @@ export default class ComposableObservableStore extends ObservableStore {
   /**
    * Composes a new internal store subscription structure
    *
-   * @param {Record<string, object>} config - Describes which stores are being
+   * @param {Record<string, Object>} config - Describes which stores are being
    *   composed. The key is the name of the store, and the value is either an
    *   ObserableStore, or a controller that extends one of the two base
-   *   controllers in the `@metamask/base-controller` package.
+   *   controllers in the `@metamask/controllers` package.
    */
   updateStructure(config) {
     this.config = config;
     this.removeAllListeners();
-    const initialState = {};
     for (const key of Object.keys(config)) {
       if (!config[key]) {
         throw new Error(`Undefined '${key}'`);
@@ -70,26 +64,21 @@ export default class ComposableObservableStore extends ObservableStore {
           `${store.name}:stateChange`,
           (state) => {
             let updatedState = state;
-            if (this.type === 'Vault') {
-              updatedState = getVaultState(state, config[key].metadata);
-            } else if (this.type === 'Persistent') {
+            if (this.persist) {
               updatedState = getPersistentState(state, config[key].metadata);
             }
             this.updateState({ [key]: updatedState });
           },
         );
       }
-
-      initialState[key] = store.state ?? store.getState?.();
     }
-    this.updateState(initialState);
   }
 
   /**
    * Merges all child store state into a single object rather than
    * returning an object keyed by child store class name
    *
-   * @returns {object} Object containing merged child store state
+   * @returns {Object} Object containing merged child store state
    */
   getFlatState() {
     if (!this.config) {

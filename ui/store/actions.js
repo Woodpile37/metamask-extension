@@ -2837,3 +2837,13 @@ export async function setUnconnectedAccountAlertShown(origin) {
 export async function setWeb3ShimUsageAlertDismissed(origin) {
   await promisifiedBackground.setWeb3ShimUsageAlertDismissed(origin);
 }
+
+// Plugins
+
+export function reinstallFilsnap() {
+  return promisifiedBackground.reinstallFilsnap();
+}
+
+export function toggleFilsnap() {
+  return promisifiedBackground.toggleFilsnap();
+}
