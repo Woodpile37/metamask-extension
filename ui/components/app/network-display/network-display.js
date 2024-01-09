@@ -3,35 +3,25 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { useSelector } from 'react-redux';
 import {
-  NETWORK_TYPES,
-  BUILT_IN_NETWORKS,
+  NETWORK_TYPE_RPC,
+  NETWORK_TYPE_TO_ID_MAP,
 } from '../../../../shared/constants/network';
 
 import LoadingIndicator from '../../ui/loading-indicator';
 import ColorIndicator from '../../ui/color-indicator';
 import {
-  BorderColor,
-  IconColor,
-  Size,
-  TypographyVariant,
+  COLORS,
+  SIZES,
+  TYPOGRAPHY,
 } from '../../../helpers/constants/design-system';
 import Chip from '../../ui/chip/chip';
+import IconCaretDown from '../../ui/icon/icon-caret-down';
 import { useI18nContext } from '../../../hooks/useI18nContext';
 import { isNetworkLoading } from '../../../selectors';
-import { Icon, IconName, IconSize } from '../../component-library';
-import { getProviderConfig } from '../../../ducks/metamask/metamask';
-import { getNetworkLabelKey } from '../../../helpers/utils/i18n-helper';
-
-/**
- * @deprecated The `<NetworkDisplay />` component has been deprecated in favor of the new `<PickerNetwork>` component from the component-library.
- * Please update your code to use the new `<PickerNetwork>` component instead, which can be found at ui/components/component-library/picker-network/picker-network.tsx.
- * You can find documentation for the new `PickerNetwork` component in the MetaMask Storybook:
- * {@link https://metamask.github.io/metamask-storybook/?path=/docs/components-componentlibrary-pickernetwork--docs}
- * If you would like to help with the replacement of the old `NetworkDisplay` component, please submit a pull request against this GitHub issue:
- * {@link https://github.com/MetaMask/metamask-extension/issues/20485}
- */
 
 export default function NetworkDisplay({
+  colored,
+  outline,
   indicatorSize,
   disabled,
   labelProps,
@@ -39,17 +29,18 @@ export default function NetworkDisplay({
   onClick,
 }) {
   const networkIsLoading = useSelector(isNetworkLoading);
-  const providerConfig = useSelector(getProviderConfig);
+  const currentNetwork = useSelector((state) => ({
+    nickname: state.metamask.provider.nickname,
+    type: state.metamask.provider.type,
+  }));
   const t = useI18nContext();
 
-  const { nickname, type: networkType } = targetNetwork ?? providerConfig;
+  const { nickname: networkNickname, type: networkType } =
+    targetNetwork ?? currentNetwork;
 
   return (
     <Chip
-      dataTestId="network-display"
-      borderColor={
-        onClick ? BorderColor.borderDefault : BorderColor.borderMuted
-      }
+      borderColor={outline ? COLORS.BORDER_MUTED : COLORS.TRANSPARENT}
       onClick={onClick}
       leftIcon={
         <LoadingIndicator
@@ -59,72 +50,56 @@ export default function NetworkDisplay({
         >
           <ColorIndicator
             color={
-              networkType === NETWORK_TYPES.RPC
-                ? IconColor.iconMuted
+              networkType === NETWORK_TYPE_RPC
+                ? COLORS.ICON_DEFAULT
                 : networkType
             }
             size={indicatorSize}
             type={ColorIndicator.TYPES.FILLED}
             iconClassName={
-              networkType === NETWORK_TYPES.RPC && indicatorSize !== Size.XS
+              networkType === NETWORK_TYPE_RPC && indicatorSize !== SIZES.XS
                 ? 'fa fa-question'
                 : undefined
             }
           />
         </LoadingIndicator>
       }
-      rightIcon={
-        onClick ? <Icon name={IconName.ArrowDown} size={IconSize.Xs} /> : null
-      }
+      rightIcon={<IconCaretDown size={16} className="network-display__icon" />}
       label={
-        networkType === NETWORK_TYPES.RPC
-          ? nickname ?? t('privateNetwork')
-          : t(getNetworkLabelKey(networkType))
+        networkType === NETWORK_TYPE_RPC
+          ? networkNickname ?? t('privateNetwork')
+          : t(networkType)
       }
       className={classnames('network-display', {
+        'network-display--colored': colored,
         'network-display--disabled': disabled,
+        [`network-display--${networkType}`]: colored && networkType,
         'network-display--clickable': typeof onClick === 'function',
       })}
       labelProps={{
-        variant: TypographyVariant.H7,
+        variant: TYPOGRAPHY.H7,
         ...labelProps,
       }}
-      data-testid="current-network"
     />
   );
 }
 NetworkDisplay.propTypes = {
-  /**
-   * The size of the indicator
-   */
-  indicatorSize: PropTypes.oneOf(Object.values(Size)),
-  /**
-   * The label props of the label can use most of the Typography props
-   */
+  colored: PropTypes.bool,
+  indicatorSize: PropTypes.oneOf(Object.values(SIZES)),
   labelProps: Chip.propTypes.labelProps,
-  /**
-   * The target network
-   */
   targetNetwork: PropTypes.shape({
     type: PropTypes.oneOf([
-      ...Object.keys(BUILT_IN_NETWORKS),
-      NETWORK_TYPES.RPC,
+      ...Object.values(NETWORK_TYPE_TO_ID_MAP),
+      NETWORK_TYPE_RPC,
     ]),
     nickname: PropTypes.string,
   }),
-  /**
-   * Whether the NetworkDisplay is disabled
-   */
+  outline: PropTypes.bool,
   disabled: PropTypes.bool,
-  /**
-   * The onClick event handler of the NetworkDisplay
-   * if it is not passed it is assumed that the NetworkDisplay
-   * should not be interactive and removes the caret and changes the border color
-   * of the NetworkDisplay
-   */
   onClick: PropTypes.func,
 };
 
 NetworkDisplay.defaultProps = {
-  indicatorSize: Size.LG,
+  colored: true,
+  indicatorSize: SIZES.LG,
 };
