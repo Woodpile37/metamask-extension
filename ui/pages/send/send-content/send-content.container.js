@@ -4,10 +4,16 @@ import {
   getAddressBookEntry,
   getIsEthGasPriceFetched,
   getNoGasPriceFetched,
-  checkNetworkAndAccountSupports1559,
+  checkNetworkOrAccountNotSupports1559,
 } from '../../../selectors';
-import { getIsAssetSendable, getSendTo } from '../../../ducks/send';
+import {
+  getIsAssetSendable,
+  getIsBalanceInsufficient,
+  getSendTo,
+  getSendAsset,
+} from '../../../ducks/send';
 
+import * as actions from '../../../store/actions';
 import SendContent from './send-content.component';
 
 function mapStateToProps(state) {
@@ -24,8 +30,38 @@ function mapStateToProps(state) {
     isEthGasPrice: getIsEthGasPriceFetched(state),
     noGasPrice: getNoGasPriceFetched(state),
     to,
-    networkAndAccountSupports1559: checkNetworkAndAccountSupports1559(state),
+    networkOrAccountNotSupports1559: checkNetworkOrAccountNotSupports1559(
+      state,
+    ),
+    getIsBalanceInsufficient: getIsBalanceInsufficient(state),
+    asset: getSendAsset(state),
   };
 }
 
-export default connect(mapStateToProps)(SendContent);
+function mapDispatchToProps(dispatch) {
+  return {
+    updateAccountNicknameModal: (address) =>
+      dispatch(
+        actions.showModal({
+          name: 'ADD_UPDATE_NICKNAME_MODAL',
+          address,
+        }),
+      ),
+  };
+}
+
+function mergeProps(stateProps, dispatchProps, ownProps) {
+  const { to, ...restStateProps } = stateProps;
+  return {
+    ...ownProps,
+    ...restStateProps,
+    updateAccountNicknameModal: () =>
+      dispatchProps.updateAccountNicknameModal(to),
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+)(SendContent);

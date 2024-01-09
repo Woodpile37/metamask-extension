@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import PageContainerContent from '../../../components/ui/page-container/page-container-content.component';
 import Dialog from '../../../components/ui/dialog';
-import NicknamePopovers from '../../../components/app/modals/nickname-popovers';
 import {
   ETH_GAS_PRICE_FETCH_WARNING_KEY,
   GAS_PRICE_FETCH_FAILURE_ERROR_KEY,
@@ -17,16 +16,13 @@ import SendAssetRow from './send-asset-row';
 import SendGasRow from './send-gas-row';
 
 export default class SendContent extends Component {
-  state = {
-    showNicknamePopovers: false,
-  };
-
   static contextTypes = {
     t: PropTypes.func,
   };
 
   static propTypes = {
     isAssetSendable: PropTypes.bool,
+    updateAccountNicknameModal: PropTypes.func,
     showHexData: PropTypes.bool,
     contact: PropTypes.object,
     isOwnedAccount: PropTypes.bool,
@@ -38,7 +34,6 @@ export default class SendContent extends Component {
     networkOrAccountNotSupports1559: PropTypes.bool,
     getIsBalanceInsufficient: PropTypes.bool,
     asset: PropTypes.object,
-    to: PropTypes.string,
   };
 
   render() {
@@ -86,29 +81,24 @@ export default class SendContent extends Component {
 
   maybeRenderAddContact() {
     const { t } = this.context;
-    const { isOwnedAccount, contact = {}, to } = this.props;
-    const { showNicknamePopovers } = this.state;
+    const {
+      isOwnedAccount,
+      updateAccountNicknameModal,
+      contact = {},
+    } = this.props;
 
     if (isOwnedAccount || contact.name) {
       return null;
     }
 
     return (
-      <>
-        <Dialog
-          type="message"
-          className="send__dialog"
-          onClick={() => this.setState({ showNicknamePopovers: true })}
-        >
-          {t('newAccountDetectedDialogMessage')}
-        </Dialog>
-        {showNicknamePopovers ? (
-          <NicknamePopovers
-            onClose={() => this.setState({ showNicknamePopovers: false })}
-            address={to}
-          />
-        ) : null}
-      </>
+      <Dialog
+        type="message"
+        className="send__dialog"
+        onClick={updateAccountNicknameModal}
+      >
+        {t('newAccountDetectedDialogMessage')}
+      </Dialog>
     );
   }
 

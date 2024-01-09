@@ -45,7 +45,7 @@ export default class TransactionListItemDetails extends PureComponent {
     tryReverseResolveAddress: PropTypes.func.isRequired,
     senderNickname: PropTypes.string.isRequired,
     recipientNickname: PropTypes.string,
-    transactionStatus: PropTypes.node,
+    transactionStatus: PropTypes.func,
   };
 
   state = {
@@ -212,8 +212,8 @@ export default class TransactionListItemDetails extends PureComponent {
           </div>
           <div className="transaction-list-item-details__body">
             <div className="transaction-list-item-details__sender-to-recipient-header">
-              <div>From</div>
-              <div>To</div>
+              <div>t('from')</div>
+              <div>t('to')</div>
             </div>
             <div className="transaction-list-item-details__sender-to-recipient-container">
               <SenderToRecipient
@@ -262,13 +262,17 @@ export default class TransactionListItemDetails extends PureComponent {
                   isEarliestNonce={isEarliestNonce}
                 />
               </Disclosure>
-              <Disclosure title="Transaction data" size="small">
-                <TransactionDecoding
-                  title="Transaction data"
-                  to={transactionGroup.initialTransaction.txParams?.to}
-                  inputData={transactionGroup.initialTransaction.txParams?.data}
-                />
-              </Disclosure>
+              {transactionGroup.initialTransaction?.txParams?.data ? (
+                <Disclosure title="Transaction data" size="small">
+                  <TransactionDecoding
+                    title={t('transactionData')}
+                    to={transactionGroup.initialTransaction.txParams?.to}
+                    inputData={
+                      transactionGroup.initialTransaction.txParams?.data
+                    }
+                  />
+                </Disclosure>
+              ) : null}
             </div>
           </div>
         </div>

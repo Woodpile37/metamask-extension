@@ -8,7 +8,10 @@ import * as Codec from '@truffle/codec';
 import { forAddress } from '@truffle/decoder';
 import inspect from 'browser-util-inspect';
 import { getSelectedAccount, getCurrentChainId } from '../../../selectors';
-import { FETCH_PROJECT_INFO_URI, TX_EXTRA_URI } from './constants';
+import {
+  FETCH_PROJECT_INFO_URI,
+  FETCH_SUPPORTED_NETWORKS_URI,
+} from './constants';
 import { hexToDecimal } from '../../../helpers/utils/conversions.util';
 import { I18nContext } from '../../../contexts/i18n';
 import { transformTxDecoding } from './transaction-decoding.util';
@@ -21,7 +24,7 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
   const t = useContext(I18nContext);
   const [tx, setTx] = useState([]);
   const { address: from } = useSelector(getSelectedAccount);
-  const chainId = hexToDecimal(useSelector(getCurrentChainId));
+  const network = hexToDecimal(useSelector(getCurrentChainId));
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -31,23 +34,29 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
     (async () => {
       setLoading(true);
       try {
+        const networks = await fetchWithCache(FETCH_SUPPORTED_NETWORKS_URI, {
+          method: 'GET',
+        });
+
+        if (
+          !networks.some(
+            (n) => n.active && Number(n.chainId) === Number(network),
+          )
+        ) {
+          throw new Error(
+            t('transactionDecodingUnsupportedNetworkError', [network]),
+          );
+        }
+
         const request_url =
           FETCH_PROJECT_INFO_URI +
           '?' +
           new URLSearchParams({
             to,
-            ['network-id']: chainId,
+            ['network-id']: network,
           });
 
         const response = await fetchWithCache(request_url, { method: 'GET' });
-
-        if (!response) {
-          throw new Error(`Decoding error: request time out !`);
-        }
-
-        if (!response.info) {
-          throw new Error(`Decoding error: ${response}`);
-        }
 
         const { info: projectInfo } = response;
 
@@ -81,7 +90,7 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
         setErrorMessage(error?.message);
       }
     })();
-  }, [to, chainId, data]);
+  }, [to, network, data]);
 
   // ***********************************************************
   // component rendering methods
@@ -121,11 +130,11 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
               <details>
                 <summary className="typography--color-black">{name}: </summary>
                 <ol>
-                  {value.map((itemValue) => {
+                  {value.map((itemValue, index) => {
                     return (
-                      <li>
+                      <li key={`${itemValue.type?.typeClass}-${index}`}>
                         {renderLeaf({
-                          typeClass: itemValue.type.typeClass,
+                          typeClass: itemValue.type?.typeClass,
                           value: itemValue.value,
                           kind: itemValue.kind,
                         })}
@@ -160,7 +169,7 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
     index,
   ) => {
     return children ? (
-      <li>
+      <li key={`${typeClass}-${index}`}>
         <details open={index === 0 ? 'open' : ''}>
           <summary>{name}: </summary>
           <ol>{children.map(renderTree)}</ol>
