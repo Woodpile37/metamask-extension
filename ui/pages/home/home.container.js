@@ -1,115 +1,84 @@
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-import {
-  getMmiPortfolioEnabled,
-  getMmiPortfolioUrl,
-  getWaitForConfirmDeepLinkDialog,
-} from '../../selectors/institutional/selectors';
-import { mmiActionsFactory } from '../../store/institutional/institution-background';
-import { getInstitutionalConnectRequests } from '../../ducks/institutional/institutional';
-///: END:ONLY_INCLUDE_IF
 import {
   activeTabHasPermissions,
+  getCurrentEthBalance,
   getFirstPermissionRequest,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  getFirstSnapInstallOrUpdateRequest,
-  ///: END:ONLY_INCLUDE_IF
   getIsMainnet,
   getOriginOfCurrentTab,
   getTotalUnapprovedCount,
   getUnapprovedTemplatedConfirmations,
   getWeb3ShimUsageStateForOrigin,
+  unconfirmedTransactionsCountSelector,
   getInfuraBlocked,
   getShowWhatsNewPopup,
-  getSortedAnnouncementsToShow,
+  getSortedNotificationsToShow,
   getShowRecoveryPhraseReminder,
-  getShowTermsOfUse,
-  getShowOutdatedBrowserWarning,
   getNewNetworkAdded,
   hasUnsignedQRHardwareTransaction,
   hasUnsignedQRHardwareMessage,
-  getNewNftAddedMessage,
-  getNewTokensImported,
-  getShouldShowSeedPhraseReminder,
-  getRemoveNftMessage,
-  getSuggestedTokens,
-  getSuggestedNfts,
-  getApprovalFlows,
-  getShowSurveyToast,
-  getNewTokensImportedError,
+  getNewCollectibleAddedMessage,
+  getFailedTransactionsToDisplayCount,
 } from '../../selectors';
 
 import {
-  closeNotificationPopup,
+  restoreFromThreeBox,
+  turnThreeBoxSyncingOn,
+  getThreeBoxLastUpdated,
+  setShowRestorePromptToFalse,
   setConnectedStatusPopoverHasBeenShown,
   setDefaultHomeActiveTabName,
   setWeb3ShimUsageAlertDismissed,
   setAlertEnabledness,
   setRecoveryPhraseReminderHasBeenShown,
   setRecoveryPhraseReminderLastShown,
-  setTermsOfUseLastAgreed,
-  setOutdatedBrowserWarningLastShown,
   setNewNetworkAdded,
-  setNewNftAddedMessage,
-  setRemoveNftMessage,
-  setNewTokensImported,
-  setActiveNetwork,
-  setSurveyLinkLastClickedOrClosed,
-  setNewTokensImportedError,
+  setNewCollectibleAddedMessage,
 } from '../../store/actions';
-import { hideWhatsNewPopup } from '../../ducks/app/app';
+import { setThreeBoxLastUpdated, hideWhatsNewPopup } from '../../ducks/app/app';
 import { getWeb3ShimUsageAlertEnabledness } from '../../ducks/metamask/metamask';
 import { getSwapsFeatureIsLive } from '../../ducks/swaps/swaps';
 import { getEnvironmentType } from '../../../app/scripts/lib/util';
-import { getIsBrowserDeprecated } from '../../helpers/utils/util';
 import {
   ENVIRONMENT_TYPE_NOTIFICATION,
   ENVIRONMENT_TYPE_POPUP,
 } from '../../../shared/constants/app';
 import {
-  AlertTypes,
-  Web3ShimUsageAlertStates,
+  ALERT_TYPES,
+  WEB3_SHIM_USAGE_ALERT_STATES,
 } from '../../../shared/constants/alerts';
-import { hasTransactionPendingApprovals } from '../../selectors/transactions';
 import Home from './home.component';
 
 const mapStateToProps = (state) => {
   const { metamask, appState } = state;
   const {
+    suggestedAssets,
     seedPhraseBackedUp,
+    tokens,
+    threeBoxSynced,
+    showRestorePrompt,
     selectedAddress,
     connectedStatusPopoverHasBeenShown,
     defaultHomeActiveTabName,
-    singleChainSwapsState,
-    firstTimeFlowType,
-    completedOnboarding,
+    swapsState,
+    dismissSeedBackUpReminder,
   } = metamask;
-  const { forgottenPassword } = metamask;
+  const accountBalance = getCurrentEthBalance(state);
+  const { forgottenPassword, threeBoxLastUpdated } = appState;
   const totalUnapprovedCount = getTotalUnapprovedCount(state);
   const swapsEnabled = getSwapsFeatureIsLive(state);
   const pendingConfirmations = getUnapprovedTemplatedConfirmations(state);
-  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-  const institutionalConnectRequests = getInstitutionalConnectRequests(state);
-  ///: END:ONLY_INCLUDE_IF
 
   const envType = getEnvironmentType();
   const isPopup = envType === ENVIRONMENT_TYPE_POPUP;
   const isNotification = envType === ENVIRONMENT_TYPE_NOTIFICATION;
 
-  let firstPermissionsRequest, firstPermissionsRequestId;
-  firstPermissionsRequest = getFirstPermissionRequest(state);
-  firstPermissionsRequestId = firstPermissionsRequest?.metadata.id || null;
-
-  // getFirstPermissionRequest should be updated with snap update logic once we hit main extension release
-
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  if (!firstPermissionsRequest) {
-    firstPermissionsRequest = getFirstSnapInstallOrUpdateRequest(state);
-    firstPermissionsRequestId = firstPermissionsRequest?.metadata.id || null;
-  }
-  ///: END:ONLY_INCLUDE_IF
+  const firstPermissionsRequest = getFirstPermissionRequest(state);
+  const firstPermissionsRequestId =
+    firstPermissionsRequest && firstPermissionsRequest.metadata
+      ? firstPermissionsRequest.metadata.id
+      : null;
 
   const originOfCurrentTab = getOriginOfCurrentTab(state);
   const shouldShowWeb3ShimUsageNotification =
@@ -117,123 +86,85 @@ const mapStateToProps = (state) => {
     getWeb3ShimUsageAlertEnabledness(state) &&
     activeTabHasPermissions(state) &&
     getWeb3ShimUsageStateForOrigin(state, originOfCurrentTab) ===
-      Web3ShimUsageAlertStates.recorded;
+      WEB3_SHIM_USAGE_ALERT_STATES.RECORDED;
 
   const isSigningQRHardwareTransaction =
     hasUnsignedQRHardwareTransaction(state) ||
     hasUnsignedQRHardwareMessage(state);
 
-  const hasWatchTokenPendingApprovals = getSuggestedTokens(state).length > 0;
-
-  const hasWatchNftPendingApprovals = getSuggestedNfts(state).length > 0;
-
   return {
     forgottenPassword,
-    hasWatchTokenPendingApprovals,
-    hasWatchNftPendingApprovals,
+    suggestedAssets,
     swapsEnabled,
-    hasTransactionPendingApprovals: hasTransactionPendingApprovals(state),
-    shouldShowSeedPhraseReminder: getShouldShowSeedPhraseReminder(state),
+    unconfirmedTransactionsCount: unconfirmedTransactionsCountSelector(state),
+    shouldShowSeedPhraseReminder:
+      seedPhraseBackedUp === false &&
+      (parseInt(accountBalance, 16) > 0 || tokens.length > 0) &&
+      dismissSeedBackUpReminder === false,
     isPopup,
     isNotification,
+    threeBoxSynced,
+    showRestorePrompt,
     selectedAddress,
+    threeBoxLastUpdated,
     firstPermissionsRequestId,
     totalUnapprovedCount,
-    hasApprovalFlows: getApprovalFlows(state)?.length > 0,
     connectedStatusPopoverHasBeenShown,
     defaultHomeActiveTabName,
-    firstTimeFlowType,
-    completedOnboarding,
-    haveSwapsQuotes: Boolean(
-      Object.values(singleChainSwapsState.quotes || {}).length,
-    ),
-    swapsFetchParams: singleChainSwapsState.fetchParams,
-    showAwaitingSwapScreen: singleChainSwapsState.routeState === 'awaiting',
+    haveSwapsQuotes: Boolean(Object.values(swapsState.quotes || {}).length),
+    swapsFetchParams: swapsState.fetchParams,
+    showAwaitingSwapScreen: swapsState.routeState === 'awaiting',
     isMainnet: getIsMainnet(state),
     originOfCurrentTab,
     shouldShowWeb3ShimUsageNotification,
     pendingConfirmations,
     infuraBlocked: getInfuraBlocked(state),
-    announcementsToShow: getSortedAnnouncementsToShow(state).length > 0,
+    notificationsToShow: getSortedNotificationsToShow(state).length > 0,
     showWhatsNewPopup: getShowWhatsNewPopup(state),
     showRecoveryPhraseReminder: getShowRecoveryPhraseReminder(state),
-    showTermsOfUsePopup: getShowTermsOfUse(state),
-    showOutdatedBrowserWarning:
-      getIsBrowserDeprecated() && getShowOutdatedBrowserWarning(state),
     seedPhraseBackedUp,
-    newNetworkAddedName: getNewNetworkAdded(state),
+    newNetworkAdded: getNewNetworkAdded(state),
     isSigningQRHardwareTransaction,
-    newNftAddedMessage: getNewNftAddedMessage(state),
-    removeNftMessage: getRemoveNftMessage(state),
-    newTokensImported: getNewTokensImported(state),
-    newTokensImportedError: getNewTokensImportedError(state),
-    newNetworkAddedConfigurationId: appState.newNetworkAddedConfigurationId,
-    onboardedInThisUISession: appState.onboardedInThisUISession,
-    showSurveyToast: getShowSurveyToast(state),
-    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-    waitForConfirmDeepLinkDialog: getWaitForConfirmDeepLinkDialog(state),
-    institutionalConnectRequests,
-    modalOpen: state.appState.modal.open,
-    mmiPortfolioUrl: getMmiPortfolioUrl(state),
-    mmiPortfolioEnabled: getMmiPortfolioEnabled(state),
-    notificationsToShow: getSortedAnnouncementsToShow(state).length > 0,
-    ///: END:ONLY_INCLUDE_IF
+    newCollectibleAddedMessage: getNewCollectibleAddedMessage(state),
+    failedTransactionsToDisplayCount: getFailedTransactionsToDisplayCount(
+      state,
+    ),
   };
 };
 
-const mapDispatchToProps = (dispatch) => {
-  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-  const mmiActions = mmiActionsFactory();
-  ///: END:ONLY_INCLUDE_IF
-
-  return {
-    closeNotificationPopup: () => closeNotificationPopup(),
-    setConnectedStatusPopoverHasBeenShown: () =>
-      dispatch(setConnectedStatusPopoverHasBeenShown()),
-    onTabClick: (name) => dispatch(setDefaultHomeActiveTabName(name)),
-    setWeb3ShimUsageAlertDismissed: (origin) =>
-      setWeb3ShimUsageAlertDismissed(origin),
-    disableWeb3ShimUsageAlert: () =>
-      setAlertEnabledness(AlertTypes.web3ShimUsage, false),
-    hideWhatsNewPopup: () => dispatch(hideWhatsNewPopup()),
-    setRecoveryPhraseReminderHasBeenShown: () =>
-      dispatch(setRecoveryPhraseReminderHasBeenShown()),
-    setRecoveryPhraseReminderLastShown: (lastShown) =>
-      dispatch(setRecoveryPhraseReminderLastShown(lastShown)),
-    setTermsOfUseLastAgreed: (lastAgreed) => {
-      dispatch(setTermsOfUseLastAgreed(lastAgreed));
-    },
-    setOutdatedBrowserWarningLastShown: (lastShown) => {
-      dispatch(setOutdatedBrowserWarningLastShown(lastShown));
-    },
-    setNewNftAddedMessage: (message) => {
-      dispatch(setRemoveNftMessage(''));
-      dispatch(setNewNftAddedMessage(message));
-    },
-    setRemoveNftMessage: (message) => {
-      dispatch(setNewNftAddedMessage(''));
-      dispatch(setRemoveNftMessage(message));
-    },
-    setNewTokensImported: (newTokens) => {
-      dispatch(setNewTokensImported(newTokens));
-    },
-    setNewTokensImportedError: (msg) => {
-      dispatch(setNewTokensImportedError(msg));
-    },
-    clearNewNetworkAdded: () => {
-      dispatch(setNewNetworkAdded({}));
-    },
-    setActiveNetwork: (networkConfigurationId) => {
-      dispatch(setActiveNetwork(networkConfigurationId));
-    },
-    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-    setWaitForConfirmDeepLinkDialog: (wait) =>
-      dispatch(mmiActions.setWaitForConfirmDeepLinkDialog(wait)),
-    ///: END:ONLY_INCLUDE_IF
-    setSurveyLinkLastClickedOrClosed: (time) =>
-      dispatch(setSurveyLinkLastClickedOrClosed(time)),
-  };
-};
+const mapDispatchToProps = (dispatch) => ({
+  turnThreeBoxSyncingOn: () => dispatch(turnThreeBoxSyncingOn()),
+  setupThreeBox: () => {
+    dispatch(getThreeBoxLastUpdated()).then((lastUpdated) => {
+      if (lastUpdated) {
+        dispatch(setThreeBoxLastUpdated(lastUpdated));
+      } else {
+        dispatch(setShowRestorePromptToFalse());
+        dispatch(turnThreeBoxSyncingOn());
+      }
+    });
+  },
+  restoreFromThreeBox: (address) => dispatch(restoreFromThreeBox(address)),
+  setShowRestorePromptToFalse: () => dispatch(setShowRestorePromptToFalse()),
+  setConnectedStatusPopoverHasBeenShown: () =>
+    dispatch(setConnectedStatusPopoverHasBeenShown()),
+  onTabClick: (name) => dispatch(setDefaultHomeActiveTabName(name)),
+  setWeb3ShimUsageAlertDismissed: (origin) =>
+    setWeb3ShimUsageAlertDismissed(origin),
+  disableWeb3ShimUsageAlert: () =>
+    setAlertEnabledness(ALERT_TYPES.web3ShimUsage, false),
+  hideWhatsNewPopup: () => dispatch(hideWhatsNewPopup()),
+  setRecoveryPhraseReminderHasBeenShown: () =>
+    dispatch(setRecoveryPhraseReminderHasBeenShown()),
+  setRecoveryPhraseReminderLastShown: (lastShown) =>
+    dispatch(setRecoveryPhraseReminderLastShown(lastShown)),
+  setNewNetworkAdded: (newNetwork) => {
+    dispatch(setNewNetworkAdded(newNetwork));
+  },
+  setNewCollectibleAddedMessage: (message) => {
+    dispatch(setNewCollectibleAddedMessage(message));
+  },
+});
 
 export default compose(
   withRouter,
