@@ -407,6 +407,7 @@
     },
     "@material-ui/core": {
       "globals": {
+        "Image": true,
         "_formatMuiErrorMessage": true,
         "addEventListener": true,
         "clearInterval": true,
@@ -416,8 +417,13 @@
         "document": true,
         "getComputedStyle": true,
         "getSelection": true,
+        "innerHeight": true,
+        "innerWidth": true,
+        "matchMedia": true,
+        "navigator": true,
         "performance.now": true,
         "removeEventListener": true,
+        "requestAnimationFrame": true,
         "setInterval": true,
         "setTimeout": true
       },
@@ -427,6 +433,8 @@
         "@material-ui/system": true,
         "@material-ui/utils": true,
         "clsx": true,
+        "hoist-non-react-statics": true,
+        "popper.js": true,
         "prop-types": true,
         "react": true,
         "react-dom": true,
@@ -477,7 +485,6 @@
     },
     "@metamask/controllers": {
       "globals": {
-        "AbortController": true,
         "Headers": true,
         "clearInterval": true,
         "clearTimeout": true,
@@ -491,6 +498,7 @@
         "@ethereumjs/common": true,
         "@ethereumjs/tx": true,
         "@metamask/contract-metadata": true,
+        "abort-controller": true,
         "async-mutex": true,
         "await-semaphore": true,
         "buffer": true,
@@ -737,15 +745,9 @@
         "setTimeout": true
       }
     },
-    "abortcontroller-polyfill": {
+    "abort-controller": {
       "globals": {
-        "DOMException": true,
-        "Event": true,
-        "console.log": true,
-        "console.warn": true,
-        "define": true,
-        "document": true,
-        "setTimeout": true
+        "AbortController": true
       }
     },
     "abstract-leveldown": {
@@ -3506,7 +3508,7 @@
         "getComputedStyle": true,
         "innerHeight": true,
         "innerWidth": true,
-        "navigator.userAgent": true,
+        "navigator": true,
         "requestAnimationFrame": true,
         "setTimeout": true
       }
