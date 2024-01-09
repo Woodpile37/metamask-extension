@@ -1,38 +1,31 @@
 import log from 'loglevel';
-import { getTokenStandardAndDetails } from '../../store/actions';
-import { isEqualCaseInsensitive } from '../../../shared/modules/string-utils';
-import { parseStandardTokenTransactionData } from '../../../shared/modules/transaction.utils';
-import { TokenStandard } from '../../../shared/constants/transaction';
-import { getTokenValueParam } from '../../../shared/lib/metamask-controller-utils';
-import { calcTokenAmount } from '../../../shared/lib/transactions-controller-utils';
-import { Numeric } from '../../../shared/modules/Numeric';
+import BigNumber from 'bignumber.js';
+import contractMap from '@metamask/contract-metadata';
+import {
+  conversionUtil,
+  multiplyCurrencies,
+} from '../../../shared/modules/conversion-util';
 import * as util from './util';
 import { formatCurrency } from './confirm-tx.util';
+
+const casedContractMap = Object.keys(contractMap).reduce((acc, base) => {
+  return {
+    ...acc,
+    [base.toLowerCase()]: contractMap[base],
+  };
+}, {});
 
 const DEFAULT_SYMBOL = '';
 
 async function getSymbolFromContract(tokenAddress) {
   const token = util.getContractAtAddress(tokenAddress);
+
   try {
     const result = await token.symbol();
     return result[0];
   } catch (error) {
     log.warn(
       `symbol() call for token at address ${tokenAddress} resulted in error:`,
-      error,
-    );
-    return undefined;
-  }
-}
-
-async function getNameFromContract(tokenAddress) {
-  const token = util.getContractAtAddress(tokenAddress);
-  try {
-    const [name] = await token.name();
-    return name;
-  } catch (error) {
-    log.warn(
-      `name() call for token at address ${tokenAddress} resulted in error:`,
       error,
     );
     return undefined;
@@ -55,15 +48,15 @@ async function getDecimalsFromContract(tokenAddress) {
   }
 }
 
-export function getTokenMetadata(tokenAddress, tokenList) {
-  return tokenAddress && tokenList[tokenAddress.toLowerCase()];
+function getContractMetadata(tokenAddress) {
+  return tokenAddress && casedContractMap[tokenAddress.toLowerCase()];
 }
 
-async function getSymbol(tokenAddress, tokenList) {
+async function getSymbol(tokenAddress) {
   let symbol = await getSymbolFromContract(tokenAddress);
 
   if (!symbol) {
-    const contractMetadataInfo = getTokenMetadata(tokenAddress, tokenList);
+    const contractMetadataInfo = getContractMetadata(tokenAddress);
 
     if (contractMetadataInfo) {
       symbol = contractMetadataInfo.symbol;
@@ -73,51 +66,40 @@ async function getSymbol(tokenAddress, tokenList) {
   return symbol;
 }
 
-async function getName(tokenAddress, tokenList) {
-  let name = await getNameFromContract(tokenAddress);
-
-  if (!name) {
-    const contractMetadataInfo = getTokenMetadata(tokenAddress, tokenList);
-
-    if (contractMetadataInfo) {
-      name = contractMetadataInfo.name;
-    }
-  }
-
-  return name;
-}
-
-async function getDecimals(tokenAddress, tokenList) {
+async function getDecimals(tokenAddress) {
   let decimals = await getDecimalsFromContract(tokenAddress);
 
   if (!decimals || decimals === '0') {
-    const contractMetadataInfo = getTokenMetadata(tokenAddress, tokenList);
+    const contractMetadataInfo = getContractMetadata(tokenAddress);
 
     if (contractMetadataInfo) {
-      decimals = contractMetadataInfo.decimals?.toString();
+      decimals = contractMetadataInfo.decimals;
     }
   }
 
   return decimals;
 }
 
-export async function getSymbolAndDecimalsAndName(tokenAddress, tokenList) {
-  let symbol, decimals, name;
+export async function getSymbolAndDecimals(tokenAddress, existingTokens = []) {
+  const existingToken = existingTokens.find(
+    ({ address }) => tokenAddress === address,
+  );
+
+  if (existingToken) {
+    return {
+      symbol: existingToken.symbol,
+      decimals: existingToken.decimals,
+    };
+  }
+
+  let symbol, decimals;
 
   try {
-    const results = await Promise.allSettled([
-      getSymbol(tokenAddress, tokenList),
-      getDecimals(tokenAddress, tokenList),
-      getName(tokenAddress, tokenList),
-    ]);
-    const fulfilled = results
-      .filter((result) => result.status === 'fulfilled')
-      .map((result) => result.value);
-
-    [symbol, decimals, name] = fulfilled;
+    symbol = await getSymbol(tokenAddress);
+    decimals = await getDecimals(tokenAddress);
   } catch (error) {
     log.warn(
-      `symbol() and decimal() and name() calls for token at address ${tokenAddress} resulted in error:`,
+      `symbol() and decimal() calls for token at address ${tokenAddress} resulted in error:`,
       error,
     );
   }
@@ -125,19 +107,19 @@ export async function getSymbolAndDecimalsAndName(tokenAddress, tokenList) {
   return {
     symbol: symbol || DEFAULT_SYMBOL,
     decimals,
-    name,
   };
 }
 
 export function tokenInfoGetter() {
   const tokens = {};
 
-  return async (address, tokenList) => {
+  return async (address) => {
     if (tokens[address]) {
       return tokens[address];
     }
 
-    tokens[address] = await getSymbolAndDecimalsAndName(address, tokenList);
+    tokens[address] = await getSymbolAndDecimals(address);
+
     return tokens[address];
   };
 }
@@ -149,12 +131,11 @@ export function tokenInfoGetter() {
  *   - The '_to' parameter, if present
  *   - The first parameter, if present
  *
- * @param {object} tokenData - ethers Interface token data.
+ * @param {Object} tokenData - ethers Interface token data.
  * @returns {string | undefined} A lowercase address string.
  */
 export function getTokenAddressParam(tokenData = {}) {
-  const value =
-    tokenData?.args?._to || tokenData?.args?.to || tokenData?.args?.[0];
+  const value = tokenData?.args?._to || tokenData?.args?.[0];
   return value?.toString().toLowerCase();
 }
 
@@ -162,32 +143,16 @@ export function getTokenAddressParam(tokenData = {}) {
  * Gets the '_value' parameter of the given token transaction data
  * (i.e function call) per the Human Standard Token ABI, if present.
  *
- * @param {object} tokenData - ethers Interface token data.
+ * @param {Object} tokenData - ethers Interface token data.
  * @returns {string | undefined} A decimal string value.
  */
-/**
- * Gets either the '_tokenId' parameter or the 'id' param of the passed token transaction data.,
- * These are the parsed tokenId values returned by `parseStandardTokenTransactionData` as defined
- * in the ERC721 and ERC1155 ABIs from metamask-eth-abis (https://github.com/MetaMask/metamask-eth-abis/tree/main/src/abis)
- *
- * @param {object} tokenData - ethers Interface token data.
- * @returns {string | undefined} A decimal string value.
- */
-export function getTokenIdParam(tokenData = {}) {
-  return (
-    tokenData?.args?._tokenId?.toString() ?? tokenData?.args?.id?.toString()
-  );
+export function getTokenValueParam(tokenData = {}) {
+  return tokenData?.args?._value?.toString();
 }
 
-/**
- * Gets the '_approved' parameter of the given token transaction data
- * (i.e function call) per the Human Standard Token ABI, if present.
- *
- * @param {object} tokenData - ethers Interface token data.
- * @returns {boolean | undefined} A boolean indicating whether the function is being called to approve or revoke access.
- */
-export function getTokenApprovedParam(tokenData = {}) {
-  return tokenData?.args?._approved;
+export function getTokenValue(tokenParams = []) {
+  const valueData = tokenParams.find((param) => param.name === '_value');
+  return valueData && valueData.value;
 }
 
 /**
@@ -222,19 +187,21 @@ export function getTokenFiatAmount(
     return undefined;
   }
 
-  const currentTokenToFiatRate = new Numeric(contractExchangeRate, 10)
-    .times(new Numeric(conversionRate, 10))
-    .toString();
-
-  let currentTokenInFiat = new Numeric(tokenAmount, 10);
-
-  if (tokenSymbol !== currentCurrency.toUpperCase() && currentTokenToFiatRate) {
-    currentTokenInFiat = currentTokenInFiat.applyConversionRate(
-      currentTokenToFiatRate,
-    );
-  }
-
-  currentTokenInFiat = currentTokenInFiat.round(2).toString();
+  const currentTokenToFiatRate = multiplyCurrencies(
+    contractExchangeRate,
+    conversionRate,
+    {
+      multiplicandBase: 10,
+      multiplierBase: 10,
+    },
+  );
+  const currentTokenInFiat = conversionUtil(tokenAmount, {
+    fromNumericBase: 'dec',
+    fromCurrency: tokenSymbol,
+    toCurrency: currentCurrency.toUpperCase(),
+    numberOfDecimals: 2,
+    conversionRate: currentTokenToFiatRate,
+  });
   let result;
   if (hideCurrencySymbol) {
     result = formatCurrency(currentTokenInFiat, currentCurrency);
@@ -247,76 +214,4 @@ export function getTokenFiatAmount(
     result = currentTokenInFiat;
   }
   return result;
-}
-
-export async function getAssetDetails(
-  tokenAddress,
-  currentUserAddress,
-  transactionData,
-  existingNfts,
-) {
-  const tokenData = parseStandardTokenTransactionData(transactionData);
-  if (!tokenData) {
-    throw new Error('Unable to detect valid token data');
-  }
-
-  // Sometimes the tokenId value is parsed as "_value" param. Not seeing this often any more, but still occasionally:
-  // i.e. call approve() on BAYC contract - https://etherscan.io/token/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d#writeContract, and tokenId shows up as _value,
-  // not sure why since it doesn't match the ERC721 ABI spec we use to parse these transactions - https://github.com/MetaMask/metamask-eth-abis/blob/d0474308a288f9252597b7c93a3a8deaad19e1b2/src/abis/abiERC721.ts#L62.
-  let tokenId =
-    getTokenIdParam(tokenData)?.toString() ?? getTokenValueParam(tokenData);
-
-  const toAddress = getTokenAddressParam(tokenData);
-
-  let tokenDetails;
-
-  // if a tokenId is present check if there is an NFT in state matching the address/tokenId
-  // and avoid unnecessary network requests to query token details we already have
-  if (existingNfts?.length && tokenId) {
-    const existingNft = existingNfts.find(
-      ({ address, tokenId: _tokenId }) =>
-        isEqualCaseInsensitive(tokenAddress, address) && _tokenId === tokenId,
-    );
-
-    if (existingNft && (existingNft.name || existingNft.symbol)) {
-      return {
-        toAddress,
-        ...existingNft,
-      };
-    }
-  }
-
-  try {
-    tokenDetails = await getTokenStandardAndDetails(
-      tokenAddress,
-      currentUserAddress,
-      tokenId,
-    );
-  } catch (error) {
-    log.warn(error);
-    // if we can't determine any token standard or details return the data we can extract purely from the parsed transaction data
-    return { toAddress, tokenId };
-  }
-  const tokenValue = getTokenValueParam(tokenData);
-  const tokenDecimals = tokenDetails?.decimals;
-  const tokenAmount =
-    tokenData &&
-    tokenValue &&
-    tokenDecimals &&
-    calcTokenAmount(tokenValue, tokenDecimals).toString(10);
-
-  const decimals = tokenDecimals && Number(tokenDecimals?.toString(10));
-
-  if (tokenDetails?.standard === TokenStandard.ERC20) {
-    tokenId = undefined;
-  }
-
-  // else if not an NFT already in state or standard === ERC20 return tokenDetails and tokenId
-  return {
-    tokenAmount,
-    toAddress,
-    decimals,
-    tokenId,
-    ...tokenDetails,
-  };
 }

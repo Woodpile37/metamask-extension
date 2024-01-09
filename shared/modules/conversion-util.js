@@ -150,11 +150,8 @@ const conversionUtil = (
     conversionRate,
     invertConversionRate,
   },
-) => {
-  if (fromCurrency !== toCurrency && !conversionRate) {
-    return 0;
-  }
-  return converter({
+) =>
+  converter({
     fromCurrency,
     toCurrency,
     fromNumericBase,
@@ -166,7 +163,6 @@ const conversionUtil = (
     invertConversionRate,
     value: value || '0',
   });
-};
 
 const getBigNumber = (value, base) => {
   if (!isValidBase(base)) {
@@ -268,14 +264,6 @@ const toNegative = (n, options = {}) => {
   return multiplyCurrencies(n, -1, options);
 };
 
-<<<<<<<< HEAD:shared/modules/conversion.utils.js
-function decGWEIToHexWEI(decGWEI) {
-  return conversionUtil(decGWEI, {
-    fromNumericBase: 'dec',
-    toNumericBase: 'hex',
-    fromDenomination: 'GWEI',
-    toDenomination: 'WEI',
-========
 /**
  * Given a number and specified precision, returns that number in base 10 with a maximum of precision
  * significant digits, but without any trailing zeros after the decimal point To be used when wishing
@@ -302,7 +290,6 @@ function decimalToHex(decimal) {
   return conversionUtil(decimal, {
     fromNumericBase: 'dec',
     toNumericBase: 'hex',
->>>>>>>> 9a9eef5646 (monolith commit):shared/modules/conversion-util.js
   });
 }
 
@@ -317,13 +304,7 @@ export {
   conversionMax,
   toNegative,
   subtractCurrencies,
-<<<<<<<< HEAD:shared/modules/conversion.utils.js
-  decGWEIToHexWEI,
-  toBigNumber,
-  toNormalizedDenomination,
-========
   toPrecisionWithoutTrailingZeros,
   hexToDecimal,
   decimalToHex,
->>>>>>>> 9a9eef5646 (monolith commit):shared/modules/conversion-util.js
 };

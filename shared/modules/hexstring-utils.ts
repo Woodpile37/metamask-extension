@@ -101,3 +101,13 @@ export function addHexPrefixToObjectValues(obj) {
     return { ...newObj, [key]: addHexPrefix(obj[key]) };
   }, {});
 }
+
+/**
+ * Given and object where all values are strings, returns the same object with all values
+ * now prefixed with '0x'
+ */
+export function addHexPrefixToObjectValues(obj) {
+  return Object.keys(obj).reduce((newObj, key) => {
+    return { ...newObj, [key]: addHexPrefix(obj[key]) };
+  }, {});
+}

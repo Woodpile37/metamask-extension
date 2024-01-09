@@ -1,63 +1,58 @@
 import { ethErrors } from 'eth-rpc-errors';
-import React from 'react';
-import { infuraProjectId } from '../../../../shared/constants/network';
 import {
-  Severity,
-  TypographyVariant,
-  TextAlign,
-  Display,
-  FlexDirection,
-  AlignItems,
-  JustifyContent,
-  BackgroundColor,
+  SEVERITIES,
+  TYPOGRAPHY,
 } from '../../../helpers/constants/design-system';
-import { DEFAULT_ROUTE } from '../../../helpers/constants/routes';
-import ZENDESK_URLS from '../../../helpers/constants/zendesk-url';
-import { jsonRpcRequest } from '../../../../shared/modules/rpc.utils';
+import fetchWithCache from '../../../../shared/modules/fetch-with-cache';
 
 const UNRECOGNIZED_CHAIN = {
   id: 'UNRECOGNIZED_CHAIN',
-  severity: Severity.Warning,
+  severity: SEVERITIES.WARNING,
   content: {
     element: 'span',
     children: {
       element: 'MetaMaskTranslation',
       props: {
         translationKey: 'unrecognizedChain',
+        variables: [
+          {
+            element: 'a',
+            key: 'unrecognizedChainLink',
+            props: {
+              href:
+                'https://metamask.zendesk.com/hc/en-us/articles/360057142392',
+              target: '__blank',
+              tabIndex: 0,
+            },
+            children: {
+              element: 'MetaMaskTranslation',
+              props: {
+                translationKey: 'unrecognizedChainLinkText',
+              },
+            },
+          },
+        ],
       },
     },
   },
 };
 
-const SAFE_CHAIN_LIST_PROVIDER_ERROR = {
-  id: 'SAFE_CHAIN_LIST_PROVIDER_ERROR',
-  severity: Severity.Warning,
+const INVALID_CHAIN = {
+  id: 'INVALID_CHAIN',
+  severity: SEVERITIES.DANGER,
   content: {
     element: 'span',
     children: {
       element: 'MetaMaskTranslation',
       props: {
-        translationKey: 'errorGettingSafeChainList',
-      },
-    },
-  },
-};
-
-const MISMATCHED_CHAIN_RECOMMENDATION = {
-  id: 'MISMATCHED_CHAIN_RECOMMENDATION',
-  severity: Severity.Warning,
-  content: {
-    element: 'span',
-    children: {
-      element: 'MetaMaskTranslation',
-      props: {
-        translationKey: 'mismatchedChainRecommendation',
+        translationKey: 'mismatchedChain',
         variables: [
           {
             element: 'a',
             key: 'mismatchedChainLink',
             props: {
-              href: ZENDESK_URLS.VERIFY_CUSTOM_NETWORK,
+              href:
+                'https://metamask.zendesk.com/hc/en-us/articles/360057142392',
               target: '__blank',
               tabIndex: 0,
             },
@@ -74,165 +69,50 @@ const MISMATCHED_CHAIN_RECOMMENDATION = {
   },
 };
 
-const MISMATCHED_NETWORK_NAME = {
-  id: 'MISMATCHED_NETWORK_NAME',
-  severity: Severity.Warning,
-  content: {
-    element: 'span',
-    children: {
-      element: 'MetaMaskTranslation',
-      props: {
-        translationKey: 'mismatchedNetworkName',
-      },
-    },
-  },
-};
-
-const MISMATCHED_NETWORK_SYMBOL = {
-  id: 'MISMATCHED_NETWORK_SYMBOL',
-  severity: Severity.Danger,
-  content: {
-    element: 'span',
-    children: {
-      element: 'MetaMaskTranslation',
-      props: {
-        translationKey: 'mismatchedNetworkSymbol',
-      },
-    },
-  },
-};
-
-const MISMATCHED_NETWORK_RPC = {
-  id: 'MISMATCHED_NETWORK_RPC',
-  severity: Severity.Danger,
-  content: {
-    element: 'span',
-    children: {
-      element: 'MetaMaskTranslation',
-      props: {
-        translationKey: 'mismatchedRpcUrl',
-      },
-    },
-  },
-};
-
-const MISMATCHED_NETWORK_RPC_CHAIN_ID = {
-  id: 'MISMATCHED_NETWORK_RPC_CHAIN_ID',
-  severity: Severity.Danger,
-  content: {
-    element: 'span',
-    children: {
-      element: 'MetaMaskTranslation',
-      props: {
-        translationKey: 'mismatchedRpcChainId',
-      },
-    },
-  },
-};
-
-const ERROR_CONNECTING_TO_RPC = {
-  id: 'ERROR_CONNECTING_TO_RPC',
-  severity: Severity.Danger,
-  content: {
-    element: 'span',
-    children: {
-      element: 'MetaMaskTranslation',
-      props: {
-        translationKey: 'errorWhileConnectingToRPC',
-      },
-    },
-  },
-};
-
-async function getAlerts(pendingApproval, data) {
+async function getAlerts(pendingApproval) {
   const alerts = [];
+  const safeChainsList = await fetchWithCache(
+    'https://chainid.network/chains.json',
+  );
+  const matchedChain = safeChainsList.find(
+    (chain) =>
+      chain.chainId === parseInt(pendingApproval.requestData.chainId, 16),
+  );
+  let validated = Boolean(matchedChain);
 
-  const originIsMetaMask = pendingApproval.origin === 'metamask';
-  if (originIsMetaMask && Boolean(data.matchedChain)) {
-    return [];
-  }
-
-  if (data.matchedChain) {
+  if (matchedChain) {
     if (
-      data.matchedChain.name?.toLowerCase() !==
-      pendingApproval.requestData.chainName.toLowerCase()
+      matchedChain.nativeCurrency?.decimals !== 18 ||
+      matchedChain.name.toLowerCase() !==
+        pendingApproval.requestData.chainName.toLowerCase() ||
+      matchedChain.nativeCurrency?.symbol !== pendingApproval.requestData.ticker
     ) {
-      alerts.push(MISMATCHED_NETWORK_NAME);
-    }
-    if (
-      data.matchedChain.nativeCurrency?.symbol?.toLowerCase() !==
-      pendingApproval.requestData.ticker?.toLowerCase()
-    ) {
-      alerts.push(MISMATCHED_NETWORK_SYMBOL);
+      validated = false;
     }
 
     const { origin } = new URL(pendingApproval.requestData.rpcUrl);
-    if (
-      !data.matchedChain.rpc?.map((rpc) => new URL(rpc).origin).includes(origin)
-    ) {
-      alerts.push(MISMATCHED_NETWORK_RPC);
+    if (!matchedChain.rpc.map((rpc) => new URL(rpc).origin).includes(origin)) {
+      validated = false;
     }
   }
 
-  if (!data.matchedChain && data.useSafeChainsListValidation) {
-    if (data.providerError) {
-      alerts.push(SAFE_CHAIN_LIST_PROVIDER_ERROR);
-    } else {
-      alerts.push(UNRECOGNIZED_CHAIN);
-    }
+  if (!matchedChain) {
+    alerts.push(UNRECOGNIZED_CHAIN);
+  } else if (!validated) {
+    alerts.push(INVALID_CHAIN);
   }
-
-  if (alerts.length) {
-    alerts.push(MISMATCHED_CHAIN_RECOMMENDATION);
-  }
-
   return alerts;
 }
 
-function getState(pendingApproval) {
-  if (parseInt(pendingApproval.requestData.chainId, 16) === 1) {
-    return { useWarningModal: true };
-  }
-  return {};
-}
-
-function getValues(pendingApproval, t, actions, history, _, data) {
-  const originIsMetaMask = pendingApproval.origin === 'metamask';
-  const customRpcUrl = pendingApproval.requestData.rpcUrl;
+function getValues(pendingApproval, t, actions) {
   return {
     content: [
       {
-        hide: !originIsMetaMask,
-        element: 'Box',
-        key: 'network-box',
-        props: {
-          textAlign: TextAlign.Center,
-          display: Display.Flex,
-          justifyContent: JustifyContent.center,
-          marginTop: 4,
-          marginBottom: 2,
-        },
-        children: [
-          {
-            element: 'Chip',
-            key: 'network-chip',
-            props: {
-              label: pendingApproval.requestData.chainName,
-              backgroundColor: BackgroundColor.backgroundAlternative,
-              leftIconUrl: pendingApproval.requestData.imageUrl,
-            },
-          },
-        ],
-      },
-
-      {
         element: 'Typography',
         key: 'title',
-        children: originIsMetaMask
-          ? t('wantToAddThisNetwork')
-          : t('addEthereumChainConfirmationTitle'),
+        children: t('addEthereumChainConfirmationTitle'),
         props: {
-          variant: TypographyVariant.H3,
+          variant: TYPOGRAPHY.H3,
           align: 'center',
           fontWeight: 'bold',
           boxProps: {
@@ -245,10 +125,10 @@ function getValues(pendingApproval, t, actions, history, _, data) {
         key: 'description',
         children: t('addEthereumChainConfirmationDescription'),
         props: {
-          variant: TypographyVariant.H7,
+          variant: TYPOGRAPHY.H7,
           align: 'center',
           boxProps: {
-            margin: originIsMetaMask ? [0, 8, 4] : [0, 0, 4],
+            margin: [0, 0, 4],
           },
         },
       },
@@ -259,55 +139,7 @@ function getValues(pendingApproval, t, actions, history, _, data) {
           {
             element: 'b',
             key: 'bolded-text',
-            props: {
-              style: { display: originIsMetaMask && '-webkit-box' },
-            },
-            children: [
-              `${t('addEthereumChainConfirmationRisks')} `,
-              {
-                hide: !originIsMetaMask,
-                element: 'Tooltip',
-                key: 'tooltip-info',
-                props: {
-                  position: 'bottom',
-                  interactive: true,
-                  trigger: 'mouseenter',
-                  html: (
-                    <div
-                      style={{
-                        width: '180px',
-                        margin: '16px',
-                        textAlign: 'left',
-                      }}
-                    >
-                      {t('someNetworksMayPoseSecurity')}{' '}
-                      <a
-                        key="zendesk_page_link"
-                        href={ZENDESK_URLS.UNKNOWN_NETWORK}
-                        rel="noreferrer"
-                        target="_blank"
-                        style={{ color: 'var(--color-primary-default)' }}
-                      >
-                        {t('learnMoreUpperCase')}
-                      </a>
-                    </div>
-                  ),
-                },
-                children: [
-                  {
-                    element: 'i',
-                    key: 'info-circle',
-                    props: {
-                      className: 'fas fa-info-circle',
-                      style: {
-                        marginLeft: '4px',
-                        color: 'var(--color-icon-default)',
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
+            children: `${t('addEthereumChainConfirmationRisks')} `,
           },
           {
             element: 'MetaMaskTranslation',
@@ -320,7 +152,8 @@ function getValues(pendingApproval, t, actions, history, _, data) {
                   children: t('addEthereumChainConfirmationRisksLearnMoreLink'),
                   key: 'addEthereumChainConfirmationRisksLearnMoreLink',
                   props: {
-                    href: ZENDESK_URLS.USER_GUIDE_CUSTOM_NETWORKS,
+                    href:
+                      'https://metamask.zendesk.com/hc/en-us/articles/360056196151',
                     target: '__blank',
                   },
                 },
@@ -329,12 +162,10 @@ function getValues(pendingApproval, t, actions, history, _, data) {
           },
         ],
         props: {
-          variant: TypographyVariant.H7,
+          variant: TYPOGRAPHY.H7,
+          align: 'center',
           boxProps: {
-            margin: originIsMetaMask ? [0, 8] : 0,
-            display: Display.Flex,
-            flexDirection: FlexDirection.Column,
-            alignItems: AlignItems.center,
+            margin: 0,
           },
         },
       },
@@ -350,91 +181,37 @@ function getValues(pendingApproval, t, actions, history, _, data) {
             [t('currencySymbol')]: t('currencySymbolDefinition'),
             [t('blockExplorerUrl')]: t('blockExplorerUrlDefinition'),
           },
-          warnings: {
-            [t('currencySymbol')]: data.currencySymbolWarning,
-          },
           dictionary: {
             [t('networkName')]: pendingApproval.requestData.chainName,
-            [t('networkURL')]: pendingApproval.requestData.rpcUrl?.includes(
-              `/v3/${infuraProjectId}`,
-            )
-              ? pendingApproval.requestData.rpcUrl.replace(
-                  `/v3/${infuraProjectId}`,
-                  '',
-                )
-              : pendingApproval.requestData.rpcUrl,
+            [t('networkURL')]: pendingApproval.requestData.rpcUrl,
             [t('chainId')]: parseInt(pendingApproval.requestData.chainId, 16),
             [t('currencySymbol')]: pendingApproval.requestData.ticker,
-            [t('blockExplorerUrl')]:
-              pendingApproval.requestData.rpcPrefs.blockExplorerUrl,
+            [t('blockExplorerUrl')]: pendingApproval.requestData
+              .blockExplorerUrl,
           },
-          prefaceKeys: [
-            t('networkName'),
-            t('networkURL'),
-            t('chainId'),
-            t('currencySymbol'),
-          ],
+          prefaceKeys: [t('networkName'), t('networkURL'), t('chainId')],
         },
       },
     ],
+    approvalText: t('approveButtonText'),
     cancelText: t('cancel'),
-    submitText: t('approveButtonText'),
-    loadingText: t('addingCustomNetwork'),
-    onSubmit: async () => {
-      let endpointChainId;
-      try {
-        endpointChainId = await jsonRpcRequest(customRpcUrl, 'eth_chainId');
-      } catch (err) {
-        console.error(
-          `Request for method 'eth_chainId on ${customRpcUrl} failed`,
-        );
-        return [ERROR_CONNECTING_TO_RPC];
-      }
-
-      if (pendingApproval.requestData.chainId !== endpointChainId) {
-        console.error(
-          `Chain ID returned by RPC URL ${customRpcUrl} does not match ${endpointChainId}`,
-        );
-        return [MISMATCHED_NETWORK_RPC_CHAIN_ID];
-      }
-
-      await actions.resolvePendingApproval(
+    onApprove: () =>
+      actions.resolvePendingApproval(
         pendingApproval.id,
         pendingApproval.requestData,
-      );
-      if (originIsMetaMask) {
-        const networkConfigurationId = await actions.upsertNetworkConfiguration(
-          {
-            ...pendingApproval.requestData,
-            nickname: pendingApproval.requestData.chainName,
-          },
-          {
-            setActive: false,
-            source: pendingApproval.requestData.source,
-          },
-        );
-        await actions.setNewNetworkAdded({
-          networkConfigurationId,
-          nickname: pendingApproval.requestData.chainName,
-        });
+      ),
 
-        history.push(DEFAULT_ROUTE);
-      }
-      return [];
-    },
     onCancel: () =>
       actions.rejectPendingApproval(
         pendingApproval.id,
-        ethErrors.provider.userRejectedRequest().serialize(),
+        ethErrors.provider.userRejectedRequest(),
       ),
-    networkDisplay: !originIsMetaMask,
   };
 }
 
 const addEthereumChain = {
   getAlerts,
   getValues,
-  getState,
 };
 
 export default addEthereumChain;
