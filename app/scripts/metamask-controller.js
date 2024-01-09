@@ -386,6 +386,9 @@ export default class MetamaskController extends EventEmitter {
       getCurrentChainId: this.networkController.getCurrentChainId.bind(
         this.networkController,
       ),
+      getEIP1559GasFeeEstimates: this.gasFeeController.fetchGasFeeEstimates.bind(
+        this.gasFeeController,
+      ),
     });
 
     // ensure accountTracker updates balances after network change
@@ -886,6 +889,14 @@ export default class MetamaskController extends EventEmitter {
       ),
       setSwapsTxGasLimit: nodeify(
         swapsController.setSwapsTxGasLimit,
+        swapsController,
+      ),
+      setSwapsTxMaxFeePerGas: nodeify(
+        swapsController.setSwapsTxMaxFeePerGas,
+        swapsController,
+      ),
+      setSwapsTxMaxFeePriorityPerGas: nodeify(
+        swapsController.setSwapsTxMaxFeePriorityPerGas,
         swapsController,
       ),
       safeRefetchQuotes: nodeify(

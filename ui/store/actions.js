@@ -9,13 +9,8 @@ import {
 } from '../helpers/utils/i18n-helper';
 import { getMethodDataAsync } from '../helpers/utils/transactions.util';
 import { getSymbolAndDecimals } from '../helpers/utils/token-util';
-import { isEqualCaseInsensitive } from '../helpers/utils/util';
 import switchDirection from '../helpers/utils/switch-direction';
-import {
-  ENVIRONMENT_TYPE_POPUP,
-  ENVIRONMENT_TYPE_NOTIFICATION,
-  POLLING_TOKEN_ENVIRONMENT_TYPES,
-} from '../../shared/constants/app';
+import { ENVIRONMENT_TYPE_NOTIFICATION } from '../../shared/constants/app';
 import { hasUnconfirmedTransactions } from '../helpers/utils/confirm-tx.util';
 import txHelper from '../helpers/utils/tx-helper';
 import { getEnvironmentType, addHexPrefix } from '../../app/scripts/lib/util';
@@ -23,19 +18,15 @@ import {
   getMetaMaskAccounts,
   getPermittedAccountsForCurrentTab,
   getSelectedAddress,
-  getTokenList,
 } from '../selectors';
 import { computeEstimatedGasLimit, resetSendState } from '../ducks/send';
 import { switchedToUnconnectedAccount } from '../ducks/alerts/unconnected-account';
-import { getUnconnectedAccountAlertEnabledness } from '../ducks/metamask/metamask';
-import { toChecksumHexAddress } from '../../shared/modules/hexstring-utils';
 import {
-  DEVICE_NAMES,
-  LEDGER_TRANSPORT_TYPES,
-  LEDGER_USB_VENDOR_ID,
-} from '../../shared/constants/hardware-wallets';
-import { TRANSACTION_STATUSES } from '../../shared/constants/transaction';
-import { removeTxFromFailedTxesToDisplay } from '../ducks/app/app';
+  getUnconnectedAccountAlertEnabledness,
+  isEIP1559Network,
+} from '../ducks/metamask/metamask';
+import { LISTED_CONTRACT_ADDRESSES } from '../../shared/constants/tokens';
+import { toChecksumHexAddress } from '../../shared/modules/hexstring-utils';
 import * as actionConstants from './actionConstants';
 
 let background = null;
@@ -403,38 +394,15 @@ export function forgetDevice(deviceName) {
   };
 }
 
-export function connectHardware(deviceName, page, hdPath, t) {
+export function connectHardware(deviceName, page, hdPath) {
   log.debug(`background.connectHardware`, deviceName, page, hdPath);
-  return async (dispatch, getState) => {
-    const { ledgerTransportType } = getState().metamask;
-
-    const isPopup = getEnvironmentType() === ENVIRONMENT_TYPE_POPUP;
-
+  return async (dispatch) => {
     dispatch(
       showLoadingIndication(`Looking for your ${capitalize(deviceName)}...`),
     );
 
     let accounts;
     try {
-      if (deviceName === 'ledger') {
-        await promisifiedBackground.establishLedgerTransportPreference();
-      }
-      if (
-        deviceName === DEVICE_NAMES.LEDGER &&
-        ledgerTransportType === LEDGER_TRANSPORT_TYPES.WEBHID &&
-        !isPopup
-      ) {
-        const connectedDevices = await window.navigator.hid.requestDevice({
-          filters: [{ vendorId: LEDGER_USB_VENDOR_ID }],
-        });
-        const userApprovedWebHidConnection = connectedDevices.some(
-          (device) => device.vendorId === Number(LEDGER_USB_VENDOR_ID),
-        );
-        if (!userApprovedWebHidConnection) {
-          throw new Error(t('ledgerWebHIDNotConnectedErrorMessage'));
-        }
-      }
-
       accounts = await promisifiedBackground.connectHardware(
         deviceName,
         page,
@@ -442,18 +410,8 @@ export function connectHardware(deviceName, page, hdPath, t) {
       );
     } catch (error) {
       log.error(error);
-      if (
-        deviceName === 'ledger' &&
-        ledgerTransportType === LEDGER_TRANSPORT_TYPES.WEBHID &&
-        error.message.match('Failed to open the device')
-      ) {
-        dispatch(displayWarning(t('ledgerDeviceOpenFailureMessage')));
-        throw new Error(t('ledgerDeviceOpenFailureMessage'));
-      } else {
-        if (deviceName !== DEVICE_NAMES.QR)
-          dispatch(displayWarning(error.message));
-        throw error;
-      }
+      dispatch(displayWarning(error.message));
+      throw error;
     } finally {
       dispatch(hideLoadingIndication());
     }
@@ -498,16 +456,6 @@ export function unlockHardwareWalletAccounts(
     dispatch(hideLoadingIndication());
     return undefined;
   };
-}
-
-export async function checkDeviceReady(fromAddress) {
-  let isReady = false;
-  try {
-    isReady = await promisifiedBackground.checkDeviceReady(fromAddress);
-  } catch (e) {
-    log.error(e);
-  }
-  return isReady;
 }
 
 export function showQrScanner() {
@@ -1063,7 +1011,7 @@ export function unlockSucceeded(message) {
 
 export function updateMetamaskState(newState) {
   return (dispatch, getState) => {
-    const { metamask: currentState, appState } = getState();
+    const { metamask: currentState } = getState();
 
     const { currentLocale, selectedAddress, provider } = currentState;
     const {
@@ -1071,11 +1019,6 @@ export function updateMetamaskState(newState) {
       selectedAddress: newSelectedAddress,
       provider: newProvider,
     } = newState;
-
-    const { currentNetworkTxList } = getState().metamask;
-    const { currentNetworkTxList: newNetworkTxList } = newState;
-
-    const { transactionsToDisplayOnFailure } = appState;
 
     if (currentLocale && newLocale && currentLocale !== newLocale) {
       dispatch(updateCurrentLocale(newLocale));
@@ -1126,6 +1069,7 @@ export function updateMetamaskState(newState) {
         payload: {
           gasFeeEstimates: newState.gasFeeEstimates,
           gasEstimateType: newState.gasEstimateType,
+          isEIP1559Network: isEIP1559Network({ metamask: newState }),
         },
       });
     }
@@ -1138,28 +1082,6 @@ export function updateMetamaskState(newState) {
     dispatch({
       type: actionConstants.UPDATE_METAMASK_STATE,
       value: newState,
-    });
-
-    // Check that the transaction was not submitted successfully, and remove it from failed transactions if it was.
-
-    const transactionIdsToRemove = Object.keys(
-      transactionsToDisplayOnFailure,
-    ).filter((id) => {
-      const currentTx = currentNetworkTxList.find((tx) => tx.id === id);
-      const newTx = newNetworkTxList.find((tx) => tx.id === id);
-      if (currentTx && newTx) {
-        return (
-          newTx.status !== currentTx.status &&
-          newTx.status !== TRANSACTION_STATUSES.FAILED &&
-          newTx.status !== TRANSACTION_STATUSES.SIGNED &&
-          newTx.status !== TRANSACTION_STATUSES.APPROVED
-        );
-      }
-      return false;
-    });
-
-    transactionIdsToRemove.forEach((id) => {
-      dispatch(removeTxFromFailedTxesToDisplay(id));
     });
   };
 }
@@ -1200,9 +1122,10 @@ export function lockMetamask() {
   };
 }
 
-async function _setSelectedAddress(address) {
+async function _setSelectedAddress(dispatch, address) {
   log.debug(`background.setSelectedAddress`);
-  await promisifiedBackground.setSelectedAddress(address);
+  const tokens = await promisifiedBackground.setSelectedAddress(address);
+  dispatch(updateTokens(tokens));
 }
 
 export function setSelectedAddress(address) {
@@ -1210,7 +1133,7 @@ export function setSelectedAddress(address) {
     dispatch(showLoadingIndication());
     log.debug(`background.setSelectedAddress`);
     try {
-      await _setSelectedAddress(address);
+      await _setSelectedAddress(dispatch, address);
     } catch (error) {
       dispatch(displayWarning(error.message));
       return;
@@ -1245,7 +1168,7 @@ export function showAccountDetail(address) {
       !currentTabIsConnectedToNextAddress;
 
     try {
-      await _setSelectedAddress(address);
+      await _setSelectedAddress(dispatch, address);
       await forceUpdateMetamaskState(dispatch);
     } catch (error) {
       dispatch(displayWarning(error.message));
@@ -1318,147 +1241,43 @@ export function addToken(
   image,
   dontShowLoadingIndicator,
 ) {
-  return async (dispatch) => {
+  return (dispatch) => {
     if (!address) {
       throw new Error('MetaMask - Cannot add token without address');
     }
     if (!dontShowLoadingIndicator) {
       dispatch(showLoadingIndication());
     }
-    try {
-      await promisifiedBackground.addToken(address, symbol, decimals, image);
-    } catch (error) {
-      log.error(error);
-      dispatch(displayWarning(error.message));
-    } finally {
-      await forceUpdateMetamaskState(dispatch);
-      dispatch(hideLoadingIndication());
-    }
-  };
-}
-
-export function addCollectible(address, tokenID, dontShowLoadingIndicator) {
-  return async (dispatch) => {
-    if (!address) {
-      throw new Error('MetaMask - Cannot add collectible without address');
-    }
-    if (!tokenID) {
-      throw new Error('MetaMask - Cannot add collectible without tokenID');
-    }
-    if (!dontShowLoadingIndicator) {
-      dispatch(showLoadingIndication());
-    }
-    try {
-      await promisifiedBackground.addCollectible(address, tokenID);
-    } catch (error) {
-      log.error(error);
-      dispatch(displayWarning(error.message));
-    } finally {
-      await forceUpdateMetamaskState(dispatch);
-      dispatch(hideLoadingIndication());
-    }
-  };
-}
-
-export function addCollectibleVerifyOwnership(
-  address,
-  tokenID,
-  dontShowLoadingIndicator,
-) {
-  return async (dispatch) => {
-    if (!address) {
-      throw new Error('MetaMask - Cannot add collectible without address');
-    }
-    if (!tokenID) {
-      throw new Error('MetaMask - Cannot add collectible without tokenID');
-    }
-    if (!dontShowLoadingIndicator) {
-      dispatch(showLoadingIndication());
-    }
-    try {
-      await promisifiedBackground.addCollectibleVerifyOwnership(
-        address,
-        tokenID,
-      );
-    } catch (error) {
-      if (
-        error.message.includes('This collectible is not owned by the user') ||
-        error.message.includes('Unable to verify ownership.')
-      ) {
-        throw error;
-      } else {
-        log.error(error);
-        dispatch(displayWarning(error.message));
-      }
-    } finally {
-      await forceUpdateMetamaskState(dispatch);
-      dispatch(hideLoadingIndication());
-    }
-  };
-}
-
-export function removeAndIgnoreCollectible(
-  address,
-  tokenID,
-  dontShowLoadingIndicator,
-) {
-  return async (dispatch) => {
-    if (!address) {
-      throw new Error('MetaMask - Cannot ignore collectible without address');
-    }
-    if (!tokenID) {
-      throw new Error('MetaMask - Cannot ignore collectible without tokenID');
-    }
-    if (!dontShowLoadingIndicator) {
-      dispatch(showLoadingIndication());
-    }
-    try {
-      await promisifiedBackground.removeAndIgnoreCollectible(address, tokenID);
-    } catch (error) {
-      log.error(error);
-      dispatch(displayWarning(error.message));
-    } finally {
-      await forceUpdateMetamaskState(dispatch);
-      dispatch(hideLoadingIndication());
-    }
-  };
-}
-
-export function removeCollectible(address, tokenID, dontShowLoadingIndicator) {
-  return async (dispatch) => {
-    if (!address) {
-      throw new Error('MetaMask - Cannot remove collectible without address');
-    }
-    if (!tokenID) {
-      throw new Error('MetaMask - Cannot remove collectible without tokenID');
-    }
-    if (!dontShowLoadingIndicator) {
-      dispatch(showLoadingIndication());
-    }
-    try {
-      await promisifiedBackground.removeCollectible(address, tokenID);
-    } catch (error) {
-      log.error(error);
-      dispatch(displayWarning(error.message));
-    } finally {
-      await forceUpdateMetamaskState(dispatch);
-      dispatch(hideLoadingIndication());
-    }
+    return new Promise((resolve, reject) => {
+      background.addToken(address, symbol, decimals, image, (err, tokens) => {
+        dispatch(hideLoadingIndication());
+        if (err) {
+          dispatch(displayWarning(err.message));
+          reject(err);
+          return;
+        }
+        dispatch(updateTokens(tokens));
+        resolve(tokens);
+      });
+    });
   };
 }
 
 export function removeToken(address) {
-  return async (dispatch) => {
+  return (dispatch) => {
     dispatch(showLoadingIndication());
-    try {
-      await promisifiedBackground.removeToken(address);
-    } catch (error) {
-      log.error(error);
-      dispatch(displayWarning(error.message));
-    } finally {
-      await forceUpdateMetamaskState(dispatch);
-      dispatch(hideLoadingIndication());
-    }
+    return new Promise((resolve, reject) => {
+      background.removeToken(address, (err, tokens) => {
+        dispatch(hideLoadingIndication());
+        if (err) {
+          dispatch(displayWarning(err.message));
+          reject(err);
+          return;
+        }
+        dispatch(updateTokens(tokens));
+        resolve(tokens);
+      });
+    });
   };
 }
 
@@ -1479,35 +1298,40 @@ export function addTokens(tokens) {
   };
 }
 
-export function rejectWatchAsset(suggestedAssetID) {
-  return async (dispatch) => {
+export function removeSuggestedTokens() {
+  return (dispatch) => {
     dispatch(showLoadingIndication());
-    try {
-      await promisifiedBackground.rejectWatchAsset(suggestedAssetID);
-    } catch (error) {
-      log.error(error);
-      dispatch(displayWarning(error.message));
-      return;
-    } finally {
-      dispatch(hideLoadingIndication());
-    }
-    dispatch(closeCurrentNotificationWindow());
+    return new Promise((resolve) => {
+      background.removeSuggestedTokens((err, suggestedTokens) => {
+        dispatch(hideLoadingIndication());
+        if (err) {
+          dispatch(displayWarning(err.message));
+        }
+        dispatch(clearPendingTokens());
+        if (getEnvironmentType() === ENVIRONMENT_TYPE_NOTIFICATION) {
+          global.platform.closeCurrentWindow();
+          return;
+        }
+        resolve(suggestedTokens);
+      });
+    })
+      .then(() => updateMetamaskStateFromBackground())
+      .then((suggestedTokens) =>
+        dispatch(updateMetamaskState({ ...suggestedTokens })),
+      );
   };
 }
 
-export function acceptWatchAsset(suggestedAssetID) {
-  return async (dispatch) => {
-    dispatch(showLoadingIndication());
-    try {
-      await promisifiedBackground.acceptWatchAsset(suggestedAssetID);
-    } catch (error) {
-      log.error(error);
-      dispatch(displayWarning(error.message));
-      return;
-    } finally {
-      dispatch(hideLoadingIndication());
-    }
-    dispatch(closeCurrentNotificationWindow());
+export function addKnownMethodData(fourBytePrefix, methodData) {
+  return () => {
+    background.addKnownMethodData(fourBytePrefix, methodData);
+  };
+}
+
+export function updateTokens(newTokens) {
+  return {
+    type: actionConstants.UPDATE_TOKENS,
+    newTokens,
   };
 }
 
@@ -1517,11 +1341,7 @@ export function clearPendingTokens() {
   };
 }
 
-export function createCancelTransaction(
-  txId,
-  customGasSettings,
-  newTxMetaProps,
-) {
+export function createCancelTransaction(txId, customGasSettings) {
   log.debug('background.cancelTransaction');
   let newTxId;
 
@@ -1530,7 +1350,6 @@ export function createCancelTransaction(
       background.createCancelTransaction(
         txId,
         customGasSettings,
-        newTxMetaProps,
         (err, newState) => {
           if (err) {
             dispatch(displayWarning(err.message));
@@ -1550,11 +1369,7 @@ export function createCancelTransaction(
   };
 }
 
-export function createSpeedUpTransaction(
-  txId,
-  customGasSettings,
-  newTxMetaProps,
-) {
+export function createSpeedUpTransaction(txId, customGasSettings) {
   log.debug('background.createSpeedUpTransaction');
   let newTx;
 
@@ -1563,7 +1378,6 @@ export function createSpeedUpTransaction(
       background.createSpeedUpTransaction(
         txId,
         customGasSettings,
-        newTxMetaProps,
         (err, newState) => {
           if (err) {
             dispatch(displayWarning(err.message));
@@ -1832,6 +1646,23 @@ export function closeCurrentNotificationWindow() {
   };
 }
 
+export function showSidebar({ transitionName, type, props }) {
+  return {
+    type: actionConstants.SIDEBAR_OPEN,
+    value: {
+      transitionName,
+      type,
+      props,
+    },
+  };
+}
+
+export function hideSidebar() {
+  return {
+    type: actionConstants.SIDEBAR_CLOSE,
+  };
+}
+
 export function showAlert(msg) {
   return {
     type: actionConstants.ALERT_OPEN,
@@ -2093,10 +1924,6 @@ export function setShowFiatConversionOnTestnetsPreference(value) {
   return setPreference('showFiatInTestnets', value);
 }
 
-export function setShowTestNetworks(value) {
-  return setPreference('showTestNetworks', value);
-}
-
 export function setAutoLockTimeLimit(value) {
   return setPreference('autoLockTimeLimit', value);
 }
@@ -2220,37 +2047,11 @@ export function setUsePhishDetect(val) {
   };
 }
 
-export function setUseTokenDetection(val) {
+export function setUseStaticTokenList(val) {
   return (dispatch) => {
     dispatch(showLoadingIndication());
-    log.debug(`background.setUseTokenDetection`);
-    background.setUseTokenDetection(val, (err) => {
-      dispatch(hideLoadingIndication());
-      if (err) {
-        dispatch(displayWarning(err.message));
-      }
-    });
-  };
-}
-
-export function setUseCollectibleDetection(val) {
-  return (dispatch) => {
-    dispatch(showLoadingIndication());
-    log.debug(`background.setUseCollectibleDetection`);
-    background.setUseCollectibleDetection(val, (err) => {
-      dispatch(hideLoadingIndication());
-      if (err) {
-        dispatch(displayWarning(err.message));
-      }
-    });
-  };
-}
-
-export function setAdvancedGasFee(val) {
-  return (dispatch) => {
-    dispatch(showLoadingIndication());
-    log.debug(`background.setAdvancedGasFee`);
-    background.setAdvancedGasFee(val, (err) => {
+    log.debug(`background.setUseStaticTokenList`);
+    background.setUseStaticTokenList(val, (err) => {
       dispatch(hideLoadingIndication());
       if (err) {
         dispatch(displayWarning(err.message));
@@ -2307,11 +2108,7 @@ export function setCurrentLocale(locale, messages) {
 }
 
 export function setPendingTokens(pendingTokens) {
-  const {
-    customToken = {},
-    selectedTokens = {},
-    tokenAddressList = [],
-  } = pendingTokens;
+  const { customToken = {}, selectedTokens = {} } = pendingTokens;
   const { address, symbol, decimals } = customToken;
   const tokens =
     address && symbol && decimals >= 0 <= 36
@@ -2325,8 +2122,8 @@ export function setPendingTokens(pendingTokens) {
       : selectedTokens;
 
   Object.keys(tokens).forEach((tokenAddress) => {
-    tokens[tokenAddress].unlisted = !tokenAddressList.find((addr) =>
-      isEqualCaseInsensitive(addr, tokenAddress),
+    tokens[tokenAddress].unlisted = !LISTED_CONTRACT_ADDRESSES.includes(
+      tokenAddress.toLowerCase(),
     );
   });
 
@@ -2373,13 +2170,6 @@ export function setSwapsTokens(tokens) {
   };
 }
 
-export function clearSwapsQuotes() {
-  return async (dispatch) => {
-    await promisifiedBackground.clearSwapsQuotes();
-    await forceUpdateMetamaskState(dispatch);
-  };
-}
-
 export function resetBackgroundSwapsState() {
   return async (dispatch) => {
     const id = await promisifiedBackground.resetSwapsState();
@@ -2415,28 +2205,11 @@ export function updateCustomSwapsEIP1559GasParams({
   maxPriorityFeePerGas,
 }) {
   return async (dispatch) => {
-    await Promise.all([
-      promisifiedBackground.setSwapsTxGasLimit(gasLimit),
-      promisifiedBackground.setSwapsTxMaxFeePerGas(maxFeePerGas),
-      promisifiedBackground.setSwapsTxMaxFeePriorityPerGas(
-        maxPriorityFeePerGas,
-      ),
-    ]);
-    await forceUpdateMetamaskState(dispatch);
-  };
-}
-
-export function updateSwapsUserFeeLevel(swapsCustomUserFeeLevel) {
-  return async (dispatch) => {
-    await promisifiedBackground.setSwapsUserFeeLevel(swapsCustomUserFeeLevel);
-    await forceUpdateMetamaskState(dispatch);
-  };
-}
-
-export function setSwapsQuotesPollingLimitEnabled(quotesPollingLimitEnabled) {
-  return async (dispatch) => {
-    await promisifiedBackground.setSwapsQuotesPollingLimitEnabled(
-      quotesPollingLimitEnabled,
+    // TODO:Why do we pass true as the 2nd param? It seems the fn only supports gasLimit.
+    await promisifiedBackground.setSwapsTxGasLimit(gasLimit, true);
+    await promisifiedBackground.setSwapsTxMaxFeePerGas(maxFeePerGas);
+    await promisifiedBackground.setSwapsTxMaxFeePriorityPerGas(
+      maxPriorityFeePerGas,
     );
     await forceUpdateMetamaskState(dispatch);
   };
@@ -2565,6 +2338,19 @@ export function removePermissionsFor(domains) {
   };
 }
 
+/**
+ * Clears all permissions for all domains.
+ */
+export function clearPermissions() {
+  return (dispatch) => {
+    background.clearPermissions((err) => {
+      if (err) {
+        dispatch(displayWarning(err.message));
+      }
+    });
+  };
+}
+
 // Pending Approvals
 
 /**
@@ -2625,17 +2411,10 @@ export function setSelectedSettingsRpcUrl(newRpcUrl) {
   };
 }
 
-export function setNewNetworkAdded(newNetworkAdded) {
+export function setNetworksTabAddMode(isInAddMode) {
   return {
-    type: actionConstants.SET_NEW_NETWORK_ADDED,
-    value: newNetworkAdded,
-  };
-}
-
-export function setNewCollectibleAddedMessage(newCollectibleAddedMessage) {
-  return {
-    type: actionConstants.SET_NEW_COLLECTIBLE_ADDED_MESSAGE,
-    value: newCollectibleAddedMessage,
+    type: actionConstants.SET_NETWORKS_TAB_ADD_MODE,
+    value: isInAddMode,
   };
 }
 
@@ -2743,10 +2522,9 @@ export function loadingTokenParamsFinished() {
 
 export function getTokenParams(tokenAddress) {
   return (dispatch, getState) => {
-    const tokenList = getTokenList(getState());
     const existingTokens = getState().metamask.tokens;
-    const existingToken = existingTokens.find(({ address }) =>
-      isEqualCaseInsensitive(tokenAddress, address),
+    const existingToken = existingTokens.find(
+      ({ address }) => tokenAddress === address,
     );
 
     if (existingToken) {
@@ -2759,12 +2537,10 @@ export function getTokenParams(tokenAddress) {
     dispatch(loadingTokenParamsStarted());
     log.debug(`loadingTokenParams`);
 
-    return getSymbolAndDecimals(tokenAddress, tokenList).then(
-      ({ symbol, decimals }) => {
-        dispatch(addToken(tokenAddress, symbol, Number(decimals)));
-        dispatch(loadingTokenParamsFinished());
-      },
-    );
+    return getSymbolAndDecimals(tokenAddress).then(({ symbol, decimals }) => {
+      dispatch(addToken(tokenAddress, symbol, Number(decimals)));
+      dispatch(loadingTokenParamsFinished());
+    });
   };
 }
 
@@ -2948,16 +2724,12 @@ export function getCurrentWindowTab() {
   };
 }
 
-export function setLedgerTransportPreference(value) {
+export function setLedgerLivePreference(value) {
   return async (dispatch) => {
     dispatch(showLoadingIndication());
-    await promisifiedBackground.setLedgerTransportPreference(value);
+    await promisifiedBackground.setLedgerLivePreference(value);
     dispatch(hideLoadingIndication());
   };
-}
-
-export async function attemptLedgerTransportCreation() {
-  return await promisifiedBackground.attemptLedgerTransportCreation();
 }
 
 export function captureSingleException(error) {
@@ -3018,27 +2790,6 @@ export function disconnectGasFeeEstimatePoller(pollToken) {
   return promisifiedBackground.disconnectGasFeeEstimatePoller(pollToken);
 }
 
-export async function addPollingTokenToAppState(pollingToken) {
-  return promisifiedBackground.addPollingTokenToAppState(
-    pollingToken,
-    POLLING_TOKEN_ENVIRONMENT_TYPES[getEnvironmentType()],
-  );
-}
-
-export async function removePollingTokenFromAppState(pollingToken) {
-  return promisifiedBackground.removePollingTokenFromAppState(
-    pollingToken,
-    POLLING_TOKEN_ENVIRONMENT_TYPES[getEnvironmentType()],
-  );
-}
-
-export function getGasFeeTimeEstimate(maxPriorityFeePerGas, maxFeePerGas) {
-  return promisifiedBackground.getGasFeeTimeEstimate(
-    maxPriorityFeePerGas,
-    maxFeePerGas,
-  );
-}
-
 // MetaMetrics
 /**
  * @typedef {import('../../shared/constants/metametrics').MetaMetricsEventPayload} MetaMetricsEventPayload
@@ -3081,40 +2832,4 @@ export async function setUnconnectedAccountAlertShown(origin) {
 
 export async function setWeb3ShimUsageAlertDismissed(origin) {
   await promisifiedBackground.setWeb3ShimUsageAlertDismissed(origin);
-}
-
-// DetectTokenController
-export async function detectNewTokens() {
-  return promisifiedBackground.detectNewTokens();
-}
-
-export function hideTestNetMessage() {
-  return promisifiedBackground.setShowTestnetMessageInDropdown(false);
-}
-
-// QR Hardware Wallets
-export async function submitQRHardwareCryptoHDKey(cbor) {
-  await promisifiedBackground.submitQRHardwareCryptoHDKey(cbor);
-}
-
-export async function submitQRHardwareCryptoAccount(cbor) {
-  await promisifiedBackground.submitQRHardwareCryptoAccount(cbor);
-}
-
-export function cancelSyncQRHardware() {
-  return async (dispatch) => {
-    dispatch(hideLoadingIndication());
-    await promisifiedBackground.cancelSyncQRHardware();
-  };
-}
-
-export async function submitQRHardwareSignature(requestId, cbor) {
-  await promisifiedBackground.submitQRHardwareSignature(requestId, cbor);
-}
-
-export function cancelQRHardwareSignRequest() {
-  return async (dispatch) => {
-    dispatch(hideLoadingIndication());
-    await promisifiedBackground.cancelQRHardwareSignRequest();
-  };
 }

@@ -4,25 +4,30 @@ import BigNumber from 'bignumber.js';
 import { ObservableStore } from '@metamask/obs-store';
 import { mapValues, cloneDeep } from 'lodash';
 import abi from 'human-standard-token-abi';
-import { calcTokenAmount } from '../../../ui/app/helpers/utils/token-util';
-import { calcGasTotal } from '../../../ui/app/pages/send/send.utils';
-import { conversionUtil } from '../../../ui/app/helpers/utils/conversion-util';
+import { calcTokenAmount } from '../../../ui/helpers/utils/token-util';
+import { calcGasTotal } from '../../../ui/pages/send/send.utils';
+import {
+  conversionUtil,
+  decGWEIToHexWEI,
+  addCurrencies,
+} from '../../../shared/modules/conversion.utils';
 import {
   DEFAULT_ERC20_APPROVE_GAS,
   QUOTES_EXPIRED_ERROR,
   QUOTES_NOT_AVAILABLE_ERROR,
   SWAPS_FETCH_ORDER_CONFLICT,
+  SWAPS_CHAINID_CONTRACT_ADDRESS_MAP,
 } from '../../../shared/constants/swaps';
+import { GAS_ESTIMATE_TYPES } from '../../../shared/constants/gas';
+
 import { isSwapsDefaultTokenAddress } from '../../../shared/modules/swaps.utils';
 
 import {
   fetchTradesInfo as defaultFetchTradesInfo,
-  fetchSwapsFeatureLiveness as defaultFetchSwapsFeatureLiveness,
   fetchSwapsQuoteRefreshTime as defaultFetchSwapsQuoteRefreshTime,
-} from '../../../ui/app/pages/swaps/swaps.util';
+} from '../../../ui/pages/swaps/swaps.util';
+import { MINUTE, SECOND } from '../../../shared/constants/time';
 import { NETWORK_EVENTS } from './network';
-
-const METASWAP_ADDRESS = '0x881d40237659c251811cec9c364ef91dc08d300c';
 
 // The MAX_GAS_LIMIT is a number that is higher than the maximum gas costs we have observed on any aggregator
 const MAX_GAS_LIMIT = 2500000;
@@ -33,11 +38,11 @@ const POLL_COUNT_LIMIT = 3;
 
 // If for any reason the MetaSwap API fails to provide a refresh time,
 // provide a reasonable fallback to avoid further errors
-const FALLBACK_QUOTE_REFRESH_TIME = 60000;
+const FALLBACK_QUOTE_REFRESH_TIME = MINUTE;
 
 // This is the amount of time to wait, after successfully fetching quotes
 // and their gas estimates, before fetching for new quotes
-const QUOTE_POLLING_DIFFERENCE_INTERVAL = 10 * 1000;
+const QUOTE_POLLING_DIFFERENCE_INTERVAL = SECOND * 10;
 
 function calculateGasEstimateWithRefund(
   maxGas = MAX_GAS_LIMIT,
@@ -66,12 +71,15 @@ const initialState = {
     quotesLastFetched: null,
     customMaxGas: '',
     customGasPrice: null,
+    customMaxFeePerGas: null,
+    customMaxPriorityFeePerGas: null,
     selectedAggId: null,
     customApproveTxData: '',
     errorKey: '',
     topAggId: null,
     routeState: '',
-    swapsFeatureIsLive: false,
+    swapsFeatureIsLive: true,
+    useNewSwapsApi: false,
     swapsQuoteRefreshTime: FALLBACK_QUOTE_REFRESH_TIME,
   },
 };
@@ -84,18 +92,18 @@ export default class SwapsController {
     getProviderConfig,
     tokenRatesStore,
     fetchTradesInfo = defaultFetchTradesInfo,
-    fetchSwapsFeatureLiveness = defaultFetchSwapsFeatureLiveness,
     fetchSwapsQuoteRefreshTime = defaultFetchSwapsQuoteRefreshTime,
     getCurrentChainId,
+    getEIP1559GasFeeEstimates,
   }) {
     this.store = new ObservableStore({
       swapsState: { ...initialState.swapsState },
     });
 
     this._fetchTradesInfo = fetchTradesInfo;
-    this._fetchSwapsFeatureLiveness = fetchSwapsFeatureLiveness;
     this._fetchSwapsQuoteRefreshTime = fetchSwapsQuoteRefreshTime;
     this._getCurrentChainId = getCurrentChainId;
+    this._getEIP1559GasFeeEstimates = getEIP1559GasFeeEstimates;
 
     this.getBufferedGasLimit = getBufferedGasLimit;
     this.tokenRatesStore = tokenRatesStore;
@@ -113,24 +121,28 @@ export default class SwapsController {
         this.ethersProvider = new ethers.providers.Web3Provider(provider);
       }
     });
-
-    this._setupSwapsLivenessFetching();
   }
 
   // Sets the refresh rate for quote updates from the MetaSwap API
   async _setSwapsQuoteRefreshTime() {
     const chainId = this._getCurrentChainId();
+    const { swapsState } = this.store.getState();
+
     // Default to fallback time unless API returns valid response
     let swapsQuoteRefreshTime = FALLBACK_QUOTE_REFRESH_TIME;
     try {
-      swapsQuoteRefreshTime = await this._fetchSwapsQuoteRefreshTime(chainId);
+      swapsQuoteRefreshTime = await this._fetchSwapsQuoteRefreshTime(
+        chainId,
+        swapsState.useNewSwapsApi,
+      );
     } catch (e) {
       console.error('Request for swaps quote refresh time failed: ', e);
     }
 
-    const { swapsState } = this.store.getState();
+    const { swapsState: latestSwapsState } = this.store.getState();
+
     this.store.updateState({
-      swapsState: { ...swapsState, swapsQuoteRefreshTime },
+      swapsState: { ...latestSwapsState, swapsQuoteRefreshTime },
     });
   }
 
@@ -163,6 +175,9 @@ export default class SwapsController {
     isPolledRequest,
   ) {
     const { chainId } = fetchParamsMetaData;
+    const {
+      swapsState: { useNewSwapsApi },
+    } = this.store.getState();
 
     if (!fetchParams) {
       return null;
@@ -183,7 +198,10 @@ export default class SwapsController {
     this.indexOfNewestCallInFlight = indexOfCurrentCall;
 
     let [newQuotes] = await Promise.all([
-      this._fetchTradesInfo(fetchParams, fetchParamsMetaData),
+      this._fetchTradesInfo(fetchParams, {
+        ...fetchParamsMetaData,
+        useNewSwapsApi,
+      }),
       this._setSwapsQuoteRefreshTime(),
     ]);
 
@@ -203,6 +221,7 @@ export default class SwapsController {
       const allowance = await this._getERC20Allowance(
         fetchParams.sourceToken,
         fetchParams.fromAddress,
+        chainId,
       );
 
       // For a user to be able to swap a token, they need to have approved the MetaSwap contract to withdraw that token.
@@ -348,7 +367,7 @@ export default class SwapsController {
       const gasTimeout = setTimeout(() => {
         gasTimedOut = true;
         resolve({ gasLimit: null, simulationFails: true });
-      }, 5000);
+      }, SECOND * 5);
 
       // Remove gas from params that will be passed to the `estimateGas` call
       // Including it can cause the estimate to fail if the actual gas needed
@@ -430,6 +449,23 @@ export default class SwapsController {
     });
   }
 
+  setSwapsTxMaxFeePerGas(maxFeePerGas) {
+    const { swapsState } = this.store.getState();
+    this.store.updateState({
+      swapsState: { ...swapsState, customMaxFeePerGas: maxFeePerGas },
+    });
+  }
+
+  setSwapsTxMaxFeePriorityPerGas(maxPriorityFeePerGas) {
+    const { swapsState } = this.store.getState();
+    this.store.updateState({
+      swapsState: {
+        ...swapsState,
+        customMaxPriorityFeePerGas: maxPriorityFeePerGas,
+      },
+    });
+  }
+
   setSwapsTxGasLimit(gasLimit) {
     const { swapsState } = this.store.getState();
     this.store.updateState({
@@ -449,22 +485,23 @@ export default class SwapsController {
     this.store.updateState({ swapsState: { ...swapsState, routeState } });
   }
 
-  setSwapsLiveness(swapsFeatureIsLive) {
+  setSwapsLiveness(swapsLiveness) {
     const { swapsState } = this.store.getState();
+    const { swapsFeatureIsLive, useNewSwapsApi } = swapsLiveness;
     this.store.updateState({
-      swapsState: { ...swapsState, swapsFeatureIsLive },
+      swapsState: { ...swapsState, swapsFeatureIsLive, useNewSwapsApi },
     });
   }
 
   resetPostFetchState() {
     const { swapsState } = this.store.getState();
-
     this.store.updateState({
       swapsState: {
         ...initialState.swapsState,
         tokens: swapsState.tokens,
         fetchParams: swapsState.fetchParams,
         swapsFeatureIsLive: swapsState.swapsFeatureIsLive,
+        useNewSwapsApi: swapsState.useNewSwapsApi,
         swapsQuoteRefreshTime: swapsState.swapsQuoteRefreshTime,
       },
     });
@@ -473,28 +510,21 @@ export default class SwapsController {
 
   resetSwapsState() {
     const { swapsState } = this.store.getState();
-
     this.store.updateState({
       swapsState: {
         ...initialState.swapsState,
         tokens: swapsState.tokens,
-        swapsFeatureIsLive: swapsState.swapsFeatureIsLive,
         swapsQuoteRefreshTime: swapsState.swapsQuoteRefreshTime,
       },
     });
     clearTimeout(this.pollingTimeout);
   }
 
-  async _getEthersGasPrice() {
-    const ethersGasPrice = await this.ethersProvider.getGasPrice();
-    return ethersGasPrice.toHexString();
-  }
-
   async _findTopQuoteAndCalculateSavings(quotes = {}) {
     const tokenConversionRates = this.tokenRatesStore.getState()
       .contractExchangeRates;
     const {
-      swapsState: { customGasPrice },
+      swapsState: { customGasPrice, customMaxPriorityFeePerGas },
     } = this.store.getState();
     const chainId = this._getCurrentChainId();
 
@@ -505,7 +535,38 @@ export default class SwapsController {
 
     const newQuotes = cloneDeep(quotes);
 
-    const usedGasPrice = customGasPrice || (await this._getEthersGasPrice());
+    const {
+      gasFeeEstimates,
+      gasEstimateType,
+    } = await this._getEIP1559GasFeeEstimates();
+
+    let usedGasPrice;
+
+    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+      const {
+        high: { suggestedMaxPriorityFeePerGas },
+        estimatedBaseFee,
+      } = gasFeeEstimates;
+
+      usedGasPrice = addCurrencies(
+        customMaxPriorityFeePerGas || // Is already in hex WEI.
+          decGWEIToHexWEI(suggestedMaxPriorityFeePerGas),
+        decGWEIToHexWEI(estimatedBaseFee),
+        {
+          aBase: 16,
+          bBase: 16,
+          toNumericBase: 'hex',
+          numberOfDecimals: 6,
+        },
+      );
+    } else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
+      usedGasPrice = customGasPrice || decGWEIToHexWEI(gasFeeEstimates.high);
+    } else if (gasEstimateType === GAS_ESTIMATE_TYPES.ETH_GASPRICE) {
+      usedGasPrice =
+        customGasPrice || decGWEIToHexWEI(gasFeeEstimates.gasPrice);
+    } else {
+      usedGasPrice = '0x0';
+    }
 
     let topAggId = null;
     let overallValueOfBestQuoteForSorting = null;
@@ -675,106 +736,16 @@ export default class SwapsController {
     return [topAggId, newQuotes];
   }
 
-  async _getERC20Allowance(contractAddress, walletAddress) {
+  async _getERC20Allowance(contractAddress, walletAddress, chainId) {
     const contract = new ethers.Contract(
       contractAddress,
       abi,
       this.ethersProvider,
     );
-    return await contract.allowance(walletAddress, METASWAP_ADDRESS);
-  }
-
-  /**
-   * Sets up the fetching of the swaps feature liveness flag from our API.
-   * Performs an initial fetch when called, then fetches on a 10-minute
-   * interval.
-   *
-   * If the browser goes offline, the interval is cleared and swaps are disabled
-   * until the value can be fetched again.
-   */
-  _setupSwapsLivenessFetching() {
-    const TEN_MINUTES_MS = 10 * 60 * 1000;
-    let intervalId = null;
-
-    const fetchAndSetupInterval = () => {
-      if (window.navigator.onLine && intervalId === null) {
-        // Set the interval first to prevent race condition between listener and
-        // initial call to this function.
-        intervalId = setInterval(
-          this._fetchAndSetSwapsLiveness.bind(this),
-          TEN_MINUTES_MS,
-        );
-        this._fetchAndSetSwapsLiveness();
-      }
-    };
-
-    window.addEventListener('online', fetchAndSetupInterval);
-    window.addEventListener('offline', () => {
-      if (intervalId !== null) {
-        clearInterval(intervalId);
-        intervalId = null;
-
-        const { swapsState } = this.store.getState();
-        if (swapsState.swapsFeatureIsLive) {
-          this.setSwapsLiveness(false);
-        }
-      }
-    });
-
-    fetchAndSetupInterval();
-  }
-
-  /**
-   * This function should only be called via _setupSwapsLivenessFetching.
-   *
-   * Attempts to fetch the swaps feature liveness flag from our API. Tries
-   * to fetch three times at 5-second intervals before giving up, in which
-   * case the value defaults to 'false'.
-   *
-   * Only updates state if the fetched/computed flag value differs from current
-   * state.
-   */
-  async _fetchAndSetSwapsLiveness() {
-    const { swapsState } = this.store.getState();
-    const { swapsFeatureIsLive: oldSwapsFeatureIsLive } = swapsState;
-    const chainId = this._getCurrentChainId();
-
-    let swapsFeatureIsLive = false;
-    let successfullyFetched = false;
-    let numAttempts = 0;
-
-    const fetchAndIncrementNumAttempts = async () => {
-      try {
-        swapsFeatureIsLive = Boolean(
-          await this._fetchSwapsFeatureLiveness(chainId),
-        );
-        successfullyFetched = true;
-      } catch (err) {
-        log.error(err);
-        numAttempts += 1;
-      }
-    };
-
-    await fetchAndIncrementNumAttempts();
-
-    // The loop conditions are modified by fetchAndIncrementNumAttempts.
-    // eslint-disable-next-line no-unmodified-loop-condition
-    while (!successfullyFetched && numAttempts < 3) {
-      await new Promise((resolve) => {
-        setTimeout(resolve, 5000); // 5 seconds
-      });
-      await fetchAndIncrementNumAttempts();
-    }
-
-    if (!successfullyFetched) {
-      log.error(
-        'Failed to fetch swaps feature flag 3 times. Setting to false and trying again next interval.',
-      );
-    }
-
-    if (swapsFeatureIsLive !== oldSwapsFeatureIsLive) {
-      this.setSwapsLiveness(swapsFeatureIsLive);
-    }
+    return await contract.allowance(
+      walletAddress,
+      SWAPS_CHAINID_CONTRACT_ADDRESS_MAP[chainId],
+    );
   }
 }
 
