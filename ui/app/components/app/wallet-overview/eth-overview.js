@@ -27,7 +27,6 @@ import {
   getCurrentKeyring,
   getSwapsDefaultToken,
   getIsSwapsChain,
-  getNativeCurrencyImage,
 } from '../../../selectors/selectors';
 import SwapIcon from '../../ui/icon/swap-icon.component';
 import BuyIcon from '../../ui/icon/overview-buy-icon.component';
@@ -66,8 +65,6 @@ const EthOverview = ({ className }) => {
   const isMainnetChain = useSelector(getIsMainnet);
   const isTestnetChain = useSelector(getIsTestnet);
   const isSwapsChain = useSelector(getIsSwapsChain);
-  const primaryTokenImage = useSelector(getNativeCurrencyImage);
-
   const enteredSwapsEvent = useNewMetricEvent({
     event: 'Swaps Opened',
     properties: { source: 'Main View', active_currency: 'ETH' },
@@ -169,7 +166,7 @@ const EthOverview = ({ className }) => {
         </>
       }
       className={className}
-      icon={<Identicon diameter={32} image={primaryTokenImage} imageBorder />}
+      icon={<Identicon diameter={32} />}
     />
   );
 };

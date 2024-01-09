@@ -106,27 +106,27 @@ export default function Swap() {
 
   const { destinationTokenAddedForSwap } = fetchParams || {};
 
-  const approvalTxMeta =
+  const approveTxData =
     approveTxId && txList.find(({ id }) => approveTxId === id);
-  const txMeta = tradeTxId && txList.find(({ id }) => tradeTxId === id);
+  const tradeTxData = tradeTxId && txList.find(({ id }) => tradeTxId === id);
   const tokensReceived =
-    txMeta?.txReceipt &&
-    getSwapsTokensReceivedFromTxMeta({
-      tokenSymbol: destinationTokenInfo?.symbol,
-      txMeta,
-      tokenAddress: destinationTokenInfo?.address,
-      accountAddress: selectedAccountAddress,
-      tokenDecimals: destinationTokenInfo?.decimals,
-      approvalTxMeta,
+    tradeTxData?.txReceipt &&
+    getSwapsTokensReceivedFromTxMeta(
+      destinationTokenInfo?.symbol,
+      tradeTxData,
+      destinationTokenInfo?.address,
+      selectedAccountAddress,
+      destinationTokenInfo?.decimals,
+      approveTxData,
       chainId,
-    });
-  const tradeConfirmed = txMeta?.status === TRANSACTION_STATUSES.CONFIRMED;
+    );
+  const tradeConfirmed = tradeTxData?.status === TRANSACTION_STATUSES.CONFIRMED;
   const approveError =
-    approvalTxMeta?.status === TRANSACTION_STATUSES.FAILED ||
-    approvalTxMeta?.txReceipt?.status === '0x0';
+    approveTxData?.status === TRANSACTION_STATUSES.FAILED ||
+    approveTxData?.txReceipt?.status === '0x0';
   const tradeError =
-    txMeta?.status === TRANSACTION_STATUSES.FAILED ||
-    txMeta?.txReceipt?.status === '0x0';
+    tradeTxData?.status === TRANSACTION_STATUSES.FAILED ||
+    tradeTxData?.txReceipt?.status === '0x0';
   const conversionError = approveError || tradeError;
 
   if (conversionError) {
@@ -258,9 +258,9 @@ export default function Swap() {
               path={BUILD_QUOTE_ROUTE}
               exact
               render={() => {
-                if (txMeta && !conversionError) {
+                if (tradeTxData && !conversionError) {
                   return <Redirect to={{ pathname: AWAITING_SWAP_ROUTE }} />;
-                } else if (txMeta) {
+                } else if (tradeTxData) {
                   return <Redirect to={{ pathname: SWAPS_ERROR_ROUTE }} />;
                 } else if (routeState === 'loading' && aggregatorMetadata) {
                   return <Redirect to={{ pathname: LOADING_QUOTES_ROUTE }} />;
@@ -312,10 +312,10 @@ export default function Swap() {
                     <AwaitingSwap
                       swapComplete={false}
                       errorKey={swapsErrorKey}
-                      txHash={txMeta?.hash}
+                      txHash={tradeTxData?.hash}
                       inputValue={inputValue}
                       maxSlippage={maxSlippage}
-                      submittedTime={txMeta?.submittedTime}
+                      submittedTime={tradeTxData?.submittedTime}
                     />
                   );
                 }
@@ -368,10 +368,10 @@ export default function Swap() {
               path={AWAITING_SWAP_ROUTE}
               exact
               render={() => {
-                return routeState === 'awaiting' || txMeta ? (
+                return routeState === 'awaiting' || tradeTxData ? (
                   <AwaitingSwap
                     swapComplete={tradeConfirmed}
-                    txHash={txMeta?.hash}
+                    txHash={tradeTxData?.hash}
                     tokensReceived={tokensReceived}
                     submittingSwap={
                       routeState === 'awaiting' && !(approveTxId || tradeTxId)
