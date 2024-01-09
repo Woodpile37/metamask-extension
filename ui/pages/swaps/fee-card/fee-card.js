@@ -1,20 +1,25 @@
 import React, { useContext } from 'react';
-import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { I18nContext } from '../../../contexts/i18n';
 import InfoTooltip from '../../../components/ui/info-tooltip';
-import { CHAIN_IDS } from '../../../../shared/constants/network';
+import { useNewMetricEvent } from '../../../hooks/useMetricEvent';
+import {
+  MAINNET_CHAIN_ID,
+  BSC_CHAIN_ID,
+  LOCALHOST_CHAIN_ID,
+  POLYGON_CHAIN_ID,
+  RINKEBY_CHAIN_ID,
+  AVALANCHE_CHAIN_ID,
+} from '../../../../shared/constants/network';
 import TransactionDetail from '../../../components/app/transaction-detail/transaction-detail.component';
 import TransactionDetailItem from '../../../components/app/transaction-detail-item/transaction-detail-item.component';
+import Typography from '../../../components/ui/typography';
 import {
-  TextColor,
-  TextVariant,
-  FontWeight,
+  COLORS,
+  TYPOGRAPHY,
+  FONT_WEIGHT,
 } from '../../../helpers/constants/design-system';
-import { MetaMetricsContext } from '../../../contexts/metametrics';
-import { MetaMetricsEventCategory } from '../../../../shared/constants/metametrics';
-import { getUseCurrencyRateCheck } from '../../../selectors';
-import { Text } from '../../../components/component-library';
+import GasDetailsItemTitle from '../../../components/app/gas-details-item/gas-details-item-title';
 
 const GAS_FEES_LEARN_MORE_URL =
   'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172';
@@ -23,44 +28,43 @@ export default function FeeCard({
   primaryFee,
   secondaryFee,
   hideTokenApprovalRow,
+  onFeeCardMaxRowClick,
   tokenApprovalSourceTokenSymbol,
   onTokenApprovalClick,
   metaMaskFee,
   numberOfQuotes,
   onQuotesClick,
   chainId,
+  smartTransactionsOptInStatus,
+  smartTransactionsEnabled,
+  isBestQuote,
+  supportsEIP1559V2 = false,
 }) {
   const t = useContext(I18nContext);
-  const useCurrencyRateCheck = useSelector(getUseCurrencyRateCheck);
 
-  /* istanbul ignore next */
   const getTranslatedNetworkName = () => {
     switch (chainId) {
-      case CHAIN_IDS.MAINNET:
+      case MAINNET_CHAIN_ID:
         return t('networkNameEthereum');
-      case CHAIN_IDS.BSC:
+      case BSC_CHAIN_ID:
         return t('networkNameBSC');
-      case CHAIN_IDS.POLYGON:
+      case POLYGON_CHAIN_ID:
         return t('networkNamePolygon');
-      case CHAIN_IDS.LOCALHOST:
+      case LOCALHOST_CHAIN_ID:
         return t('networkNameTestnet');
-      case CHAIN_IDS.GOERLI:
-        return t('networkNameGoerli');
-      case CHAIN_IDS.AVALANCHE:
+      case RINKEBY_CHAIN_ID:
+        return t('networkNameRinkeby');
+      case AVALANCHE_CHAIN_ID:
         return t('networkNameAvalanche');
-      case CHAIN_IDS.OPTIMISM:
-        return t('networkNameOpMainnet');
-      case CHAIN_IDS.ARBITRUM:
-        return t('networkNameArbitrum');
-      case CHAIN_IDS.ZKSYNC_ERA:
-        return t('networkNameZkSyncEra');
-      case CHAIN_IDS.LINEA_MAINNET:
-        return t('networkNameLinea');
       default:
         throw new Error('This network is not supported for token swaps');
     }
   };
-  const trackEvent = useContext(MetaMetricsContext);
+
+  const gasFeesLearnMoreLinkClickedEvent = useNewMetricEvent({
+    category: 'Swaps',
+    event: 'Clicked "Gas Fees: Learn More" Link',
+  });
 
   const tokenApprovalTextComponent = (
     <span key="fee-card-approve-symbol" className="fee-card__bold">
@@ -72,68 +76,79 @@ export default function FeeCard({
     <div className="fee-card">
       <div className="fee-card__main">
         <TransactionDetail
-          disableEditGasFeeButton
+          disableEditGasFeeButton={
+            smartTransactionsEnabled && smartTransactionsOptInStatus
+          }
           rows={[
             <TransactionDetailItem
-              key="fee-card-gas-item"
+              key="gas-item"
               detailTitle={
-                <>
-                  {t('transactionDetailGasHeading')}
-                  <InfoTooltip
-                    position="top"
-                    contentText={
-                      <>
-                        <p className="fee-card__info-tooltip-paragraph">
-                          {t('swapGasFeesSummary', [
-                            getTranslatedNetworkName(),
-                          ])}
-                        </p>
-                        <p className="fee-card__info-tooltip-paragraph">
-                          {t('swapGasFeesDetails')}
-                        </p>
-                        <p className="fee-card__info-tooltip-paragraph">
-                          <a
-                            className="fee-card__link"
-                            onClick={() => {
-                              /* istanbul ignore next */
-                              trackEvent({
-                                event: 'Clicked "Gas Fees: Learn More" Link',
-                                category: MetaMetricsEventCategory.Swaps,
-                              });
-                              global.platform.openTab({
-                                url: GAS_FEES_LEARN_MORE_URL,
-                              });
-                            }}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {t('swapGasFeesLearnMore')}
-                          </a>
-                        </p>
-                      </>
-                    }
-                    containerClassName="fee-card__info-tooltip-content-container"
-                    wrapperClassName="fee-card__row-label fee-card__info-tooltip-container"
-                  />
-                </>
+                supportsEIP1559V2 &&
+                (!smartTransactionsEnabled || !smartTransactionsOptInStatus) ? (
+                  <GasDetailsItemTitle />
+                ) : (
+                  <>
+                    {t('transactionDetailGasHeading')}
+                    <InfoTooltip
+                      position="top"
+                      contentText={
+                        <>
+                          <p className="fee-card__info-tooltip-paragraph">
+                            {t('swapGasFeesSummary', [
+                              getTranslatedNetworkName(),
+                            ])}
+                          </p>
+                          <p className="fee-card__info-tooltip-paragraph">
+                            {t('swapGasFeesDetails')}
+                          </p>
+                          <p className="fee-card__info-tooltip-paragraph">
+                            <a
+                              className="fee-card__link"
+                              onClick={() => {
+                                gasFeesLearnMoreLinkClickedEvent();
+                                global.platform.openTab({
+                                  url: GAS_FEES_LEARN_MORE_URL,
+                                });
+                              }}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {t('swapGasFeesLearnMore')}
+                            </a>
+                          </p>
+                        </>
+                      }
+                      containerClassName="fee-card__info-tooltip-content-container"
+                      wrapperClassName="fee-card__row-label fee-card__info-tooltip-container"
+                      wide
+                    />
+                  </>
+                )
               }
               detailText={primaryFee.fee}
-              detailTotal={useCurrencyRateCheck && secondaryFee.fee}
+              detailTotal={secondaryFee.fee}
               subText={
-                (secondaryFee?.maxFee !== undefined ||
-                  primaryFee?.maxFee !== undefined) && (
+                secondaryFee?.maxFee !== undefined && (
                   <>
-                    <Text
-                      as="span"
-                      fontWeight={FontWeight.Bold}
-                      color={TextColor.textAlternative}
-                      variant={TextVariant.bodySm}
+                    <Typography
+                      tag="span"
+                      fontWeight={FONT_WEIGHT.BOLD}
+                      color={COLORS.TEXT_ALTERNATIVE}
+                      variant={TYPOGRAPHY.H7}
                     >
                       {t('maxFee')}
-                    </Text>
-                    {useCurrencyRateCheck
-                      ? `: ${secondaryFee.maxFee}`
-                      : `: ${primaryFee.maxFee}`}
+                    </Typography>
+                    {`: ${secondaryFee.maxFee}`}
+                    {!supportsEIP1559V2 &&
+                      (!smartTransactionsEnabled ||
+                        !smartTransactionsOptInStatus) && (
+                        <span
+                          className="fee-card__edit-link"
+                          onClick={() => onFeeCardMaxRowClick()}
+                        >
+                          {t('edit')}
+                        </span>
+                      )}
                   </>
                 )
               }
@@ -170,7 +185,9 @@ export default function FeeCard({
                   onClick={onQuotesClick}
                   className="fee-card__quote-link-text"
                 >
-                  {t('swapNQuotesWithDot', [numberOfQuotes])}
+                  {isBestQuote
+                    ? t('swapBestOfNQuotes', [numberOfQuotes])
+                    : t('swapNQuotesWithDot', [numberOfQuotes])}
                 </span>
               )}
               {t('swapIncludesMMFee', [metaMaskFee])}
@@ -196,6 +213,7 @@ FeeCard.propTypes = {
     fee: PropTypes.string.isRequired,
     maxFee: PropTypes.string.isRequired,
   }),
+  onFeeCardMaxRowClick: PropTypes.func.isRequired,
   hideTokenApprovalRow: PropTypes.bool.isRequired,
   tokenApprovalSourceTokenSymbol: PropTypes.string,
   onTokenApprovalClick: PropTypes.func,
@@ -203,4 +221,8 @@ FeeCard.propTypes = {
   onQuotesClick: PropTypes.func.isRequired,
   numberOfQuotes: PropTypes.number.isRequired,
   chainId: PropTypes.string.isRequired,
+  smartTransactionsOptInStatus: PropTypes.bool,
+  smartTransactionsEnabled: PropTypes.bool,
+  isBestQuote: PropTypes.bool.isRequired,
+  supportsEIP1559V2: PropTypes.bool,
 };
