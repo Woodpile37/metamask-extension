@@ -1,16 +1,7 @@
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { withRouter } from 'react-router-dom';
-import {
-  TransactionStatus,
-  TransactionType,
-} from '@metamask/transaction-controller';
-///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-import { showCustodianDeepLink } from '@metamask-institutional/extension';
-import { mmiActionsFactory } from '../../store/institutional/institution-background';
-import { CHAIN_ID_TO_RPC_URL_MAP } from '../../../shared/constants/network';
-
-///: END:ONLY_INCLUDE_IF
+import contractMap from '@metamask/contract-metadata';
 import { clearConfirmTransaction } from '../../ducks/confirm-transaction/confirm-transaction.duck';
 
 import {
@@ -22,10 +13,8 @@ import {
   getNextNonce,
   tryReverseResolveAddress,
   setDefaultHomeActiveTabName,
-  addToAddressBook,
-  updateTransaction,
 } from '../../store/actions';
-import { isBalanceSufficient } from '../send/send.utils';
+import { isBalanceSufficient, calcGasTotal } from '../send/send.utils';
 import { shortenAddress, valuesFor } from '../../helpers/utils/util';
 import {
   getAdvancedInlineGasShown,
@@ -39,60 +28,19 @@ import {
   getIsEthGasPriceFetched,
   getShouldShowFiat,
   checkNetworkAndAccountSupports1559,
-  getPreferences,
-  doesAddressRequireLedgerHidConnection,
-  getTokenList,
-  getIsMultiLayerFeeNetwork,
-  getIsBuyableChain,
-  getEnsResolutionByAddress,
-  getUnapprovedTransaction,
-  getFullTxData,
-  getUseCurrencyRateCheck,
-  getUnapprovedTransactions,
 } from '../../selectors';
 import { getMostRecentOverviewPage } from '../../ducks/history/history';
-import {
-  isAddressLedger,
-  updateGasFees,
-  getIsGasEstimatesLoading,
-  getNativeCurrency,
-  getSendToAccounts,
-  getProviderConfig,
-  findKeyringForAddress,
-  getConversionRate,
-} from '../../ducks/metamask/metamask';
-import {
-  addHexPrefix,
-  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-  getEnvironmentType,
-  ///: END:ONLY_INCLUDE_IF
-} from '../../../app/scripts/lib/util';
-
-import {
-  parseStandardTokenTransactionData,
-  txParamsAreDappSuggested,
-} from '../../../shared/modules/transaction.utils';
-import {
-  isEmptyHexString,
-  toChecksumHexAddress,
-} from '../../../shared/modules/hexstring-utils';
-
-import { getGasLoadingAnimationIsShowing } from '../../ducks/app/app';
-import { isLegacyTransaction } from '../../helpers/utils/transactions.util';
-import { CUSTOM_GAS_ESTIMATE } from '../../../shared/constants/gas';
-
-///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-import { getAccountType } from '../../selectors/selectors';
-import { ENVIRONMENT_TYPE_NOTIFICATION } from '../../../shared/constants/app';
-import {
-  getIsNoteToTraderSupported,
-  getIsCustodianPublishesTransactionSupported,
-} from '../../selectors/institutional/selectors';
-import { showCustodyConfirmLink } from '../../store/institutional/institution-actions';
-///: END:ONLY_INCLUDE_IF
-import { getTokenAddressParam } from '../../helpers/utils/token-util';
-import { calcGasTotal } from '../../../shared/lib/transactions-controller-utils';
+import { transactionMatchesNetwork } from '../../../shared/modules/transaction.utils';
+import { toChecksumHexAddress } from '../../../shared/modules/hexstring-utils';
+import { updateTransactionGasFees } from '../../ducks/metamask/metamask';
 import ConfirmTransactionBase from './confirm-transaction-base.component';
+
+const casedContractMap = Object.keys(contractMap).reduce((acc, base) => {
+  return {
+    ...acc,
+    [base.toLowerCase()]: contractMap[base],
+  };
+}, {});
 
 let customNonceValue = '';
 const customNonceMerge = (txData) =>
@@ -103,14 +51,6 @@ const customNonceMerge = (txData) =>
       }
     : txData;
 
-function addressIsNew(toAccounts, newAddress) {
-  const newAddressNormalized = newAddress.toLowerCase();
-  const foundMatching = toAccounts.some(
-    ({ address }) => address.toLowerCase() === newAddressNormalized,
-  );
-  return !foundMatching;
-}
-
 const mapStateToProps = (state, ownProps) => {
   const {
     toAddress: propsToAddress,
@@ -119,24 +59,25 @@ const mapStateToProps = (state, ownProps) => {
   } = ownProps;
   const { id: paramsTransactionId } = params;
   const isMainnet = getIsMainnet(state);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-  const envType = getEnvironmentType();
-  const isNotification = envType === ENVIRONMENT_TYPE_NOTIFICATION;
-  ///: END:ONLY_INCLUDE_IF
-
-  const isGasEstimatesLoading = getIsGasEstimatesLoading(state);
-  const gasLoadingAnimationIsShowing = getGasLoadingAnimationIsShowing(state);
-  const isBuyableChain = getIsBuyableChain(state);
+  const supportsEIP1599 = checkNetworkAndAccountSupports1559(state);
   const { confirmTransaction, metamask } = state;
-  const conversionRate = getConversionRate(state);
-  const { identities, addressBook, nextNonce } = metamask;
-  const unapprovedTxs = getUnapprovedTransactions(state);
-  const { chainId } = getProviderConfig(state);
+  const {
+    ensResolutionsByAddress,
+    conversionRate,
+    identities,
+    addressBook,
+    assetImages,
+    network,
+    unapprovedTxs,
+    nextNonce,
+    provider: { chainId },
+  } = metamask;
   const { tokenData, txData, tokenProps, nonce } = confirmTransaction;
   const { txParams = {}, id: transactionId, type } = txData;
-  const txId = transactionId || paramsTransactionId;
-  const transaction = getUnapprovedTransaction(state, txId);
+  const transaction =
+    Object.values(unapprovedTxs).find(
+      ({ id }) => id === (transactionId || Number(paramsTransactionId)),
+    ) || {};
   const {
     from: fromAddress,
     to: txParamsToAddress,
@@ -146,50 +87,38 @@ const mapStateToProps = (state, ownProps) => {
     data,
   } = (transaction && transaction.txParams) || txParams;
   const accounts = getMetaMaskAccounts(state);
-
-  const transactionData = parseStandardTokenTransactionData(data);
-  const tokenToAddress = getTokenAddressParam(transactionData);
+  const assetImage = assetImages[txParamsToAddress];
 
   const { balance } = accounts[fromAddress];
   const { name: fromName } = identities[fromAddress];
-  const keyring = findKeyringForAddress(state, fromAddress);
-
-  const isSendingAmount =
-    type === TransactionType.simpleSend || !isEmptyHexString(amount);
-
-  const toAddress = isSendingAmount
-    ? txParamsToAddress
-    : propsToAddress || tokenToAddress || txParamsToAddress;
-
-  const toAccounts = getSendToAccounts(state);
-
-  const tokenList = getTokenList(state);
+  const toAddress = propsToAddress || txParamsToAddress;
 
   const toName =
     identities[toAddress]?.name ||
-    tokenList[toAddress?.toLowerCase()]?.name ||
+    casedContractMap[toAddress]?.name ||
     shortenAddress(toChecksumHexAddress(toAddress));
 
   const checksummedAddress = toChecksumHexAddress(toAddress);
-  const addressBookObject =
-    addressBook &&
-    addressBook[chainId] &&
-    addressBook[chainId][checksummedAddress];
-  const toEns = getEnsResolutionByAddress(state, checksummedAddress);
+  const addressBookObject = addressBook[checksummedAddress];
+  const toEns = ensResolutionsByAddress[checksummedAddress] || '';
   const toNickname = addressBookObject ? addressBookObject.name : '';
   const transactionStatus = transaction ? transaction.status : '';
-  const supportsEIP1559 =
-    checkNetworkAndAccountSupports1559(state) && !isLegacyTransaction(txParams);
 
   const {
     hexTransactionAmount,
-    hexMaximumTransactionFee,
     hexMinimumTransactionFee,
-    gasEstimationObject,
+    hexMaximumTransactionFee,
+    hexTransactionTotal,
   } = transactionFeeSelector(state, transaction);
 
+  if (transaction && transaction.simulationFails) {
+    txData.simulationFails = transaction.simulationFails;
+  }
+
   const currentNetworkUnapprovedTxs = Object.keys(unapprovedTxs)
-    .filter((key) => unapprovedTxs[key].chainId === chainId)
+    .filter((key) =>
+      transactionMatchesNetwork(unapprovedTxs[key], chainId, network),
+    )
     .reduce((acc, key) => ({ ...acc, [key]: unapprovedTxs[key] }), {});
   const unapprovedTxCount = valuesFor(currentNetworkUnapprovedTxs).length;
 
@@ -202,55 +131,32 @@ const mapStateToProps = (state, ownProps) => {
 
   const methodData = getKnownMethodData(state, data) || {};
 
-  const fullTxData = getFullTxData(
-    state,
-    txId,
-    TransactionStatus.unapproved,
-    customTxParamsData,
-  );
-
+  let fullTxData = { ...txData, ...transaction };
+  if (customTxParamsData) {
+    fullTxData = {
+      ...fullTxData,
+      txParams: {
+        ...fullTxData.txParams,
+        data: customTxParamsData,
+      },
+    };
+  }
   customNonceValue = getCustomNonceValue(state);
   const isEthGasPrice = getIsEthGasPriceFetched(state);
-  const noGasPrice = !supportsEIP1559 && getNoGasPriceFetched(state);
-  const { useNativeCurrencyAsPrimaryCurrency } = getPreferences(state);
-  const gasFeeIsCustom =
-    fullTxData.userFeeLevel === CUSTOM_GAS_ESTIMATE ||
-    txParamsAreDappSuggested(fullTxData);
-  const fromAddressIsLedger = isAddressLedger(state, fromAddress);
-  const nativeCurrency = getNativeCurrency(state);
-  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-  const accountType = getAccountType(state, fromAddress);
-  const fromChecksumHexAddress = toChecksumHexAddress(fromAddress);
-  const isNoteToTraderSupported = getIsNoteToTraderSupported(
-    state,
-    fromChecksumHexAddress,
-  );
-  const custodianPublishesTransaction =
-    getIsCustodianPublishesTransactionSupported(state, fromChecksumHexAddress);
-  const builtinRpcUrl = CHAIN_ID_TO_RPC_URL_MAP[chainId];
-  const { rpcUrl: customRpcUrl } = getProviderConfig(state);
-
-  const rpcUrl = customRpcUrl || builtinRpcUrl;
-
-  ///: END:ONLY_INCLUDE_IF
-
-  const hardwareWalletRequiresConnection =
-    doesAddressRequireLedgerHidConnection(state, fromAddress);
-
-  const isMultiLayerFeeNetwork = getIsMultiLayerFeeNetwork(state);
+  const noGasPrice = getNoGasPriceFetched(state);
 
   return {
     balance,
     fromAddress,
     fromName,
-    toAccounts,
     toAddress,
     toEns,
     toName,
     toNickname,
     hexTransactionAmount,
-    hexMaximumTransactionFee,
     hexMinimumTransactionFee,
+    hexMaximumTransactionFee,
+    hexTransactionTotal,
     txData: fullTxData,
     tokenData,
     methodData,
@@ -258,8 +164,10 @@ const mapStateToProps = (state, ownProps) => {
     conversionRate,
     transactionStatus,
     nonce,
+    assetImage,
     unapprovedTxs,
     unapprovedTxCount,
+    currentNetworkUnapprovedTxs,
     customGas: {
       gasLimit,
       gasPrice,
@@ -268,6 +176,7 @@ const mapStateToProps = (state, ownProps) => {
     useNonceField: getUseNonceField(state),
     customNonceValue,
     insufficientBalance,
+    hideSubtitle: !getShouldShowFiat(state),
     hideFiatConversion: !getShouldShowFiat(state),
     type,
     nextNonce,
@@ -275,37 +184,11 @@ const mapStateToProps = (state, ownProps) => {
     isMainnet,
     isEthGasPrice,
     noGasPrice,
-    supportsEIP1559,
-    gasIsLoading: isGasEstimatesLoading || gasLoadingAnimationIsShowing,
-    useNativeCurrencyAsPrimaryCurrency,
-    maxFeePerGas: gasEstimationObject.maxFeePerGas,
-    maxPriorityFeePerGas: gasEstimationObject.maxPriorityFeePerGas,
-    gasLimit: gasEstimationObject.gasLimit,
-    gasPrice: gasEstimationObject.gasPrice,
-    baseFeePerGas: gasEstimationObject.baseFeePerGas,
-    gasFeeIsCustom,
-    showLedgerSteps: fromAddressIsLedger,
-    nativeCurrency,
-    hardwareWalletRequiresConnection,
-    isMultiLayerFeeNetwork,
-    chainId,
-    isBuyableChain,
-    useCurrencyRateCheck: getUseCurrencyRateCheck(state),
-    keyringForAccount: keyring,
-    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-    accountType,
-    isNoteToTraderSupported,
-    isNotification,
-    custodianPublishesTransaction,
-    rpcUrl,
-    ///: END:ONLY_INCLUDE_IF
+    supportsEIP1599,
   };
 };
 
 export const mapDispatchToProps = (dispatch) => {
-  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-  const mmiActions = mmiActionsFactory();
-  ///: END:ONLY_INCLUDE_IF
   return {
     tryReverseResolveAddress: (address) => {
       return dispatch(tryReverseResolveAddress(address));
@@ -328,64 +211,14 @@ export const mapDispatchToProps = (dispatch) => {
     },
     cancelTransaction: ({ id }) => dispatch(cancelTx({ id })),
     cancelAllTransactions: (txList) => dispatch(cancelTxs(txList)),
-    sendTransaction: (
-      txData,
-      dontShowLoadingIndicator,
-      loadingIndicatorMessage,
-    ) =>
-      dispatch(
-        updateAndApproveTx(
-          customNonceMerge(txData),
-          dontShowLoadingIndicator,
-          loadingIndicatorMessage,
-        ),
-      ),
-    updateTransaction: (txMeta) => {
-      dispatch(updateTransaction(txMeta, true));
-    },
+    sendTransaction: (txData) =>
+      dispatch(updateAndApproveTx(customNonceMerge(txData))),
     getNextNonce: () => dispatch(getNextNonce()),
     setDefaultHomeActiveTabName: (tabName) =>
       dispatch(setDefaultHomeActiveTabName(tabName)),
     updateTransactionGasFees: (gasFees) => {
-      dispatch(updateGasFees({ ...gasFees, expectHexWei: true }));
+      dispatch(updateTransactionGasFees({ ...gasFees, expectHexWei: true }));
     },
-    addToAddressBookIfNew: (newAddress, toAccounts, nickname = '') => {
-      const hexPrefixedAddress = addHexPrefix(newAddress);
-      if (addressIsNew(toAccounts, hexPrefixedAddress)) {
-        dispatch(addToAddressBook(hexPrefixedAddress, nickname));
-      }
-    },
-    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-    getCustodianConfirmDeepLink: (id) =>
-      dispatch(mmiActions.getCustodianConfirmDeepLink(id)),
-    showTransactionsFailedModal: (errorMessage, closeNotification) =>
-      dispatch(
-        showModal({
-          name: 'TRANSACTION_FAILED',
-          errorMessage,
-          closeNotification,
-        }),
-      ),
-    showCustodianDeepLink: ({
-      txId,
-      fromAddress,
-      closeNotification,
-      onDeepLinkFetched,
-      onDeepLinkShown,
-    }) =>
-      showCustodianDeepLink({
-        dispatch,
-        mmiActions,
-        txId,
-        fromAddress,
-        closeNotification,
-        onDeepLinkFetched,
-        onDeepLinkShown,
-        showCustodyConfirmLink,
-      }),
-    setWaitForConfirmDeepLinkDialog: (wait) =>
-      dispatch(mmiActions.setWaitForConfirmDeepLinkDialog(wait)),
-    ///: END:ONLY_INCLUDE_IF
   };
 };
 
@@ -397,14 +230,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     updateTransactionGasFees: dispatchUpdateTransactionGasFees,
     ...otherDispatchProps
   } = dispatchProps;
-
-  let isMainBetaFlask = ownProps.isMainBetaFlask || false;
-
-  ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
-  if (ownProps.isMainBetaFlask === undefined) {
-    isMainBetaFlask = true;
-  }
-  ///: END:ONLY_INCLUDE_IF
 
   return {
     ...stateProps,
@@ -419,7 +244,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         transaction: txData,
       });
     },
-    isMainBetaFlask,
   };
 };
 

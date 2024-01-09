@@ -1,43 +1,58 @@
 import { connect } from 'react-redux';
 import {
+  accountsWithSendEtherInfoSelector,
+  getAddressBookEntry,
   getIsEthGasPriceFetched,
   getNoGasPriceFetched,
-  checkNetworkOrAccountNotSupports1559,
-  getIsMultiLayerFeeNetwork,
+  checkNetworkAndAccountSupports1559,
 } from '../../../selectors';
-import {
-  getIsBalanceInsufficient,
-  getSendAsset,
-  getAssetError,
-  getRecipient,
-  acknowledgeRecipientWarning,
-  getRecipientWarningAcknowledgement,
-} from '../../../ducks/send';
+import { getIsAssetSendable, getSendTo } from '../../../ducks/send';
+
+import * as actions from '../../../store/actions';
 import SendContent from './send-content.component';
 
 function mapStateToProps(state) {
-  const recipient = getRecipient(state);
-  const recipientWarningAcknowledged =
-    getRecipientWarningAcknowledgement(state);
-
+  const ownedAccounts = accountsWithSendEtherInfoSelector(state);
+  const to = getSendTo(state);
   return {
+    isAssetSendable: getIsAssetSendable(state),
+    isOwnedAccount: Boolean(
+      ownedAccounts.find(
+        ({ address }) => address.toLowerCase() === to.toLowerCase(),
+      ),
+    ),
+    contact: getAddressBookEntry(state, to),
     isEthGasPrice: getIsEthGasPriceFetched(state),
     noGasPrice: getNoGasPriceFetched(state),
-    networkOrAccountNotSupports1559:
-      checkNetworkOrAccountNotSupports1559(state),
-    getIsBalanceInsufficient: getIsBalanceInsufficient(state),
-    asset: getSendAsset(state),
-    assetError: getAssetError(state),
-    recipient,
-    recipientWarningAcknowledged,
-    isMultiLayerFeeNetwork: getIsMultiLayerFeeNetwork(state),
+    to,
+    networkAndAccountSupports1559: checkNetworkAndAccountSupports1559(state),
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    acknowledgeRecipientWarning: () => dispatch(acknowledgeRecipientWarning()),
+    showAddToAddressBookModal: (recipient) =>
+      dispatch(
+        actions.showModal({
+          name: 'ADD_TO_ADDRESSBOOK',
+          recipient,
+        }),
+      ),
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SendContent);
+function mergeProps(stateProps, dispatchProps, ownProps) {
+  const { to, ...restStateProps } = stateProps;
+  return {
+    ...ownProps,
+    ...restStateProps,
+    showAddToAddressBookModal: () =>
+      dispatchProps.showAddToAddressBookModal(to),
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+)(SendContent);
