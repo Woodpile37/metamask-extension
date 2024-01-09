@@ -1,17 +1,17 @@
-import { createScaffoldMiddleware, mergeMiddleware } from 'json-rpc-engine';
-import {
-  createFetchMiddleware,
-  createBlockRefRewriteMiddleware,
-  createBlockCacheMiddleware,
-  createInflightCacheMiddleware,
-  createBlockTrackerInspectorMiddleware,
-  providerFromMiddleware,
-} from 'eth-json-rpc-middleware';
+import { mergeMiddleware } from 'json-rpc-engine';
+import createFetchMiddleware from 'eth-json-rpc-middleware/fetch';
+import createBlockRefRewriteMiddleware from 'eth-json-rpc-middleware/block-ref-rewrite';
+import createBlockCacheMiddleware from 'eth-json-rpc-middleware/block-cache';
+import createInflightMiddleware from 'eth-json-rpc-middleware/inflight-cache';
+import createBlockTrackerInspectorMiddleware from 'eth-json-rpc-middleware/block-tracker-inspector';
+import providerFromMiddleware from 'eth-json-rpc-middleware/providerFromMiddleware';
 import { PollingBlockTracker } from 'eth-block-tracker';
-import { SECOND } from '../../../../shared/constants/time';
 
-const inTest = process.env.IN_TEST;
-const blockTrackerOpts = inTest ? { pollingInterval: SECOND } : {};
+const inTest = process.env.IN_TEST === 'true';
+const blockTrackerOpts = inTest ? { pollingInterval: 1000 } : {};
+const getTestMiddlewares = () => {
+  return inTest ? [createEstimateGasDelayTestMiddleware()] : [];
+};
 
 export default function createJsonRpcClient({ rpcUrl, chainId }) {
   const fetchMiddleware = createFetchMiddleware({ rpcUrl });
@@ -22,15 +22,37 @@ export default function createJsonRpcClient({ rpcUrl, chainId }) {
   });
 
   const networkMiddleware = mergeMiddleware([
-    createScaffoldMiddleware({
-      eth_chainId: chainId,
-    }),
+    ...getTestMiddlewares(),
+    createChainIdMiddleware(chainId),
     createBlockRefRewriteMiddleware({ blockTracker }),
     createBlockCacheMiddleware({ blockTracker }),
-    createInflightCacheMiddleware(),
+    createInflightMiddleware(),
     createBlockTrackerInspectorMiddleware({ blockTracker }),
     fetchMiddleware,
   ]);
 
   return { networkMiddleware, blockTracker };
+}
+
+function createChainIdMiddleware(chainId) {
+  return (req, res, next, end) => {
+    if (req.method === 'eth_chainId') {
+      res.result = chainId;
+      return end();
+    }
+    return next();
+  };
+}
+
+/**
+ * For use in tests only.
+ * Adds a delay to `eth_estimateGas` calls.
+ */
+function createEstimateGasDelayTestMiddleware() {
+  return async (req, _, next) => {
+    if (req.method === 'eth_estimateGas') {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    return next();
+  };
 }
