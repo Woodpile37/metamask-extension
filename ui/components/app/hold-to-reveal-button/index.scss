@@ -109,7 +109,7 @@ $circle-stroke-width: 2px;
   &__circle-foreground {
     @extend .hold-to-reveal-button__circle-shared;
 
-    stroke: var(--color-primary-inverse);
+    stroke: var(--color-text-default);
     stroke-dasharray: $circle-circumference;
     stroke-dashoffset: $circle-circumference;
     transition: 1s stroke-dashoffset;
@@ -136,7 +136,7 @@ $circle-stroke-width: 2px;
   }
 
   &__circle-static-outer {
-    fill: var(--color-primary-inverse);
+    fill: var(--color-text-default);
   }
 
   &__circle-static-inner-container {

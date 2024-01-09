@@ -2,61 +2,43 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useI18nContext } from '../../../hooks/useI18nContext';
 import { useCopyToClipboard } from '../../../hooks/useCopyToClipboard';
-import {
-  AlignItems,
-  BorderColor,
-  BorderRadius,
-  Display,
-  FlexDirection,
-  JustifyContent,
-  TextVariant,
-} from '../../../helpers/constants/design-system';
-import { ButtonSecondary, Text, Box } from '../../component-library';
+import { clearClipboard } from '../../../helpers/utils/util';
+import Copy from '../icon/copy-icon.component';
 
-function ExportTextContainer({ text = '', onClickCopy = null }) {
-  const ONE_MINUTE = 1000 * 60;
+function ExportTextContainer({ text = '' }) {
   const t = useI18nContext();
-  const [copied, handleCopy] = useCopyToClipboard(ONE_MINUTE);
+  const [copied, handleCopy] = useCopyToClipboard();
 
   return (
-    <Box
-      display={Display.Flex}
-      justifyContent={JustifyContent.center}
-      flexDirection={FlexDirection.Column}
-      alignItems={AlignItems.center}
-      borderColor={BorderColor.borderDefault}
-      borderRadius={BorderRadius.MD}
-      padding={4}
-      gap={4}
-    >
-      <Text
-        display={Display.Flex}
-        justifyContent={JustifyContent.center}
-        className="notranslate"
-        variant={TextVariant.bodyLgMedium}
-        data-testid="srp_text"
-      >
-        {text}
-      </Text>
-      <ButtonSecondary
-        className="export-text-container__button"
-        block
-        onClick={() => {
-          if (onClickCopy) {
-            onClickCopy();
-          }
-          handleCopy(text);
-        }}
-      >
-        {copied ? t('copiedExclamation') : t('copyToClipboard')}
-      </ButtonSecondary>
-    </Box>
+    <div className="export-text-container">
+      <div className="export-text-container__text-container">
+        <div className="export-text-container__text notranslate">{text}</div>
+      </div>
+      <div className="export-text-container__buttons-container">
+        <div
+          className="export-text-container__button export-text-container__button--copy"
+          onClick={() => {
+            handleCopy(text);
+            setTimeout(async () => {
+              const clipText = await window.navigator.clipboard.readText();
+              if (text === clipText) {
+                clearClipboard();
+              }
+            }, 60000);
+          }}
+        >
+          <Copy size={17} color="var(--color-primary-default)" />
+          <div className="export-text-container__button-text">
+            {copied ? t('copiedForMinute') : t('copyToClipboard')}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
 ExportTextContainer.propTypes = {
   text: PropTypes.string,
-  onClickCopy: PropTypes.func,
 };
 
 export default React.memo(ExportTextContainer);

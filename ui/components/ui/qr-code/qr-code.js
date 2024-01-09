@@ -1,16 +1,13 @@
 import PropTypes from 'prop-types';
-import React, { useContext } from 'react';
+import React from 'react';
 import qrCode from 'qrcode-generator';
 import { connect } from 'react-redux';
 import { isHexPrefixed } from 'ethereumjs-util';
+import { useCopyToClipboard } from '../../../hooks/useCopyToClipboard';
 import { toChecksumHexAddress } from '../../../../shared/modules/hexstring-utils';
-import { AddressCopyButton } from '../../multichain/address-copy-button';
-import Box from '../box/box';
-import { MetaMetricsContext } from '../../../contexts/metametrics';
-import {
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-} from '../../../../shared/constants/metametrics';
+import Tooltip from '../tooltip';
+import CopyIcon from '../icon/copy-icon.component';
+import { useI18nContext } from '../../../hooks/useI18nContext';
 
 export default connect(mapStateToProps)(QrCodeView);
 
@@ -23,13 +20,15 @@ function mapStateToProps(state) {
   };
 }
 
-function QrCodeView({ Qr, warning }) {
-  const trackEvent = useContext(MetaMetricsContext);
-  const { message, data } = Qr;
-  const address = `${
-    isHexPrefixed(data) ? 'ethereum:' : ''
-  }${toChecksumHexAddress(data)}`;
-  const qrImage = qrCode(4, 'M');
+function QrCodeView(props) {
+  const { Qr, warning } = props;
+  const { message, data, isHexAddress } = Qr;
+  const address = isHexAddress
+    ? `${isHexPrefixed(data) ? 'ethereum:' : ''}${toChecksumHexAddress(data)}`
+    : data;
+  const [copied, handleCopy] = useCopyToClipboard();
+  const t = useI18nContext();
+  const qrImage = qrCode(4, 'L');
   qrImage.addData(address);
   qrImage.make();
 
@@ -54,24 +53,32 @@ function QrCodeView({ Qr, warning }) {
       <div
         className="qr-code__wrapper"
         dangerouslySetInnerHTML={{
-          __html: qrImage.createTableTag(5, 24),
+          __html: qrImage.createTableTag(4),
         }}
       />
-      <Box marginBottom={6}>
-        <AddressCopyButton
-          wrap
-          address={data}
-          onClick={() => {
-            trackEvent({
-              category: MetaMetricsEventCategory.Accounts,
-              event: MetaMetricsEventName.PublicAddressCopied,
-              properties: {
-                location: 'Account Details Modal',
-              },
-            });
-          }}
-        />
-      </Box>
+      {isHexAddress && (
+        <Tooltip
+          wrapperClassName="qr-code__address-container__tooltip-wrapper"
+          position="bottom"
+          title={copied ? t('copiedExclamation') : t('copyToClipboard')}
+        >
+          <div
+            className="qr-code__address-container"
+            onClick={() => {
+              handleCopy(toChecksumHexAddress(data));
+            }}
+          >
+            <div className="qr-code__address">{toChecksumHexAddress(data)}</div>
+            <div className="qr-code__copy-icon">
+              <CopyIcon
+                size={11}
+                className="qr-code__copy-icon__svg"
+                color=""
+              />
+            </div>
+          </div>
+        </Tooltip>
+      )}
     </div>
   );
 }
@@ -84,5 +91,6 @@ QrCodeView.propTypes = {
       PropTypes.node,
     ]),
     data: PropTypes.string.isRequired,
+    isHexAddress: PropTypes.bool,
   }).isRequired,
 };

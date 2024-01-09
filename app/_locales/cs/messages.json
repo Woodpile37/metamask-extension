@@ -63,8 +63,17 @@
   "confirmed": {
     "message": "Potvrzeno"
   },
+  "connectingToKovan": {
+    "message": "Připojuji se k Kovan Test Network"
+  },
   "connectingToMainnet": {
     "message": "Připojuji se k Ethereum Mainnet"
+  },
+  "connectingToRinkeby": {
+    "message": "Připojuji se k Rinkeby Test Network"
+  },
+  "connectingToRopsten": {
+    "message": "Připojuji se k Ropsten Test Network"
   },
   "contractDeployment": {
     "message": "Nasazení kontraktu"
@@ -72,11 +81,20 @@
   "copiedExclamation": {
     "message": "Zkopírováno!"
   },
+  "copyPrivateKey": {
+    "message": "Toto je váš privátní klíč (kliknutím zkopírujte)"
+  },
   "copyToClipboard": {
     "message": "Kopírovat do schránky"
   },
   "create": {
     "message": "Vytvořit"
+  },
+  "createAccount": {
+    "message": "Vytvořit účet"
+  },
+  "customGas": {
+    "message": "Nastavit palivo"
   },
   "customToken": {
     "message": "Vlastní token"
@@ -102,8 +120,14 @@
   "edit": {
     "message": "Upravit"
   },
+  "enterPassword": {
+    "message": "Zadejte heslo"
+  },
   "etherscanView": {
     "message": "Prohlédněte si účet na Etherscan"
+  },
+  "exportPrivateKey": {
+    "message": "Exportovat privátní klíč"
   },
   "failed": {
     "message": "Neúspěšné"
@@ -127,6 +151,13 @@
   },
   "gasPrice": {
     "message": "Cena paliva (GWEI)"
+  },
+  "getEther": {
+    "message": "Získejte Ether"
+  },
+  "getEtherFromFaucet": {
+    "message": "Získejte Ether z faucetu za $1.",
+    "description": "Displays network name for Ether faucet"
   },
   "here": {
     "message": "zde",
@@ -194,8 +225,14 @@
   "message": {
     "message": "Zpráva"
   },
+  "metamaskDescription": {
+    "message": "MetaMask je bezpečný osobní trezor pro Ethereum."
+  },
   "mustSelectOne": {
     "message": "Musíte zvolit aspoň 1 token."
+  },
+  "myAccounts": {
+    "message": "Moje účty"
   },
   "needImportFile": {
     "message": "Musíte zvolit soubor k importu.",
@@ -267,18 +304,20 @@
   "required": {
     "message": "Povinné"
   },
+  "resetAccount": {
+    "message": "Resetovat účet"
+  },
   "revealSeedWords": {
     "message": "Zobrazit slova klíčové fráze"
-  },
-  "revealSeedWordsWarning": {
-    "message": "Nebnovujte slova klíčové fráze na veřejnosti! Tato slova mohou být použita k odcizení veškerých vyašich účtů.",
-    "description": "$1 is bolded text using the message from 'revealSeedWordsWarning2'"
   },
   "save": {
     "message": "Uložit"
   },
   "search": {
     "message": "Hledat"
+  },
+  "searchTokens": {
+    "message": "Hledat tokeny"
   },
   "seedPhraseReq": {
     "message": "klíčové fráze mají 12 slov"
@@ -295,11 +334,17 @@
   "settings": {
     "message": "Nastavení"
   },
+  "showPrivateKeys": {
+    "message": "Zobrazit privátní klíče"
+  },
   "sigRequest": {
     "message": "Požadavek podpisu"
   },
   "sign": {
     "message": "Podepsat"
+  },
+  "signNotice": {
+    "message": "Podepsání zprávy může mít \nnebezpečný vedlejší učinek. Podepisujte zprávy pouze ze \nstránek, kterým plně důvěřujete celým svým účtem.\n Tato nebezpečná metoda bude odebrána v budoucí verzi. "
   },
   "signatureRequest": {
     "message": "Požadavek podpisu"
@@ -328,6 +373,9 @@
   "terms": {
     "message": "Podmínky použití"
   },
+  "testFaucet": {
+    "message": "Testovací faucet"
+  },
   "to": {
     "message": "Komu"
   },
@@ -342,6 +390,13 @@
   },
   "transactionError": {
     "message": "Chyba transakce. Vyhozena výjimka v kódu kontraktu."
+  },
+  "troubleTokenBalances": {
+    "message": "Měli jsme problém s načtením vašich tokenových zůstatků. Můžete je vidět ",
+    "description": "Followed by a link (here) to view token balances"
+  },
+  "typePassword": {
+    "message": "Zadejte své heslo"
   },
   "unapproved": {
     "message": "Neschváleno"
@@ -361,8 +416,14 @@
   "usedByClients": {
     "message": "Používána různými klienty"
   },
+  "viewAccount": {
+    "message": "Zobrazit účet"
+  },
   "visitWebSite": {
     "message": "Navštivte naši stránku"
+  },
+  "welcome": {
+    "message": "Vítejte v MetaMask"
   },
   "youSign": {
     "message": "Podepisujete"
