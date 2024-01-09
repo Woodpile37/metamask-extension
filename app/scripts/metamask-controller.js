@@ -767,7 +767,9 @@ export default class MetamaskController extends EventEmitter {
       }),
       storageBackend: new IndexedDBPPOMStorage('PPOMDB', 1),
       provider: this.provider,
-      ppomProvider: { PPOM: PPOMModule.PPOM, ppomInit: PPOMModule.default },
+      ppomProvider: {
+        PPOM: PPOMModule.PPOM, ppomInit: () => PPOMModule.default(process.env.PPOM_URI)
+      },
       state: initState.PPOMController,
       chainId: this.networkController.state.providerConfig.chainId,
       onNetworkChange: networkControllerMessenger.subscribe.bind(
@@ -901,6 +903,58 @@ export default class MetamaskController extends EventEmitter {
 
     this.onboardingController = new OnboardingController({
       initState: initState.OnboardingController,
+    });
+
+    // account tracker watches balances, nonces, and any code at their address
+    this.accountTracker = new AccountTracker({
+      provider: this.provider,
+      blockTracker: this.blockTracker,
+      getCurrentChainId: () =>
+        this.networkController.state.providerConfig.chainId,
+      getNetworkIdentifier: () => {
+        const { type, rpcUrl } = this.networkController.state.providerConfig;
+        return type === NETWORK_TYPES.RPC ? rpcUrl : type;
+      },
+      preferencesController: this.preferencesController,
+      onboardingController: this.onboardingController,
+      initState:
+        isManifestV3 &&
+          isFirstMetaMaskControllerSetup === false &&
+          initState.AccountTracker?.accounts
+          ? { accounts: initState.AccountTracker.accounts }
+          : { accounts: {} },
+      onAccountRemoved: this.controllerMessenger.subscribe.bind(
+        this.controllerMessenger,
+        'KeyringController:accountRemoved',
+      ),
+    });
+
+    // start and stop polling for balances based on activeControllerConnections
+    this.on('controllerConnectionChanged', (activeControllerConnections) => {
+      const { completedOnboarding } =
+        this.onboardingController.store.getState();
+      if (activeControllerConnections > 0 && completedOnboarding) {
+        this.triggerNetworkrequests();
+      } else {
+        this.stopNetworkRequests();
+      }
+    });
+
+    this.onboardingController.store.subscribe(
+      previousValueComparator(async (prevState, currState) => {
+        const { completedOnboarding: prevCompletedOnboarding } = prevState;
+        const { completedOnboarding: currCompletedOnboarding } = currState;
+        if (!prevCompletedOnboarding && currCompletedOnboarding) {
+          this.triggerNetworkrequests();
+        }
+      }, this.onboardingController.store.getState()),
+    );
+
+    this.cachedBalancesController = new CachedBalancesController({
+      accountTracker: this.accountTracker,
+      getCurrentChainId: () =>
+        this.networkController.state.providerConfig.chainId,
+      initState: initState.CachedBalancesController,
     });
 
     let additionalKeyrings = [keyringBuilderFactory(QRHardwareKeyring)];
