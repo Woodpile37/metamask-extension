@@ -1,4 +1,5 @@
 .hw-tutorial {
+  width: 375px;
   overflow: visible;
   display: block;
   padding: 15px 30px;
@@ -7,15 +8,21 @@
 .hw-connect {
   width: 100%;
 
-  &__header__title-wrapper {
-    width: 100%;
-  }
+  &__header {
+    &__title {
+      @include H3;
 
-  &__QR-subtitle {
-    @include H5;
+      margin-top: 5px;
+      margin-bottom: 15px;
+    }
 
-    margin-top: 10px;
-    color: var(--color-text-default);
+    &__msg {
+      @include H6;
+
+      color: #9b9b9b;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
   }
 
   &__btn-wrapper {
@@ -34,30 +41,11 @@
     opacity: 0.5;
   }
 
-  &__external-btn-first {
-    @include H7;
-
-    padding: 5px 10px;
-    width: auto;
-    display: inline;
-    margin-top: 10px;
-    margin-right: 20px;
-  }
-
-  &__external-btn {
-    @include H7;
-
-    padding: 5px 10px;
-    width: auto;
-    display: inline;
-    margin-top: 10px;
-  }
-
   &__btn {
-    background: var(--color-background-alternative);
-    border: 1px solid var(--color-border-muted);
-    height: 148px;
-    width: 199px;
+    background: #fbfbfb;
+    border: 1px solid #e5e5e5;
+    height: 100px;
+    width: 150px;
     flex: 1;
     display: flex;
     align-items: center;
@@ -67,13 +55,13 @@
     margin-right: 15px;
 
     &__img {
-      width: 136px;
+      width: 95px;
     }
   }
 
   &__btn.selected {
-    border-color: var(--color-primary-default);
-    width: 199px;
+    border-color: #00a8ee;
+    width: 149px;
   }
 
   &__btn:first-child {
@@ -104,6 +92,13 @@
     }
   }
 
+  &__title {
+    @include H4;
+
+    padding-top: 10px;
+    font-weight: 400;
+  }
+
   &__unlock-title {
     @include H3;
 
@@ -113,17 +108,23 @@
   }
 
   &__msg {
+    @include H6;
+
+    color: #9b9b9b;
+    margin-top: 10px;
+    margin-bottom: 15px;
+
     &-link {
       @include H6;
 
       text-align: center;
-      color: var(--color-primary-default);
+      color: var(--primary-1);
       background: unset;
     }
   }
 
   &__error {
-    color: var(--color-warning-default);
+    color: #f7861c;
     margin: 20px 20px 10px;
     display: block;
     text-align: center;
@@ -152,7 +153,7 @@
 
     margin-bottom: 23px;
     align-self: flex-start;
-    color: var(--color-text-muted);
+    color: var(--scorpion);
     font-weight: bold;
     display: flex;
     flex: 1;
@@ -163,7 +164,7 @@
 
     margin-bottom: 23px;
     align-self: flex-end;
-    color: var(--color-text-muted);
+    color: var(--scorpion);
     display: flex;
   }
 
@@ -174,12 +175,18 @@
     display: flex;
     padding-left: 10px;
     padding-right: 10px;
-    border-bottom: 1px solid var(--color-border-muted);
-    background-color: var(--color-background-default);
+  }
+
+  &__item:nth-of-type(even) {
+    background-color: #fbfbfb;
+  }
+
+  &__item:nth-of-type(odd) {
+    background: rgba($black, 0.03);
   }
 
   &__item:hover {
-    background-color: var(--color-background-default-hover);
+    background-color: rgba($black, 0.06);
   }
 
   &__item__index {
@@ -229,10 +236,10 @@
   &__button {
     @include H6;
 
-    background: var(--color-background-default);
+    background: var(--white);
     height: 19px;
     display: flex;
-    color: var(--color-primary-default);
+    color: #33a4e7;
     border: none;
     min-width: 46px;
     margin-right: 0;
@@ -243,9 +250,10 @@
 }
 
 .new-external-account-form {
-  &.footer {
-    width: 520px;
-  }
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  padding: 15px 30px 0;
 
   &.unsupported-browser {
     height: 210px;
@@ -284,7 +292,7 @@
   a {
     @include H6;
 
-    color: var(--color-primary-default);
+    color: #2f9ae0;
     cursor: pointer;
   }
 }

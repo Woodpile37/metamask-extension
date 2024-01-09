@@ -1,9 +1,10 @@
 @import 'connect-hardware/index';
+@import 'import-account/index';
 
 .new-account {
   width: 375px;
-  background-color: var(--color-background-default);
-  box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
+  background-color: var(--main-container-background);
+  box-shadow: 0 0 7px 0 rgba($black, 0.08);
   z-index: 25;
   height: unset;
   overflow: auto;
@@ -13,12 +14,51 @@
     display: none;
   }
 
-  @include screen-sm-min {
+  @media screen and (min-width: $break-large) {
     position: absolute;
   }
 
-  .bottom-border-1px {
-    border-width: 0 0 1px 0;
+  &__header {
+    display: flex;
+    flex-flow: column;
+    border-bottom: 1px solid var(--geyser);
+  }
+
+  &__title {
+    @include H2;
+
+    color: var(--tundora);
+    font-weight: 500;
+    margin-top: 22px;
+    margin-left: 29px;
+  }
+
+  &__tabs {
+    margin-left: 22px;
+    display: flex;
+    margin-top: 10px;
+
+    &__tab {
+      @include H4;
+
+      height: 54px;
+      padding: 15px 10px;
+      color: var(--dusty-gray);
+      text-align: center;
+      cursor: pointer;
+    }
+
+    &__tab:hover {
+      color: var(--primary-text-emphasized);
+      border-bottom: none;
+    }
+
+    &__selected {
+      color: var(--primary-blue);
+      border-bottom: 3px solid var(--primary-blue);
+      cursor: initial;
+      pointer-events: none;
+    }
   }
 }
 
@@ -32,7 +72,7 @@
   &__input-label {
     @include Paragraph;
 
-    color: var(--color-text-alternative);
+    color: var(--scorpion);
     align-self: flex-start;
   }
 
@@ -41,20 +81,15 @@
 
     height: 54px;
     width: 315.84px;
-    border: 1px solid var(--color-border-muted);
+    border: 1px solid var(--geyser);
     border-radius: 4px;
-    background-color: var(--color-background-default);
-    color: var(--color-text-default);
+    background-color: var(--white);
+    color: var(--scorpion);
     margin-top: 15px;
     padding: 0 20px;
 
     &__error {
-      border: 1px solid var(--color-error-alternative);
-    }
-
-    &::placeholder {
-      color: var(--color-text-muted);
-      opacity: 1;
+      border: 1px solid var(--error-3);
     }
   }
 
@@ -62,7 +97,7 @@
     @include H7;
 
     left: 8px;
-    color: var(--color-error-default);
+    color: var(--red);
   }
 
   &__error-amount {
@@ -70,7 +105,7 @@
   }
 
   &__buttons {
-    margin-top: 22px;
+    margin-top: 39px;
     display: flex;
     width: 100%;
     justify-content: space-between;
