@@ -67,45 +67,6 @@
         "regenerator-runtime": true
       }
     },
-    "@download/blockies": {
-      "globals": {
-        "document.createElement": true
-      }
-    },
-    "@ensdomains/content-hash": {
-      "globals": {
-        "console.warn": true
-      },
-      "packages": {
-        "buffer": true,
-        "cids": true,
-        "js-base64": true,
-        "multicodec": true,
-        "multihashes": true
-      }
-    },
-    "@eth-optimism/contracts": {
-      "packages": {
-        "@ethersproject/abstract-provider": true,
-        "ethers": true
-      }
-    },
-    "@ethereumjs/common": {
-      "packages": {
-        "buffer": true,
-        "crc-32": true,
-        "ethereumjs-util": true,
-        "events": true
-      }
-    },
-    "@ethereumjs/tx": {
-      "packages": {
-        "@ethereumjs/common": true,
-        "buffer": true,
-        "ethereumjs-util": true,
-        "is-buffer": true
-      }
-    },
     "@ethersproject/abi": {
       "globals": {
         "console.log": true
@@ -124,7 +85,6 @@
     },
     "@ethersproject/abstract-provider": {
       "packages": {
-        "@ethersproject/bignumber": true,
         "@ethersproject/bytes": true,
         "@ethersproject/logger": true,
         "@ethersproject/properties": true
@@ -179,6 +139,7 @@
     },
     "@ethersproject/contracts": {
       "globals": {
+        "name": true,
         "setTimeout": true
       },
       "packages": {
@@ -189,8 +150,7 @@
         "@ethersproject/bignumber": true,
         "@ethersproject/bytes": true,
         "@ethersproject/logger": true,
-        "@ethersproject/properties": true,
-        "@ethersproject/transactions": true
+        "@ethersproject/properties": true
       }
     },
     "@ethersproject/hash": {
@@ -269,7 +229,6 @@
         "clearTimeout": true,
         "console.log": true,
         "console.warn": true,
-        "name": true,
         "setInterval": true,
         "setTimeout": true
       },
@@ -325,7 +284,6 @@
         "@ethersproject/bignumber": true,
         "@ethersproject/bytes": true,
         "@ethersproject/keccak256": true,
-        "@ethersproject/logger": true,
         "@ethersproject/sha2": true,
         "@ethersproject/strings": true
       }
@@ -399,114 +357,15 @@
         "@ethersproject/strings": true
       }
     },
-    "@formatjs/intl-relativetimeformat": {
-      "globals": {
-        "Intl": true
-      },
-      "packages": {
-        "@formatjs/intl-utils": true
-      }
-    },
-    "@formatjs/intl-utils": {
-      "globals": {
-        "Intl.getCanonicalLocales": true
-      }
-    },
-    "@material-ui/core": {
-      "globals": {
-        "Image": true,
-        "_formatMuiErrorMessage": true,
-        "addEventListener": true,
-        "clearInterval": true,
-        "clearTimeout": true,
-        "console.error": true,
-        "console.warn": true,
-        "document": true,
-        "getComputedStyle": true,
-        "getSelection": true,
-        "innerHeight": true,
-        "innerWidth": true,
-        "matchMedia": true,
-        "navigator": true,
-        "performance.now": true,
-        "removeEventListener": true,
-        "requestAnimationFrame": true,
-        "setInterval": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@babel/runtime": true,
-        "@material-ui/styles": true,
-        "@material-ui/system": true,
-        "@material-ui/utils": true,
-        "clsx": true,
-        "hoist-non-react-statics": true,
-        "popper.js": true,
-        "prop-types": true,
-        "react": true,
-        "react-dom": true,
-        "react-is": true,
-        "react-transition-group": true
-      }
-    },
-    "@material-ui/styles": {
-      "globals": {
-        "console.error": true,
-        "console.warn": true,
-        "document.createComment": true,
-        "document.head": true
-      },
-      "packages": {
-        "@babel/runtime": true,
-        "@material-ui/utils": true,
-        "clsx": true,
-        "hoist-non-react-statics": true,
-        "jss": true,
-        "jss-plugin-camel-case": true,
-        "jss-plugin-default-unit": true,
-        "jss-plugin-global": true,
-        "jss-plugin-nested": true,
-        "jss-plugin-props-sort": true,
-        "jss-plugin-rule-value-function": true,
-        "jss-plugin-vendor-prefixer": true,
-        "prop-types": true,
-        "react": true
-      }
-    },
-    "@material-ui/system": {
-      "globals": {
-        "console.error": true
-      },
-      "packages": {
-        "@babel/runtime": true,
-        "@material-ui/utils": true,
-        "prop-types": true
-      }
-    },
-    "@material-ui/utils": {
-      "packages": {
-        "@babel/runtime": true,
-        "prop-types": true,
-        "react-is": true
-      }
-    },
     "@metamask/controllers": {
       "globals": {
-        "Headers": true,
-        "clearInterval": true,
         "clearTimeout": true,
         "console.error": true,
-        "console.log": true,
         "fetch": true,
-        "setInterval": true,
         "setTimeout": true
       },
       "packages": {
-        "@ethereumjs/common": true,
-        "@ethereumjs/tx": true,
         "@metamask/contract-metadata": true,
-        "abort-controller": true,
-        "async-mutex": true,
         "await-semaphore": true,
         "buffer": true,
         "eth-ens-namehash": true,
@@ -520,18 +379,13 @@
         "ethereumjs-tx": true,
         "ethereumjs-util": true,
         "ethereumjs-wallet": true,
-        "ethers": true,
         "ethjs-query": true,
-        "ethjs-unit": true,
-        "ethjs-util": true,
         "events": true,
         "human-standard-collectible-abi": true,
         "human-standard-token-abi": true,
-        "immer": true,
         "isomorphic-fetch": true,
         "jsonschema": true,
         "nanoid": true,
-        "punycode": true,
         "single-call-balance-checker-abi": true,
         "uuid": true,
         "web3": true,
@@ -548,56 +402,11 @@
         "removeEventListener": true
       },
       "packages": {
-        "@ethereumjs/tx": true,
         "buffer": true,
         "eth-sig-util": true,
         "ethereumjs-util": true,
         "events": true,
         "hdkey": true
-      }
-    },
-    "@metamask/eth-token-tracker": {
-      "globals": {
-        "console.warn": true
-      },
-      "packages": {
-        "@babel/runtime": true,
-        "deep-equal": true,
-        "eth-block-tracker": true,
-        "ethjs": true,
-        "ethjs-contract": true,
-        "ethjs-query": true,
-        "human-standard-token-abi": true,
-        "safe-event-emitter": true
-      }
-    },
-    "@metamask/etherscan-link": {
-      "globals": {
-        "URL": true
-      }
-    },
-    "@metamask/jazzicon": {
-      "globals": {
-        "document.createElement": true,
-        "document.createElementNS": true
-      },
-      "packages": {
-        "color": true,
-        "mersenne-twister": true
-      }
-    },
-    "@metamask/logo": {
-      "globals": {
-        "addEventListener": true,
-        "document.body.appendChild": true,
-        "document.createElementNS": true,
-        "innerHeight": true,
-        "innerWidth": true,
-        "requestAnimationFrame": true
-      },
-      "packages": {
-        "gl-mat4": true,
-        "gl-vec3": true
       }
     },
     "@metamask/obs-store": {
@@ -618,22 +427,10 @@
         "events": true
       }
     },
-    "@popperjs/core": {
-      "globals": {
-        "Element": true,
-        "HTMLElement": true,
-        "ShadowRoot": true,
-        "console.error": true,
-        "console.warn": true,
-        "document": true,
-        "navigator.userAgent": true
-      }
-    },
     "@reduxjs/toolkit": {
       "globals": {
         "AbortController": true,
         "__REDUX_DEVTOOLS_EXTENSION_COMPOSE__": true,
-        "__REDUX_DEVTOOLS_EXTENSION__": true,
         "console.error": true,
         "console.info": true,
         "console.warn": true
@@ -656,6 +453,9 @@
     "@sentry/browser": {
       "globals": {
         "XMLHttpRequest": true,
+        "document.body": true,
+        "document.createElement": true,
+        "document.head": true,
         "setTimeout": true
       },
       "packages": {
@@ -680,26 +480,10 @@
     },
     "@sentry/hub": {
       "globals": {
-        "clearInterval": true,
-        "setInterval": true
-      },
-      "packages": {
-        "@sentry/types": true,
-        "@sentry/utils": true,
-        "tslib": true
-      }
-    },
-    "@sentry/integrations": {
-      "globals": {
-        "clearTimeout": true,
-        "console.error": true,
-        "console.log": true,
         "setTimeout": true
       },
       "packages": {
-        "@sentry/types": true,
         "@sentry/utils": true,
-        "localforage": true,
         "tslib": true
       }
     },
@@ -737,24 +521,15 @@
         "util": true
       }
     },
-    "@zxing/library": {
+    "abortcontroller-polyfill": {
       "globals": {
-        "TextDecoder": true,
-        "TextEncoder": true,
-        "btoa": true,
-        "clearTimeout": true,
+        "DOMException": true,
+        "Event": true,
+        "console.log": true,
+        "console.warn": true,
         "define": true,
-        "document.createElement": true,
-        "document.createElementNS": true,
-        "document.getElementById": true,
-        "navigator.mediaDevices.enumerateDevices": true,
-        "navigator.mediaDevices.getUserMedia": true,
+        "document": true,
         "setTimeout": true
-      }
-    },
-    "abort-controller": {
-      "globals": {
-        "AbortController": true
       }
     },
     "abstract-leveldown": {
@@ -792,15 +567,6 @@
         "process": true,
         "remove-trailing-slash": true,
         "uuid": true
-      }
-    },
-    "asap": {
-      "globals": {
-        "clearInterval": true,
-        "clearTimeout": true,
-        "document.createTextNode": true,
-        "setInterval": true,
-        "setTimeout": true
       }
     },
     "asn1.js": {
@@ -852,12 +618,9 @@
         "readable-stream": true
       }
     },
-    "async-mutex": {
-      "globals": {
-        "setTimeout": true
-      },
+    "available-typed-arrays": {
       "packages": {
-        "tslib": true
+        "array-filter": true
       }
     },
     "await-semaphore": {
@@ -872,11 +635,9 @@
         "URLSearchParams": true,
         "XMLHttpRequest": true,
         "btoa": true,
-        "console.warn": true,
         "document": true,
         "location.href": true,
-        "navigator": true,
-        "setTimeout": true
+        "navigator": true
       },
       "packages": {
         "process": true
@@ -912,11 +673,6 @@
         "safe-buffer": true
       }
     },
-    "base32-encode": {
-      "packages": {
-        "to-data-view": true
-      }
-    },
     "base64url": {
       "packages": {
         "buffer": true
@@ -943,11 +699,6 @@
     "bip66": {
       "packages": {
         "safe-buffer": true
-      }
-    },
-    "bitwise": {
-      "packages": {
-        "buffer": true
       }
     },
     "bl": {
@@ -1098,6 +849,12 @@
         "buffer": true
       }
     },
+    "call-bind": {
+      "packages": {
+        "function-bind": true,
+        "get-intrinsic": true
+      }
+    },
     "cids": {
       "packages": {
         "buffer": true,
@@ -1105,8 +862,7 @@
         "is-buffer": true,
         "multibase": true,
         "multicodec": true,
-        "multihashes": true,
-        "uint8arrays": true
+        "multihashes": true
       }
     },
     "cipher-base": {
@@ -1115,12 +871,6 @@
         "safe-buffer": true,
         "stream-browserify": true,
         "string_decoder": true
-      }
-    },
-    "classnames": {
-      "globals": {
-        "classNames": "write",
-        "define": true
       }
     },
     "clone": {
@@ -1135,44 +885,17 @@
         "create-hash": true
       }
     },
-    "color": {
+    "content-hash": {
       "packages": {
-        "clone": true,
-        "color-convert": true,
-        "color-string": true
-      }
-    },
-    "color-convert": {
-      "packages": {
-        "color-name": true
-      }
-    },
-    "color-string": {
-      "packages": {
-        "color-name": true
+        "buffer": true,
+        "cids": true,
+        "multicodec": true,
+        "multihashes": true
       }
     },
     "cookiejar": {
       "globals": {
         "console.warn": true
-      }
-    },
-    "copy-to-clipboard": {
-      "globals": {
-        "clipboardData.setData": true,
-        "console.error": true,
-        "console.warn": true,
-        "document.body.appendChild": true,
-        "document.body.removeChild": true,
-        "document.createElement": true,
-        "document.createRange": true,
-        "document.execCommand": true,
-        "document.getSelection": true,
-        "navigator.userAgent": true,
-        "prompt": true
-      },
-      "packages": {
-        "toggle-selection": true
       }
     },
     "core-js": {
@@ -1188,12 +911,6 @@
     "core-util-is": {
       "packages": {
         "is-buffer": true
-      }
-    },
-    "crc-32": {
-      "globals": {
-        "DO_NOT_EXPORT_CRC": true,
-        "define": true
       }
     },
     "create-ecdh": {
@@ -1248,17 +965,6 @@
     "crypto-js": {
       "globals": {
         "define": true
-      }
-    },
-    "css-vendor": {
-      "globals": {
-        "document.createElement": true,
-        "document.documentElement": true,
-        "getComputedStyle": true
-      },
-      "packages": {
-        "@babel/runtime": true,
-        "is-in-browser": true
       }
     },
     "currency-formatter": {
@@ -1329,16 +1035,6 @@
         "process": true
       }
     },
-    "deep-equal": {
-      "packages": {
-        "is-arguments": true,
-        "is-date-object": true,
-        "is-regex": true,
-        "object-is": true,
-        "object-keys": true,
-        "regexp.prototype.flags": true
-      }
-    },
     "deep-extend": {
       "packages": {
         "buffer": true
@@ -1348,11 +1044,6 @@
       "packages": {
         "abstract-leveldown": true,
         "inherits": true
-      }
-    },
-    "define-properties": {
-      "packages": {
-        "object-keys": true
       }
     },
     "des.js": {
@@ -1387,23 +1078,6 @@
     "dlv": {
       "globals": {
         "define": true
-      }
-    },
-    "dnd-core": {
-      "packages": {
-        "asap": true,
-        "invariant": true,
-        "lodash": true,
-        "redux": true
-      }
-    },
-    "dom-helpers": {
-      "globals": {
-        "document": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@babel/runtime": true
       }
     },
     "drbg.js": {
@@ -1491,8 +1165,7 @@
     },
     "es-abstract": {
       "packages": {
-        "function-bind": true,
-        "has-symbols": true
+        "get-intrinsic": true
       }
     },
     "eth-block-tracker": {
@@ -1502,9 +1175,7 @@
         "setTimeout": true
       },
       "packages": {
-        "@metamask/safe-event-emitter": true,
         "eth-query": true,
-        "json-rpc-random-id": true,
         "pify": true,
         "safe-event-emitter": true
       }
@@ -1525,7 +1196,9 @@
         "bip39": true,
         "eth-sig-util": true,
         "eth-simple-keyring": true,
-        "ethereumjs-wallet": true
+        "ethereumjs-util": true,
+        "ethereumjs-wallet": true,
+        "events": true
       }
     },
     "eth-json-rpc-filters": {
@@ -1586,26 +1259,6 @@
         "obs-store": true
       }
     },
-    "eth-lattice-keyring": {
-      "globals": {
-        "addEventListener": true,
-        "browser": true,
-        "clearInterval": true,
-        "console.warn": true,
-        "open": true,
-        "setInterval": true
-      },
-      "packages": {
-        "@ethereumjs/common": true,
-        "@ethereumjs/tx": true,
-        "bignumber.js": true,
-        "buffer": true,
-        "crypto-browserify": true,
-        "ethereumjs-util": true,
-        "events": true,
-        "gridplus-sdk": true
-      }
-    },
     "eth-method-registry": {
       "packages": {
         "ethjs": true
@@ -1647,11 +1300,12 @@
     },
     "eth-trezor-keyring": {
       "globals": {
+        "console.log": true,
         "setTimeout": true
       },
       "packages": {
-        "@ethereumjs/tx": true,
         "buffer": true,
+        "ethereumjs-tx": true,
         "ethereumjs-util": true,
         "events": true,
         "hdkey": true,
@@ -1694,7 +1348,6 @@
         "elliptic": true,
         "ethereum-cryptography": true,
         "ethjs-util": true,
-        "is-buffer": true,
         "keccak": true,
         "rlp": true,
         "safe-buffer": true,
@@ -1705,13 +1358,11 @@
       "packages": {
         "aes-js": true,
         "bs58check": true,
-        "buffer": true,
         "crypto-browserify": true,
         "ethereum-cryptography": true,
         "ethereumjs-util": true,
         "randombytes": true,
         "safe-buffer": true,
-        "scrypt-js": true,
         "scryptsy": true,
         "utf8": true,
         "uuid": true
@@ -1759,11 +1410,6 @@
         "@ethersproject/wallet": true,
         "@ethersproject/web": true,
         "@ethersproject/wordlists": true
-      }
-    },
-    "ethers-eip712": {
-      "packages": {
-        "ethers": true
       }
     },
     "ethjs": {
@@ -1910,12 +1556,6 @@
         "fsm": true
       }
     },
-    "fuse.js": {
-      "globals": {
-        "console": true,
-        "define": true
-      }
-    },
     "get-browser-rtc": {
       "globals": {
         "RTCIceCandidate": true,
@@ -1929,9 +1569,16 @@
         "webkitRTCSessionDescription": true
       }
     },
-    "get-params": {
+    "get-intrinsic": {
       "globals": {
-        "GetParams": "write"
+        "AggregateError": true,
+        "FinalizationRegistry": true,
+        "WeakRef": true
+      },
+      "packages": {
+        "function-bind": true,
+        "has": true,
+        "has-symbols": true
       }
     },
     "graphql-request": {
@@ -1942,33 +1589,15 @@
         "cross-fetch": true
       }
     },
-    "gridplus-sdk": {
-      "globals": {
-        "console.error": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "aes-js": true,
-        "bech32": true,
-        "bignumber.js": true,
-        "bitwise": true,
-        "borc": true,
-        "bs58check": true,
-        "buffer": true,
-        "crc-32": true,
-        "elliptic": true,
-        "ethers": true,
-        "ethers-eip712": true,
-        "js-sha3": true,
-        "rlp-browser": true,
-        "secp256k1": true,
-        "superagent": true
-      }
-    },
     "hamt-sharding": {
       "packages": {
         "is-buffer": true,
         "sparse-array": true
+      }
+    },
+    "has": {
+      "packages": {
+        "function-bind": true
       }
     },
     "has-binary2": {
@@ -2021,33 +1650,11 @@
         "process": true
       }
     },
-    "history": {
-      "globals": {
-        "addEventListener": true,
-        "confirm": true,
-        "document": true,
-        "history": true,
-        "location": true,
-        "navigator.userAgent": true,
-        "removeEventListener": true
-      },
-      "packages": {
-        "resolve-pathname": true,
-        "tiny-invariant": true,
-        "tiny-warning": true,
-        "value-equal": true
-      }
-    },
     "hmac-drbg": {
       "packages": {
         "hash.js": true,
         "minimalistic-assert": true,
         "minimalistic-crypto-utils": true
-      }
-    },
-    "hoist-non-react-statics": {
-      "packages": {
-        "react-is": true
       }
     },
     "https-browserify": {
@@ -2461,18 +2068,9 @@
         "timestamp-nano": true
       }
     },
-    "is-dom": {
-      "globals": {
-        "Node": true
-      },
+    "is-arguments": {
       "packages": {
-        "is-object": true,
-        "is-window": true
-      }
-    },
-    "is-in-browser": {
-      "globals": {
-        "document": true
+        "call-bind": true
       }
     },
     "is-ip": {
@@ -2491,8 +2089,12 @@
         "multihashes": true
       }
     },
-    "is-regex": {
+    "is-typed-array": {
       "packages": {
+        "available-typed-arrays": true,
+        "call-bind": true,
+        "es-abstract": true,
+        "foreach": true,
         "has-symbols": true
       }
     },
@@ -2520,19 +2122,6 @@
         "whatwg-fetch": true
       }
     },
-    "js-base64": {
-      "globals": {
-        "Base64": "write",
-        "TextDecoder": true,
-        "TextEncoder": true,
-        "atob": true,
-        "btoa": true,
-        "define": true
-      },
-      "packages": {
-        "buffer": true
-      }
-    },
     "js-sha256": {
       "globals": {
         "define": true
@@ -2547,11 +2136,6 @@
       },
       "packages": {
         "process": true
-      }
-    },
-    "jsan": {
-      "globals": {
-        "console.warn": true
       }
     },
     "json-rpc-engine": {
@@ -2574,55 +2158,6 @@
     "jsonschema": {
       "packages": {
         "url": true
-      }
-    },
-    "jss": {
-      "globals": {
-        "CSS": true,
-        "document.createElement": true,
-        "document.querySelector": true
-      },
-      "packages": {
-        "@babel/runtime": true,
-        "is-in-browser": true,
-        "tiny-warning": true
-      }
-    },
-    "jss-plugin-camel-case": {
-      "packages": {
-        "hyphenate-style-name": true
-      }
-    },
-    "jss-plugin-default-unit": {
-      "globals": {
-        "CSS": true
-      },
-      "packages": {
-        "jss": true
-      }
-    },
-    "jss-plugin-global": {
-      "packages": {
-        "@babel/runtime": true,
-        "jss": true
-      }
-    },
-    "jss-plugin-nested": {
-      "packages": {
-        "@babel/runtime": true,
-        "tiny-warning": true
-      }
-    },
-    "jss-plugin-rule-value-function": {
-      "packages": {
-        "jss": true,
-        "tiny-warning": true
-      }
-    },
-    "jss-plugin-vendor-prefixer": {
-      "packages": {
-        "css-vendor": true,
-        "jss": true
       }
     },
     "just-debounce-it": {
@@ -3141,15 +2676,6 @@
         "brorand": true
       }
     },
-    "mini-create-react-context": {
-      "packages": {
-        "@babel/runtime": true,
-        "gud": true,
-        "prop-types": true,
-        "react": true,
-        "tiny-warning": true
-      }
-    },
     "mortice": {
       "globals": {
         "Worker": true
@@ -3181,21 +2707,14 @@
       }
     },
     "multibase": {
-      "globals": {
-        "TextDecoder": true,
-        "TextEncoder": true
-      },
       "packages": {
-        "@multiformats/base-x": true,
         "base-x": true,
-        "buffer": true,
-        "web-encoding": true
+        "buffer": true
       }
     },
     "multicodec": {
       "packages": {
         "buffer": true,
-        "uint8arrays": true,
         "varint": true
       }
     },
@@ -3203,10 +2722,7 @@
       "packages": {
         "bs58": true,
         "buffer": true,
-        "multibase": true,
-        "uint8arrays": true,
-        "varint": true,
-        "web-encoding": true
+        "varint": true
       }
     },
     "multihashing-async": {
@@ -3514,11 +3030,6 @@
         "process": true
       }
     },
-    "path-to-regexp": {
-      "packages": {
-        "isarray": true
-      }
-    },
     "pbkdf2": {
       "globals": {
         "crypto": true,
@@ -3556,23 +3067,6 @@
         "multiaddr": true,
         "peer-id": true,
         "unique-by": true
-      }
-    },
-    "popper.js": {
-      "globals": {
-        "MSInputMethodContext": true,
-        "Node.DOCUMENT_POSITION_FOLLOWING": true,
-        "cancelAnimationFrame": true,
-        "console.warn": true,
-        "define": true,
-        "devicePixelRatio": true,
-        "document": true,
-        "getComputedStyle": true,
-        "innerHeight": true,
-        "innerWidth": true,
-        "navigator": true,
-        "requestAnimationFrame": true,
-        "setTimeout": true
       }
     },
     "precond": {
@@ -3616,10 +3110,6 @@
     "prop-types": {
       "globals": {
         "console": true
-      },
-      "packages": {
-        "object-assign": true,
-        "react-is": true
       }
     },
     "protons": {
@@ -3640,24 +3130,6 @@
         "create-hash": true,
         "parse-asn1": true,
         "randombytes": true
-      }
-    },
-    "pubnub": {
-      "globals": {
-        "ActiveXObject": true,
-        "XMLHttpRequest": true,
-        "addEventListener": true,
-        "btoa": true,
-        "clearInterval": true,
-        "clearTimeout": true,
-        "console": true,
-        "define": true,
-        "localStorage.getItem": true,
-        "localStorage.setItem": true,
-        "location": true,
-        "navigator": true,
-        "setInterval": true,
-        "setTimeout": true
       }
     },
     "pull-handshake": {
@@ -3759,11 +3231,6 @@
         "define": true
       }
     },
-    "qrcode-generator": {
-      "globals": {
-        "define": true
-      }
-    },
     "rabin-wasm": {
       "globals": {
         "Blob": true,
@@ -3804,242 +3271,6 @@
         "prop-types": true
       }
     },
-    "react-dnd": {
-      "globals": {
-        "console.error": true
-      },
-      "packages": {
-        "disposables": true,
-        "dnd-core": true,
-        "hoist-non-react-statics": true,
-        "invariant": true,
-        "lodash": true,
-        "prop-types": true,
-        "react": true,
-        "shallowequal": true
-      }
-    },
-    "react-dnd-html5-backend": {
-      "globals": {
-        "Image": true,
-        "console.warn": true,
-        "devicePixelRatio": true,
-        "document": true,
-        "navigator.userAgent": true,
-        "safari": true,
-        "setTimeout": true
-      }
-    },
-    "react-dom": {
-      "globals": {
-        "MSApp": true,
-        "__REACT_DEVTOOLS_GLOBAL_HOOK__": true,
-        "addEventListener": true,
-        "clearTimeout": true,
-        "clipboardData": true,
-        "console": true,
-        "dispatchEvent": true,
-        "document": true,
-        "event": "write",
-        "jest": true,
-        "location.protocol": true,
-        "navigator.userAgent.indexOf": true,
-        "performance": true,
-        "removeEventListener": true,
-        "self": true,
-        "setTimeout": true,
-        "top": true,
-        "trustedTypes": true
-      },
-      "packages": {
-        "object-assign": true,
-        "prop-types": true,
-        "react": true,
-        "scheduler": true
-      }
-    },
-    "react-easy-swipe": {
-      "globals": {
-        "addEventListener": true,
-        "define": true,
-        "document.addEventListener": true,
-        "document.removeEventListener": true
-      },
-      "packages": {
-        "prop-types": true,
-        "react": true
-      }
-    },
-    "react-fast-compare": {
-      "globals": {
-        "Element": true,
-        "console.warn": true
-      }
-    },
-    "react-idle-timer": {
-      "globals": {
-        "clearTimeout": true,
-        "document": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "prop-types": true,
-        "react": true
-      }
-    },
-    "react-inspector": {
-      "globals": {
-        "Node.CDATA_SECTION_NODE": true,
-        "Node.COMMENT_NODE": true,
-        "Node.DOCUMENT_FRAGMENT_NODE": true,
-        "Node.DOCUMENT_NODE": true,
-        "Node.DOCUMENT_TYPE_NODE": true,
-        "Node.ELEMENT_NODE": true,
-        "Node.PROCESSING_INSTRUCTION_NODE": true,
-        "Node.TEXT_NODE": true
-      },
-      "packages": {
-        "babel-runtime": true,
-        "is-dom": true,
-        "prop-types": true,
-        "react": true
-      }
-    },
-    "react-is": {
-      "globals": {
-        "console": true
-      }
-    },
-    "react-popper": {
-      "globals": {
-        "document": true
-      },
-      "packages": {
-        "@popperjs/core": true,
-        "react": true,
-        "react-fast-compare": true,
-        "warning": true
-      }
-    },
-    "react-redux": {
-      "globals": {
-        "console": true,
-        "document": true
-      },
-      "packages": {
-        "@babel/runtime": true,
-        "hoist-non-react-statics": true,
-        "prop-types": true,
-        "react": true,
-        "react-dom": true,
-        "react-is": true,
-        "redux": true
-      }
-    },
-    "react-responsive-carousel": {
-      "globals": {
-        "HTMLElement": true,
-        "clearTimeout": true,
-        "console.warn": true,
-        "document": true,
-        "getComputedStyle": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "classnames": true,
-        "react": true,
-        "react-dom": true,
-        "react-easy-swipe": true
-      }
-    },
-    "react-router": {
-      "packages": {
-        "history": true,
-        "hoist-non-react-statics": true,
-        "mini-create-react-context": true,
-        "path-to-regexp": true,
-        "prop-types": true,
-        "react": true,
-        "react-is": true,
-        "tiny-invariant": true,
-        "tiny-warning": true
-      }
-    },
-    "react-router-dom": {
-      "packages": {
-        "history": true,
-        "prop-types": true,
-        "react": true,
-        "react-router": true,
-        "tiny-invariant": true,
-        "tiny-warning": true
-      }
-    },
-    "react-simple-file-input": {
-      "globals": {
-        "File": true,
-        "FileReader": true,
-        "console.warn": true
-      },
-      "packages": {
-        "prop-types": true,
-        "react": true
-      }
-    },
-    "react-tippy": {
-      "globals": {
-        "Element": true,
-        "MSStream": true,
-        "MutationObserver": true,
-        "addEventListener": true,
-        "clearTimeout": true,
-        "console.error": true,
-        "console.warn": true,
-        "define": true,
-        "document": true,
-        "getComputedStyle": true,
-        "innerHeight": true,
-        "innerWidth": true,
-        "navigator.maxTouchPoints": true,
-        "navigator.msMaxTouchPoints": true,
-        "navigator.userAgent": true,
-        "performance": true,
-        "requestAnimationFrame": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "popper.js": true,
-        "react": true,
-        "react-dom": true
-      }
-    },
-    "react-toggle-button": {
-      "globals": {
-        "clearTimeout": true,
-        "console.warn": true,
-        "define": true,
-        "performance": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "react": true
-      }
-    },
-    "react-transition-group": {
-      "globals": {
-        "Element": true,
-        "clearTimeout": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "chain-function": true,
-        "dom-helpers": true,
-        "prop-types": true,
-        "react": true,
-        "react-dom": true,
-        "warning": true
-      }
-    },
     "readable-stream": {
       "packages": {
         "browser-resolve": true,
@@ -4070,36 +3301,6 @@
         "console": true
       },
       "packages": {
-        "@babel/runtime": true,
-        "symbol-observable": true
-      }
-    },
-    "redux-devtools-core": {
-      "globals": {
-        "ErrorUtils": true,
-        "console": true,
-        "devToolsOptions": true,
-        "onerror": "write",
-        "serializeState": true
-      },
-      "packages": {
-        "get-params": true,
-        "jsan": true,
-        "lodash": true,
-        "nanoid": true,
-        "remotedev-serialize": true
-      }
-    },
-    "redux-devtools-instrument": {
-      "globals": {
-        "chrome": true,
-        "console.error": true,
-        "process": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "lodash": true,
-        "process": true,
         "symbol-observable": true
       }
     },
@@ -4108,30 +3309,9 @@
         "regeneratorRuntime": "write"
       }
     },
-    "regexp.prototype.flags": {
-      "packages": {
-        "define-properties": true,
-        "es-abstract": true
-      }
-    },
     "relative-url": {
       "packages": {
         "url": true
-      }
-    },
-    "remote-redux-devtools": {
-      "globals": {
-        "console.log": true,
-        "console.warn": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "jsan": true,
-        "redux-devtools-core": true,
-        "redux-devtools-instrument": true,
-        "rn-host-detect": true,
-        "socketcluster-client": true
       }
     },
     "retimer": {
@@ -4151,19 +3331,6 @@
       "packages": {
         "bn.js": true,
         "buffer": true
-      }
-    },
-    "rlp-browser": {
-      "packages": {
-        "assert": true,
-        "buffer": true
-      }
-    },
-    "rn-host-detect": {
-      "globals": {
-        "__DEV__": true,
-        "__fbBatchedBridgeConfig": true,
-        "console": true
       }
     },
     "rpc-cap": {
@@ -4192,28 +3359,6 @@
     "sanitize-filename": {
       "packages": {
         "truncate-utf8-bytes": true
-      }
-    },
-    "sc-channel": {
-      "packages": {
-        "component-emitter": true
-      }
-    },
-    "sc-formatter": {
-      "globals": {
-        "Buffer": true
-      }
-    },
-    "scheduler": {
-      "globals": {
-        "MessageChannel": true,
-        "cancelAnimationFrame": true,
-        "clearTimeout": true,
-        "console": true,
-        "navigator": true,
-        "performance": true,
-        "requestAnimationFrame": true,
-        "setTimeout": true
       }
     },
     "scrypt-js": {
@@ -4348,29 +3493,6 @@
         "uuid": true
       }
     },
-    "socketcluster-client": {
-      "globals": {
-        "WebSocket": true,
-        "WorkerGlobalScope": true,
-        "addEventListener": true,
-        "clearTimeout": true,
-        "localStorage": true,
-        "location": true,
-        "removeEventListener": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "buffer": true,
-        "clone": true,
-        "component-emitter": true,
-        "linked-list": true,
-        "querystring-es3": true,
-        "sc-channel": true,
-        "sc-errors": true,
-        "sc-formatter": true,
-        "uuid": true
-      }
-    },
     "sort-keys": {
       "packages": {
         "is-plain-obj": true
@@ -4438,32 +3560,6 @@
         "is-hex-prefixed": true
       }
     },
-    "superagent": {
-      "globals": {
-        "ActiveXObject": true,
-        "XMLHttpRequest": true,
-        "btoa": true,
-        "clearTimeout": true,
-        "console.error": true,
-        "console.trace": true,
-        "console.warn": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "component-emitter": true
-      }
-    },
-    "textarea-caret": {
-      "globals": {
-        "document.body.appendChild": true,
-        "document.body.removeChild": true,
-        "document.createElement": true,
-        "document.querySelector": true,
-        "getCaretCoordinates": "write",
-        "getComputedStyle": true,
-        "mozInnerScreenX": true
-      }
-    },
     "through": {
       "packages": {
         "process": true,
@@ -4492,17 +3588,6 @@
       },
       "packages": {
         "process": true
-      }
-    },
-    "tiny-warning": {
-      "globals": {
-        "console": true
-      }
-    },
-    "toggle-selection": {
-      "globals": {
-        "document.activeElement": true,
-        "document.getSelection": true
       }
     },
     "trezor-connect": {
@@ -4573,16 +3658,6 @@
         "define": true
       }
     },
-    "uint8arrays": {
-      "globals": {
-        "TextDecoder": true,
-        "TextEncoder": true
-      },
-      "packages": {
-        "multibase": true,
-        "web-encoding": true
-      }
-    },
     "unorm": {
       "globals": {
         "define": true
@@ -4613,7 +3688,11 @@
       },
       "packages": {
         "inherits": true,
-        "process": true
+        "is-arguments": true,
+        "is-generator-function": true,
+        "is-typed-array": true,
+        "process": true,
+        "which-typed-array": true
       }
     },
     "util-deprecate": {
@@ -4642,20 +3721,6 @@
         "document.createElement": true
       }
     },
-    "warning": {
-      "globals": {
-        "console": true
-      }
-    },
-    "web-encoding": {
-      "globals": {
-        "TextDecoder": true,
-        "TextEncoder": true
-      },
-      "packages": {
-        "util": true
-      }
-    },
     "web3": {
       "globals": {
         "Web3": "write",
@@ -4679,7 +3744,6 @@
         "setTimeout": true
       },
       "packages": {
-        "@ethereumjs/tx": true,
         "async": true,
         "backoff": true,
         "browser-resolve": true,
@@ -4689,22 +3753,13 @@
         "eth-json-rpc-infura": true,
         "eth-json-rpc-middleware": true,
         "eth-sig-util": true,
+        "ethereumjs-tx": true,
         "ethereumjs-util": true,
         "events": true,
         "json-stable-stringify": true,
         "semaphore": true,
         "util": true,
         "xtend": true
-      }
-    },
-    "web3-stream-provider": {
-      "globals": {
-        "setTimeout": true
-      },
-      "packages": {
-        "readable-stream": true,
-        "util": true,
-        "uuid": true
       }
     },
     "webrtcsupport": {
@@ -4738,6 +3793,16 @@
         "XMLHttpRequest": true,
         "define": true,
         "setTimeout": true
+      }
+    },
+    "which-typed-array": {
+      "packages": {
+        "available-typed-arrays": true,
+        "call-bind": true,
+        "es-abstract": true,
+        "foreach": true,
+        "has-symbols": true,
+        "is-typed-array": true
       }
     },
     "xhr2": {

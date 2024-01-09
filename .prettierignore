@@ -6,6 +6,7 @@ test-*/**
 coverage/
 jest-coverage/
 app/vendor/**
+app/scripts/lockdown.umd.js
 .nyc_output/**
 .vscode/**
 test/e2e/send-eth-with-private-key-test/**
