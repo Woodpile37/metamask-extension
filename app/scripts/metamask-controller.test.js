@@ -1,19 +1,15 @@
-import { strict as assert } from 'assert';
+import assert from 'assert';
 import sinon from 'sinon';
 import { cloneDeep } from 'lodash';
 import nock from 'nock';
+import { pubToAddress, bufferToHex } from 'ethereumjs-util';
 import { obj as createThoughStream } from 'through2';
 import EthQuery from 'eth-query';
 import proxyquire from 'proxyquire';
 import { TRANSACTION_STATUSES } from '../../shared/constants/transaction';
 import createTxMeta from '../../test/lib/createTxMeta';
 import { NETWORK_TYPE_RPC } from '../../shared/constants/network';
-import { KEYRING_TYPES } from '../../shared/constants/hardware-wallets';
-import {
-  addHexPrefix,
-  pubToAddress,
-  bufferToHex,
-} from '../../shared/modules/hexstring-utils';
+import { addHexPrefix } from './lib/util';
 
 const Ganache = require('../../test/e2e/ganache');
 
@@ -24,11 +20,6 @@ const firstTimeState = {
       type: NETWORK_TYPE_RPC,
       rpcUrl: 'http://localhost:8545',
       chainId: '0x539',
-    },
-    networkDetails: {
-      EIPS: {
-        1559: false,
-      },
     },
   },
 };
@@ -61,7 +52,6 @@ const ExtensionizerMock = {
     onInstalled: {
       addListener: () => undefined,
     },
-    getPlatformInfo: async () => 'mac',
   },
 };
 
@@ -95,6 +85,7 @@ const MetaMaskController = proxyquire('./metamask-controller', {
 
 const currentNetworkId = '42';
 const DEFAULT_LABEL = 'Account 1';
+const DEFAULT_LABEL_2 = 'Account 2';
 const TEST_SEED =
   'debris dizzy just program just float decrease vacant alarm reduce speak stadium';
 const TEST_ADDRESS = '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc';
@@ -363,7 +354,7 @@ describe('MetaMaskController', function () {
       });
     });
 
-    it('should restore any consecutive accounts with balances without extra zero balance accounts', async function () {
+    it('should restore any consecutive accounts with balances', async function () {
       sandbox.stub(metamaskController, 'getBalance');
       metamaskController.getBalance.withArgs(TEST_ADDRESS).callsFake(() => {
         return Promise.resolve('0x14ced5122ce0a000');
@@ -389,6 +380,7 @@ describe('MetaMaskController', function () {
       delete identities[TEST_ADDRESS].lastSelected;
       assert.deepEqual(identities, {
         [TEST_ADDRESS]: { address: TEST_ADDRESS, name: DEFAULT_LABEL },
+        [TEST_ADDRESS_2]: { address: TEST_ADDRESS_2, name: DEFAULT_LABEL_2 },
       });
     });
   });
@@ -500,8 +492,8 @@ describe('MetaMaskController', function () {
         );
       } catch (e) {
         assert.equal(
-          e.message,
-          'MetamaskController:getKeyringForDevice - Unknown device',
+          e,
+          'Error: MetamaskController:getKeyringForDevice - Unknown device',
         );
       }
     });
@@ -510,11 +502,11 @@ describe('MetaMaskController', function () {
       sinon.spy(metamaskController.keyringController, 'addNewKeyring');
       await metamaskController.connectHardware('trezor', 0).catch(() => null);
       const keyrings = await metamaskController.keyringController.getKeyringsByType(
-        KEYRING_TYPES.TREZOR,
+        'Trezor Hardware',
       );
-      assert.deepEqual(
+      assert.equal(
         metamaskController.keyringController.addNewKeyring.getCall(0).args,
-        [KEYRING_TYPES.TREZOR],
+        'Trezor Hardware',
       );
       assert.equal(keyrings.length, 1);
     });
@@ -523,11 +515,11 @@ describe('MetaMaskController', function () {
       sinon.spy(metamaskController.keyringController, 'addNewKeyring');
       await metamaskController.connectHardware('ledger', 0).catch(() => null);
       const keyrings = await metamaskController.keyringController.getKeyringsByType(
-        KEYRING_TYPES.LEDGER,
+        'Ledger Hardware',
       );
-      assert.deepEqual(
+      assert.equal(
         metamaskController.keyringController.addNewKeyring.getCall(0).args,
-        [KEYRING_TYPES.LEDGER],
+        'Ledger Hardware',
       );
       assert.equal(keyrings.length, 1);
     });
@@ -542,8 +534,8 @@ describe('MetaMaskController', function () {
         );
       } catch (e) {
         assert.equal(
-          e.message,
-          'MetamaskController:getKeyringForDevice - Unknown device',
+          e,
+          'Error: MetamaskController:getKeyringForDevice - Unknown device',
         );
       }
     });
@@ -561,8 +553,8 @@ describe('MetaMaskController', function () {
         await metamaskController.forgetDevice('Some random device name');
       } catch (e) {
         assert.equal(
-          e.message,
-          'MetamaskController:getKeyringForDevice - Unknown device',
+          e,
+          'Error: MetamaskController:getKeyringForDevice - Unknown device',
         );
       }
     });
@@ -571,7 +563,7 @@ describe('MetaMaskController', function () {
       await metamaskController.connectHardware('trezor', 0).catch(() => null);
       await metamaskController.forgetDevice('trezor');
       const keyrings = await metamaskController.keyringController.getKeyringsByType(
-        KEYRING_TYPES.TREZOR,
+        'Trezor Hardware',
       );
 
       assert.deepEqual(keyrings[0].accounts, []);
@@ -630,7 +622,7 @@ describe('MetaMaskController', function () {
 
     it('should set unlockedAccount in the keyring', async function () {
       const keyrings = await metamaskController.keyringController.getKeyringsByType(
-        KEYRING_TYPES.TREZOR,
+        'Trezor Hardware',
       );
       assert.equal(keyrings[0].unlockedAccount, accountToUnlock);
     });
@@ -661,21 +653,43 @@ describe('MetaMaskController', function () {
   });
 
   describe('#setCustomRpc', function () {
-    it('returns custom RPC that when called', async function () {
-      const rpcUrl = await metamaskController.setCustomRpc(
+    let rpcUrl;
+
+    beforeEach(function () {
+      rpcUrl = metamaskController.setCustomRpc(
         CUSTOM_RPC_URL,
         CUSTOM_RPC_CHAIN_ID,
       );
-      assert.equal(rpcUrl, CUSTOM_RPC_URL);
     });
 
-    it('changes the network controller rpc', async function () {
-      await metamaskController.setCustomRpc(
-        CUSTOM_RPC_URL,
-        CUSTOM_RPC_CHAIN_ID,
-      );
+    it('returns custom RPC that when called', async function () {
+      assert.equal(await rpcUrl, CUSTOM_RPC_URL);
+    });
+
+    it('changes the network controller rpc', function () {
       const networkControllerState = metamaskController.networkController.store.getState();
       assert.equal(networkControllerState.provider.rpcUrl, CUSTOM_RPC_URL);
+    });
+  });
+
+  describe('#setCurrentCurrency', function () {
+    let defaultMetaMaskCurrency;
+
+    beforeEach(function () {
+      defaultMetaMaskCurrency =
+        metamaskController.currencyRateController.state.currentCurrency;
+    });
+
+    it('defaults to usd', function () {
+      assert.equal(defaultMetaMaskCurrency, 'usd');
+    });
+
+    it('sets currency to JPY', function () {
+      metamaskController.setCurrentCurrency('JPY', noop);
+      assert.equal(
+        metamaskController.currencyRateController.state.currentCurrency,
+        'JPY',
+      );
     });
   });
 

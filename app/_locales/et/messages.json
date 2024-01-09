@@ -1,12 +1,9 @@
 {
-  "QRHardwareSignRequestCancel": {
-    "message": "Lükka tagasi"
-  },
-  "QRHardwareWalletImporterTitle": {
-    "message": "Skannige QR-koos"
-  },
   "about": {
     "message": "Teave"
+  },
+  "aboutSettingsDescription": {
+    "message": "Versioon, tugikeskus ja kontaktteave"
   },
   "acceleratingATransaction": {
     "message": "* Tehingu kiirendamine kõrgemate gaasihindadega suurendab võimalust kiiremaks võrgus töötlemiseks, kuid see ei ole alati tagatud."
@@ -41,17 +38,32 @@
   "addNetwork": {
     "message": "Lisage võrk"
   },
+  "addRecipient": {
+    "message": "Lisa saaja"
+  },
   "addSuggestedTokens": {
     "message": "Lisa soovitatud lube"
   },
+  "addToAddressBook": {
+    "message": "Lisage aadressiraamatusse"
+  },
+  "addToAddressBookModalPlaceholder": {
+    "message": "nt John D."
+  },
   "addToken": {
     "message": "Lisage luba"
+  },
+  "addTokens": {
+    "message": "Lisa lube"
   },
   "advanced": {
     "message": "Täpsemad"
   },
   "advancedOptions": {
     "message": "Täpsemad suvandid"
+  },
+  "advancedSettingsDescription": {
+    "message": "Juurdepääs arendaja funktsioonidele, olekulogide allalaadimine, konto lähtestamine, testvõrkude ja kohandatud RPC-de seadistamine"
   },
   "amount": {
     "message": "Summa"
@@ -63,14 +75,6 @@
   "appName": {
     "message": "MetaMask",
     "description": "The name of the application"
-  },
-  "appNameBeta": {
-    "message": "MetaMask Beta",
-    "description": "The name of the application (Beta)"
-  },
-  "appNameFlask": {
-    "message": "MetaMask Flask",
-    "description": "The name of the application (Flask)"
   },
   "approve": {
     "message": "Kinnita"
@@ -133,8 +137,14 @@
     "message": "Vaata kontot $1",
     "description": "$1 replaced by URL for custom block explorer"
   },
+  "blockiesIdenticon": {
+    "message": "Kasuta Blockies Identiconi"
+  },
   "browserNotSupported": {
     "message": "Teie lehitsejat ei toetata..."
+  },
+  "builtInCalifornia": {
+    "message": "MetaMask on projekteeritud ja loodud Californias."
   },
   "buyWithWyre": {
     "message": "Ostke ETH-d Wyre'iga"
@@ -217,6 +227,9 @@
   "copiedExclamation": {
     "message": "Kopeeritud!"
   },
+  "copiedTransactionId": {
+    "message": "Kopeeritud tehingu ID"
+  },
   "copyAddress": {
     "message": "Kopeeri aadress lõikelauale"
   },
@@ -247,14 +260,14 @@
   "currentLanguage": {
     "message": "Praegune keel"
   },
-  "custom": {
-    "message": "Täpsemad"
-  },
   "customGas": {
     "message": "Gaasi kohandamine"
   },
   "customGasSubTitle": {
     "message": "Tasu suurendamine võib töötlemisaegu vähendada, kuid see ei ole tagatud."
+  },
+  "customRPC": {
+    "message": "Kohandatud RPC"
   },
   "customToken": {
     "message": "Kohandatud luba"
@@ -264,6 +277,9 @@
   },
   "decimalsMustZerotoTen": {
     "message": "Kümnendkohad peavad olema vähemalt 0 ja mitte üle 36."
+  },
+  "defaultNetwork": {
+    "message": "Etheri tehingute vaikevõrk on peavõrk."
   },
   "delete": {
     "message": "Kustuta"
@@ -277,11 +293,23 @@
   "deleteNetworkDescription": {
     "message": "Olete kindel, et soovite selle võrgu kustutada?"
   },
+  "depositEther": {
+    "message": "Eetri sissemakse"
+  },
   "details": {
     "message": "Üksikasjad"
   },
+  "directDepositEther": {
+    "message": "Eetri otsene sissemakse"
+  },
+  "directDepositEtherExplainer": {
+    "message": "Kui teil on juba veidi eetrit, on kiirem viis eetri rahakotti saamiseks otsene sissemakse."
+  },
   "done": {
     "message": "Valmis"
+  },
+  "dontHaveAHardwareWallet": {
+    "message": "Teil ei ole riistvara rahakotti?"
   },
   "downloadGoogleChrome": {
     "message": "Laadige alla Google Chrome"
@@ -333,6 +361,9 @@
   },
   "ensRegistrationError": {
     "message": "Tõrge ENS-i nime registreerimisel"
+  },
+  "enterAnAlias": {
+    "message": "Sisestage alias"
   },
   "enterPassword": {
     "message": "Sisestage parool"
@@ -398,12 +429,18 @@
   "general": {
     "message": "Üldine teave"
   },
+  "generalSettingsDescription": {
+    "message": "Valuutavahetus, põhivaluuta, keel, plokkidest identicon"
+  },
   "getEther": {
     "message": "Hankige eetrit"
   },
   "getEtherFromFaucet": {
     "message": "Hankige kraanist eetrit $1eest",
     "description": "Displays network name for Ether faucet"
+  },
+  "getHelp": {
+    "message": "Küsige abi."
   },
   "getStarted": {
     "message": "Alustamine"
@@ -425,6 +462,9 @@
   },
   "hardwareWalletsMsg": {
     "message": "Valige riistvara rahakott, mida soovite MetaMaskis kasutada"
+  },
+  "havingTroubleConnecting": {
+    "message": "Kas ühendamisel esineb probleeme?"
   },
   "here": {
     "message": "siin",
@@ -505,16 +545,13 @@
   "learnMore": {
     "message": "Lisateave"
   },
-  "learnMoreUpperCase": {
-    "message": "Lisateave"
-  },
   "ledgerAccountRestriction": {
     "message": "Enne uue konto loomist peate kasutama eelmist kontot."
   },
   "letsGoSetUp": {
     "message": "Jah, hakkame pihta!"
   },
-  "likeToImportTokens": {
+  "likeToAddTokens": {
     "message": "Kas soovite need load lisada?"
   },
   "links": {
@@ -550,11 +587,17 @@
   "metamaskVersion": {
     "message": "MetaMaski versioon"
   },
+  "mobileSyncText": {
+    "message": "Sisestage parool, et saaksime teid tuvastada!"
+  },
   "mustSelectOne": {
     "message": "Peate valima vähemalt 1 loa."
   },
   "myAccounts": {
     "message": "Minu kontod"
+  },
+  "needEtherInWallet": {
+    "message": "Selleks, et suhelda MetaMaski abil detsentraliseeritud rakendustega, peab teil rahakotis eetrit olema."
   },
   "needImportFile": {
     "message": "Peate importimiseks faili valima.",
@@ -565,6 +608,9 @@
   },
   "networkName": {
     "message": "Võrgu nimi"
+  },
+  "networkSettingsDescription": {
+    "message": "Kohandatud RPC-võrkude lisamine ja muutmine"
   },
   "networks": {
     "message": "Võrgud"
@@ -587,6 +633,9 @@
   },
   "newContract": {
     "message": "Uus kontakt"
+  },
+  "newNetwork": {
+    "message": "Uus võrk"
   },
   "newPassword": {
     "message": "Uus parool (vähemalt 8 tähemärki)"
@@ -635,6 +684,15 @@
   },
   "on": {
     "message": "Sees"
+  },
+  "optionalBlockExplorerUrl": {
+    "message": "Blokeeri Exploreri URL (valikuline)"
+  },
+  "optionalCurrencySymbol": {
+    "message": "Sümbol (valikuline)"
+  },
+  "orderOneHere": {
+    "message": "Tellige Trezor või Ledger ja hoidke oma varasid külmruumis"
   },
   "origin": {
     "message": "Päritolu"
@@ -695,8 +753,14 @@
   "readdToken": {
     "message": "Saate selle loa tulevikus tagasi lisada, kui lähete oma kontovalikute menüüs vahelehele „Lisa luba“."
   },
+  "readyToConnect": {
+    "message": "Kas olete ühenduseks valmis?"
+  },
   "recents": {
     "message": "Hiljutised"
+  },
+  "recipientAddress": {
+    "message": "Saaja aadress"
   },
   "recipientAddressPlaceholder": {
     "message": "Otsing, avalik aadress (0x) või ENS"
@@ -746,8 +810,23 @@
   "restore": {
     "message": "Taasta"
   },
+  "restoreAccountWithSeed": {
+    "message": "Taastage konto seemnefraasi abil"
+  },
   "revealSeedWords": {
     "message": "Kuva seemnesõnu"
+  },
+  "revealSeedWordsDescription": {
+    "message": "Kui vahetate veebilehitsejat või arvutit, vajate oma kontodele ligipääsemiseks seemnefraasi. Hoidke seda turvalises ja salajases kohas."
+  },
+  "revealSeedWordsTitle": {
+    "message": "Seemnefraas"
+  },
+  "revealSeedWordsWarning": {
+    "message": "Neid sõnu saab kasutada kõigi teie kontode tühjendamiseks."
+  },
+  "revealSeedWordsWarningTitle": {
+    "message": "ÄRGE jagage seda fraasi mitte kellegagi!"
   },
   "rinkeby": {
     "message": "Rinkeby katsevõrk"
@@ -760,6 +839,9 @@
   },
   "save": {
     "message": "Salvesta"
+  },
+  "saveAsCsvFile": {
+    "message": "Salvesta CSV-failina"
   },
   "scanInstructions": {
     "message": "Asetage QR-kood kaamera ette"
@@ -776,6 +858,9 @@
   "searchTokens": {
     "message": "Lubade otsimine"
   },
+  "secretBackupPhrase": {
+    "message": "Salajane varundusfraas"
+  },
   "secretBackupPhraseDescription": {
     "message": "Teie salajane varundusfraas hõlbustab konto varundamist ja taastamist."
   },
@@ -785,6 +870,12 @@
   "securityAndPrivacy": {
     "message": "Turvalisus ja privaatsus"
   },
+  "securitySettingsDescription": {
+    "message": "Privaatsusseaded ja rahakoti seemnefraas"
+  },
+  "seedPhrasePlaceholder": {
+    "message": "Eraldage iga sõna ühe tühikuga"
+  },
   "seedPhraseReq": {
     "message": "Seemnefraasid on 12 sõna pikad"
   },
@@ -793,6 +884,9 @@
   },
   "selectAnAccount": {
     "message": "Valige konto"
+  },
+  "selectAnAccountHelp": {
+    "message": "Valige konto, mida MetaMaskis vaadata"
   },
   "selectEachPhrase": {
     "message": "Valige iga fraas, veendumaks, et see on õige."
@@ -814,6 +908,12 @@
   },
   "sendTokens": {
     "message": "Saada lube"
+  },
+  "sentEther": {
+    "message": "saadetud eeter"
+  },
+  "separateEachWord": {
+    "message": "Eraldage iga sõna ühe tühikuga"
   },
   "settings": {
     "message": "Seaded"
@@ -877,6 +977,24 @@
   },
   "stateLogsDescription": {
     "message": "Olekulogid sisaldavad teie avalikke konto aadresse ja saadetud tehinguid."
+  },
+  "step1HardwareWallet": {
+    "message": "1. Ühendage riistvara rahakott"
+  },
+  "step1HardwareWalletMsg": {
+    "message": "Ühendage oma riistvara rahakott otse oma arvutiga."
+  },
+  "step2HardwareWallet": {
+    "message": "2. Valige konto"
+  },
+  "step2HardwareWalletMsg": {
+    "message": "Valige konto, mida soovite vaadata. Korraga saab valida ühe."
+  },
+  "step3HardwareWallet": {
+    "message": "3. Hakake kasutama dAppse ja muud!"
+  },
+  "step3HardwareWalletMsg": {
+    "message": "Kasutage oma riistvarakontot nagu mis tahes teist Ethereumi kontot. Logige dAppsi, saatke Eth-d, ostke ja hoiustage ERC20 lube ning asendamatuid lube nagu CryptoKitties."
   },
   "storePhrase": {
     "message": "Salvestage see fraas paroolihaldurisse, nagu 1Password."
@@ -1050,8 +1168,20 @@
   "viewContact": {
     "message": "Kuva kontakt"
   },
+  "viewOnCustomBlockExplorer": {
+    "message": "Vaata $1"
+  },
+  "viewOnEtherscan": {
+    "message": "Kuva Etherscanil"
+  },
+  "viewinExplorer": {
+    "message": "Kuva Exploreris"
+  },
   "visitWebSite": {
     "message": "Külastage meie veebilehte"
+  },
+  "walletSeed": {
+    "message": "Rahakoti seeme"
   },
   "welcome": {
     "message": "Tere tulemast MetaMaski"
@@ -1070,6 +1200,9 @@
   },
   "youSign": {
     "message": "Allkirjastate"
+  },
+  "yourPrivateSeedPhrase": {
+    "message": "Teie privaatne seemnefraas"
   },
   "zeroGasPriceOnSpeedUpError": {
     "message": "Null gaasihind kiirendamisel"

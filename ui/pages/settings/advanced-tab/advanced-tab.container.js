@@ -6,14 +6,11 @@ import {
   setFeatureFlag,
   showModal,
   setShowFiatConversionOnTestnetsPreference,
-  setShowTestNetworks,
   setAutoLockTimeLimit,
   setThreeBoxSyncingPermission,
   turnThreeBoxSyncingOnAndInitialize,
   setUseNonceField,
   setIpfsGateway,
-  setDismissSeedBackUpReminder,
-  setUseTokenDetection,
 } from '../../../store/actions';
 import { getPreferences } from '../../../selectors';
 import AdvancedTab from './advanced-tab.component';
@@ -29,30 +26,19 @@ export const mapStateToProps = (state) => {
     threeBoxDisabled,
     useNonceField,
     ipfsGateway,
-    ledgerTransportType,
-    dismissSeedBackUpReminder,
-    useTokenDetection,
   } = metamask;
-  const {
-    showFiatInTestnets,
-    showTestNetworks,
-    autoLockTimeLimit = 0,
-  } = getPreferences(state);
+  const { showFiatInTestnets, autoLockTimeLimit } = getPreferences(state);
 
   return {
     warning,
     sendHexData,
     advancedInlineGas,
     showFiatInTestnets,
-    showTestNetworks,
     autoLockTimeLimit,
     threeBoxSyncingAllowed,
     threeBoxDisabled,
     useNonceField,
     ipfsGateway,
-    ledgerTransportType,
-    dismissSeedBackUpReminder,
-    useTokenDetection,
   };
 };
 
@@ -69,9 +55,6 @@ export const mapDispatchToProps = (dispatch) => {
     setShowFiatConversionOnTestnetsPreference: (value) => {
       return dispatch(setShowFiatConversionOnTestnetsPreference(value));
     },
-    setShowTestNetworks: (value) => {
-      return dispatch(setShowTestNetworks(value));
-    },
     setAutoLockTimeLimit: (value) => {
       return dispatch(setAutoLockTimeLimit(value));
     },
@@ -84,12 +67,6 @@ export const mapDispatchToProps = (dispatch) => {
     },
     setIpfsGateway: (value) => {
       return dispatch(setIpfsGateway(value));
-    },
-    setDismissSeedBackUpReminder: (value) => {
-      return dispatch(setDismissSeedBackUpReminder(value));
-    },
-    setUseTokenDetection: (value) => {
-      return dispatch(setUseTokenDetection(value));
     },
   };
 };

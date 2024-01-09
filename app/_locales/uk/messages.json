@@ -1,12 +1,9 @@
 {
-  "QRHardwareSignRequestCancel": {
-    "message": "Відхилити"
-  },
-  "QRHardwareWalletImporterTitle": {
-    "message": "Сканувати QR-код"
-  },
   "about": {
     "message": "Про Google Chrome"
+  },
+  "aboutSettingsDescription": {
+    "message": "Версія, центр підтримки та контактна інформація"
   },
   "acceleratingATransaction": {
     "message": "* Прискорення транзакції за допомогою вищих цін на газ підвищує її шанси бути обробленою мережею швидше, але це не завжди гарантовано."
@@ -41,17 +38,32 @@
   "addNetwork": {
     "message": "Додати мережу"
   },
+  "addRecipient": {
+    "message": "Додати отримувача"
+  },
   "addSuggestedTokens": {
     "message": "Додати рекомендовані токени"
   },
+  "addToAddressBook": {
+    "message": "Додати до адресної книги"
+  },
+  "addToAddressBookModalPlaceholder": {
+    "message": "Напр.: Джон Д."
+  },
   "addToken": {
     "message": "Додати токен"
+  },
+  "addTokens": {
+    "message": "Додати токени"
   },
   "advanced": {
     "message": "Розширені"
   },
   "advancedOptions": {
     "message": "Додаткові параметри"
+  },
+  "advancedSettingsDescription": {
+    "message": "Отримайте доступ до функцій розробника, завантажте Логи станів, перезапустіть обліковий запис, налаштуйте тестові сітки та персоніфіковані RPC"
   },
   "amount": {
     "message": "Кількість"
@@ -63,14 +75,6 @@
   "appName": {
     "message": "MetaMask",
     "description": "The name of the application"
-  },
-  "appNameBeta": {
-    "message": "MetaMask Beta",
-    "description": "The name of the application (Beta)"
-  },
-  "appNameFlask": {
-    "message": "MetaMask Flask",
-    "description": "The name of the application (Flask)"
   },
   "approve": {
     "message": "Затвердити"
@@ -133,8 +137,14 @@
     "message": "Переглянути обліковий запис на $1",
     "description": "$1 replaced by URL for custom block explorer"
   },
+  "blockiesIdenticon": {
+    "message": "Викоритовувати Blockies Identicon"
+  },
   "browserNotSupported": {
     "message": "Ваш браузер не підтримується..."
+  },
+  "builtInCalifornia": {
+    "message": "MetaMask розроблено й створено в Каліфорнії."
   },
   "buyWithWyre": {
     "message": "Купити ETH через Wyre"
@@ -217,6 +227,9 @@
   "copiedExclamation": {
     "message": "Скопійовано!"
   },
+  "copiedTransactionId": {
+    "message": "ID Скопійованої транзакції"
+  },
   "copyAddress": {
     "message": "Копіювати адресу в буфер обміну"
   },
@@ -247,14 +260,14 @@
   "currentLanguage": {
     "message": "Поточна мова"
   },
-  "custom": {
-    "message": "Розширені"
-  },
   "customGas": {
     "message": "Налаштувати пальне"
   },
   "customGasSubTitle": {
     "message": "Збільшення комісії може призвести до зменшення часу обробки, але це не гарантується."
+  },
+  "customRPC": {
+    "message": "Налаштувати RPC"
   },
   "customToken": {
     "message": "Користувацький токен"
@@ -264,6 +277,9 @@
   },
   "decimalsMustZerotoTen": {
     "message": "Кількість розрядів після коми: від 0 до 36."
+  },
+  "defaultNetwork": {
+    "message": "Мережа для транзакцій з Ether за замовчуванням - Main Net."
   },
   "delete": {
     "message": "Видалити"
@@ -277,11 +293,23 @@
   "deleteNetworkDescription": {
     "message": "Ви впевнені, що хочете видалити цю мережу?"
   },
+  "depositEther": {
+    "message": "Депонувати Ether"
+  },
   "details": {
     "message": "Деталі"
   },
+  "directDepositEther": {
+    "message": "Внести безпосередньо Ефір"
+  },
+  "directDepositEtherExplainer": {
+    "message": "Якщо ви вже маєте ефір, пряме переведення – найшвидший спосіб передати ефір у свій гаманець."
+  },
   "done": {
     "message": "Готово"
+  },
+  "dontHaveAHardwareWallet": {
+    "message": "Не маєте апаратного гаманця?"
   },
   "downloadGoogleChrome": {
     "message": "Завантажити Гугл Хром"
@@ -333,6 +361,9 @@
   },
   "ensRegistrationError": {
     "message": "Помилка у реєстрації ENS ім'я"
+  },
+  "enterAnAlias": {
+    "message": "Введіть псевдонім"
   },
   "enterPassword": {
     "message": "Введіть пароль"
@@ -402,12 +433,18 @@
   "general": {
     "message": "Загальні"
   },
+  "generalSettingsDescription": {
+    "message": "Конверсія валют, первісна валюта, мова, ідентикон блокіз"
+  },
   "getEther": {
     "message": "Отримати Ефір"
   },
   "getEtherFromFaucet": {
     "message": "Отримайте Ether з крану за $1",
     "description": "Displays network name for Ether faucet"
+  },
+  "getHelp": {
+    "message": "Отримати допомогу."
   },
   "getStarted": {
     "message": "Почати"
@@ -429,6 +466,9 @@
   },
   "hardwareWalletsMsg": {
     "message": "Оберіть апаратний гаманець, який ви хочете використовувати з MetaMask"
+  },
+  "havingTroubleConnecting": {
+    "message": "Проблеми при підключенні?"
   },
   "here": {
     "message": "тут",
@@ -509,16 +549,13 @@
   "learnMore": {
     "message": "Дізнатись більше"
   },
-  "learnMoreUpperCase": {
-    "message": "Дізнатись більше"
-  },
   "ledgerAccountRestriction": {
     "message": "Потрібно скористатися своїм останнім обліковим записом, перш ніж додавати новий."
   },
   "letsGoSetUp": {
     "message": "Так, давайте налаштуємо!"
   },
-  "likeToImportTokens": {
+  "likeToAddTokens": {
     "message": "Ви б хотіли додати ці токени?"
   },
   "links": {
@@ -560,11 +597,17 @@
   "metamaskVersion": {
     "message": "Версія MetaMask"
   },
+  "mobileSyncText": {
+    "message": "Введіть пароль, щоб підтвердити свою особу!"
+  },
   "mustSelectOne": {
     "message": "Слід вибрати хоча б 1 токен."
   },
   "myAccounts": {
     "message": "Мої облікові записи"
+  },
+  "needEtherInWallet": {
+    "message": "Щоб взаємодіяти з децентралізованими застосунками використовуючи MetaMask, вам буде потрібен Ether у вашому гаманці."
   },
   "needImportFile": {
     "message": "Потрібно вибрати файл для імпорту.",
@@ -575,6 +618,9 @@
   },
   "networkName": {
     "message": "Ім’я мережі"
+  },
+  "networkSettingsDescription": {
+    "message": "Додавайте та редагуйте мережі RPC, що можна налаштовувати"
   },
   "networks": {
     "message": "Мережі"
@@ -597,6 +643,9 @@
   },
   "newContract": {
     "message": "Новий контракт"
+  },
+  "newNetwork": {
+    "message": "Нова мережа"
   },
   "newPassword": {
     "message": "Новий пароль (мінімум 8 символів)"
@@ -645,6 +694,15 @@
   },
   "on": {
     "message": "Увімкнути"
+  },
+  "optionalBlockExplorerUrl": {
+    "message": "Блокувати Explorer URL (не обов'язково)"
+  },
+  "optionalCurrencySymbol": {
+    "message": "Символ (не обов'язково)"
+  },
+  "orderOneHere": {
+    "message": "Замовте Trezor або Ledger та зберігайте ваші кошти у холодному сховищі"
   },
   "origin": {
     "message": "Походження"
@@ -705,8 +763,14 @@
   "readdToken": {
     "message": "Ви можете знову додати цей токен у меню облікового запису у розділі “Додати токен”. "
   },
+  "readyToConnect": {
+    "message": "Готові підключитися?"
+  },
   "recents": {
     "message": "Останні"
+  },
+  "recipientAddress": {
+    "message": "Адреса отримувача"
   },
   "recipientAddressPlaceholder": {
     "message": "Пошук, публічна адреса (0x), або ENS"
@@ -756,8 +820,23 @@
   "restore": {
     "message": "Відновити"
   },
+  "restoreAccountWithSeed": {
+    "message": "Відновіть ваш обліковий запис за допомогою seed-фрази"
+  },
   "revealSeedWords": {
     "message": "Показати мнемонічні слова"
+  },
+  "revealSeedWordsDescription": {
+    "message": "При зміні браузера або комп'ютера, вам знадобиться seed-фраза для отримання доступу до ваших облікових записів. Збережіть її у надійному місці."
+  },
+  "revealSeedWordsTitle": {
+    "message": "Мнемонічна фраза"
+  },
+  "revealSeedWordsWarning": {
+    "message": "Ці слова можуть бути використані, щоб вкрасти всі ваші облікові записи."
+  },
+  "revealSeedWordsWarningTitle": {
+    "message": "НЕ передавайте цю фразу нікому!"
   },
   "rinkeby": {
     "message": "Тестова мережа Rinkeby"
@@ -770,6 +849,9 @@
   },
   "save": {
     "message": "Зберегти"
+  },
+  "saveAsCsvFile": {
+    "message": "Зберегти як файл CSV"
   },
   "scanInstructions": {
     "message": "Розташуйте QR-код перед вашою камерою"
@@ -786,6 +868,9 @@
   "searchTokens": {
     "message": "Шукати токени"
   },
+  "secretBackupPhrase": {
+    "message": "Секретна резервна фраза"
+  },
   "secretBackupPhraseDescription": {
     "message": "Ваша секретна резервна фраза дозволяє легко створити резервну копію та відновити обліковий запис."
   },
@@ -795,6 +880,12 @@
   "securityAndPrivacy": {
     "message": "Безпека й конфіденційність"
   },
+  "securitySettingsDescription": {
+    "message": "Налаштування приватності та початкова фраза гаманця"
+  },
+  "seedPhrasePlaceholder": {
+    "message": "Відділіть кожне слово одним пробілом"
+  },
   "seedPhraseReq": {
     "message": "Початкові фрази мають 12 слів"
   },
@@ -803,6 +894,9 @@
   },
   "selectAnAccount": {
     "message": "Виберіть обліковий запис"
+  },
+  "selectAnAccountHelp": {
+    "message": "Оберіть обліковий запис для перегляду в MetaMask"
   },
   "selectEachPhrase": {
     "message": "Виберіть кожну фразу, щоб переконатися, що вона правильна."
@@ -824,6 +918,12 @@
   },
   "sendTokens": {
     "message": "Надіслати токени"
+  },
+  "sentEther": {
+    "message": "надісланий ефір"
+  },
+  "separateEachWord": {
+    "message": "Відділіть кожне слово одним пробілом"
   },
   "settings": {
     "message": "Налаштування"
@@ -887,6 +987,24 @@
   },
   "stateLogsDescription": {
     "message": "Логи стану містять ваші публічні адреси облікового запису та надіслані транзакції."
+  },
+  "step1HardwareWallet": {
+    "message": "1. Приєднайте апаратний гаманець"
+  },
+  "step1HardwareWalletMsg": {
+    "message": "Під'єднайте ваш апаратний гаманець безпосередньо до вашого комп'ютера."
+  },
+  "step2HardwareWallet": {
+    "message": "2. Оберіть обліковий запис"
+  },
+  "step2HardwareWalletMsg": {
+    "message": "Оберіть обліковий запис, який бажаєте переглянути. Ви можете вибрати лише один."
+  },
+  "step3HardwareWallet": {
+    "message": "3. Почніть користуватись dApps та більше!"
+  },
+  "step3HardwareWalletMsg": {
+    "message": "Використовуйте ваш апаратний обліковий запис, як би ви використовували будь-який обліковий запис Ethereum. Увійдіть в dApps, надсилайте Eth, купуйте та зберігайте токени ERC20 та токени, які не є взаємозамінними, такі як CryptoKitties."
   },
   "storePhrase": {
     "message": "Зберігайте цю фразу у менеджері паролів, як 1Password."
@@ -1060,8 +1178,20 @@
   "viewContact": {
     "message": "Переглянути контакт"
   },
+  "viewOnCustomBlockExplorer": {
+    "message": "Дивитись на $1"
+  },
+  "viewOnEtherscan": {
+    "message": "Дивитись на Etherscan"
+  },
+  "viewinExplorer": {
+    "message": "Дивитись в Explorer"
+  },
   "visitWebSite": {
     "message": "Відвідайте наш веб-сайт"
+  },
+  "walletSeed": {
+    "message": "Seed гаманця"
   },
   "welcome": {
     "message": "Ласкаво просимо до MetaMask"
@@ -1080,6 +1210,9 @@
   },
   "youSign": {
     "message": "Ви підписуєте"
+  },
+  "yourPrivateSeedPhrase": {
+    "message": "Ваша секретна seed-фраза"
   },
   "zeroGasPriceOnSpeedUpError": {
     "message": "Ціна пального на прискорення - нуль"

@@ -1,12 +1,9 @@
 {
-  "QRHardwareSignRequestCancel": {
-    "message": "ತಿರಸ್ಕರಿಸಿ"
-  },
-  "QRHardwareWalletImporterTitle": {
-    "message": "QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ"
-  },
   "about": {
     "message": "ಕುರಿತು"
+  },
+  "aboutSettingsDescription": {
+    "message": "ಆವೃತ್ತಿ, ಬೆಂಬಲ ಕೇಂದ್ರ ಮತ್ತು ಸಂಪರ್ಕ ಮಾಹಿತಿ"
   },
   "acceleratingATransaction": {
     "message": "* ಹೆಚ್ಚಿನ ಗ್ಯಾಸ್ ಬೆಲೆಯನ್ನು ಬಳಸಿಕೊಂಡು ವಹಿವಾಟನ್ನು ವೇಗಗೊಳಿಸುವುದರಿಂದ ನೆಟ್‌ವರ್ಕ್ ವೇಗವಾಗಿ ಪ್ರಕ್ರಿಯೆಗೊಳ್ಳುವ ಸಾಧ್ಯತೆಗಳನ್ನು ಅದು ಹೆಚ್ಚಿಸುತ್ತದೆ, ಆದರೆ ಇದು ಯಾವಾಗಲೂ ಖಚಿತವಾಗಿರುವುದಿಲ್ಲ."
@@ -41,17 +38,32 @@
   "addNetwork": {
     "message": "ನೆಟ್‌ವರ್ಕ್ ಸೇರಿಸಿ"
   },
+  "addRecipient": {
+    "message": "ಸ್ವೀಕೃತಿದಾರರನ್ನು ಸೇರಿಸಿ"
+  },
   "addSuggestedTokens": {
     "message": "ಸೂಚಿಸಲಾದ ಟೋಕನ್‌ಗಳನ್ನು ಸೇರಿಸಿ"
   },
+  "addToAddressBook": {
+    "message": "ವಿಳಾಸ ಪುಸ್ತಕಕ್ಕೆ ಸೇರಿಸಿ"
+  },
+  "addToAddressBookModalPlaceholder": {
+    "message": "ಉದಾ. ಜಾನ್ ಡಿ."
+  },
   "addToken": {
     "message": "ಟೋಕನ್ ಸೇರಿಸಿ"
+  },
+  "addTokens": {
+    "message": "ಟೋಕನ್‌ಗಳನ್ನು ಸೇರಿಸಿ"
   },
   "advanced": {
     "message": "ಸುಧಾರಿತ"
   },
   "advancedOptions": {
     "message": "ಸುಧಾರಿತ ಆಯ್ಕೆಗಳು"
+  },
+  "advancedSettingsDescription": {
+    "message": "ಡೆವಲಪರ್ ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಪ್ರವೇಶಿಸಿ, ರಾಜ್ಯದ ಲಾಗ್‌ಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ, ಖಾತೆಯನ್ನು ಮರುಹೊಂದಿಸಿ, ಟೆಸ್ಟ್‌ನೆಟ್ಸ್‌ ಹೊಂದಿಸಿ ಮತ್ತು ಕಸ್ಟಮ್ RPC"
   },
   "amount": {
     "message": "ಮೊತ್ತ"
@@ -63,14 +75,6 @@
   "appName": {
     "message": "MetaMask",
     "description": "The name of the application"
-  },
-  "appNameBeta": {
-    "message": "MetaMask Beta",
-    "description": "The name of the application (Beta)"
-  },
-  "appNameFlask": {
-    "message": "MetaMask Flask",
-    "description": "The name of the application (Flask)"
   },
   "approve": {
     "message": "ಅನುಮೋದಿಸಿ"
@@ -133,8 +137,14 @@
     "message": " $1 ನಲ್ಲಿ ಖಾತೆಯನ್ನು ವೀಕ್ಷಿಸಿ",
     "description": "$1 replaced by URL for custom block explorer"
   },
+  "blockiesIdenticon": {
+    "message": "ಬ್ಲಾಕೀಸ್ ಐಡೆಂಟಿಕಾನ್ ಬಳಸಿ"
+  },
   "browserNotSupported": {
     "message": "ನಿಮ್ಮ ಬ್ರೌಸರ್ ಬೆಂಬಲಿಸುತ್ತಿಲ್ಲ..."
+  },
+  "builtInCalifornia": {
+    "message": "MetaMask ಅನ್ನು ವಿನ್ಯಾಸಗೊಳಿಸಲಾಗಿದೆ ಮತ್ತು ಕ್ಯಾಲಿಫೋರ್ನಿಯಾದಲ್ಲಿ ನಿರ್ಮಿಸಲಾಗಿದೆ."
   },
   "buyWithWyre": {
     "message": "Wyre ನೊಂದಿಗೆ ETH ಖರೀದಿಸಿ"
@@ -217,6 +227,9 @@
   "copiedExclamation": {
     "message": "ನಕಲಿಸಲಾಗಿದೆ!"
   },
+  "copiedTransactionId": {
+    "message": "ವ್ಯವಹಾರ ID ಅನ್ನು ನಕಲಿಸಲಾಗಿದೆ"
+  },
   "copyAddress": {
     "message": "ವಿಳಾಸವನ್ನು ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ಗೆ ನಕಲಿಸಿ"
   },
@@ -247,14 +260,14 @@
   "currentLanguage": {
     "message": "ಪ್ರಸ್ತುತ ಭಾಷೆ"
   },
-  "custom": {
-    "message": "ಸುಧಾರಿತ"
-  },
   "customGas": {
     "message": "ಗ್ಯಾಸ್ ಕಸ್ಟಮೈಸ್ ಮಾಡಿ"
   },
   "customGasSubTitle": {
     "message": "ಹೆಚ್ಚುತ್ತಿರುವ ಶುಲ್ಕವು ಪ್ರಕ್ರಿಯೆಗೊಳಿಸುವ ಸಮಯದಲ್ಲಿ ಕಡಿಮೆಯಾಗುತ್ತದೆ ಆದರೆ ಇದು ಖಚಿತವಾಗಿಲ್ಲ."
+  },
+  "customRPC": {
+    "message": "ಕಸ್ಟಮ್ RPC"
   },
   "customToken": {
     "message": "ಕಸ್ಟಮ್ ಟೋಕನ್"
@@ -264,6 +277,9 @@
   },
   "decimalsMustZerotoTen": {
     "message": "ದಶಮಾಂಶಗಳು ಕನಿಷ್ಟ 0 ಆಗಿರಬೇಕು ಮತ್ತು 36 ಕ್ಕಿಂತ ಹೆಚ್ಚಿರಬಾರದು"
+  },
+  "defaultNetwork": {
+    "message": "ಎಥರ್ ವಹಿವಾಟುಗಳಿಗಾಗಿ ಡೀಫಾಲ್ಟ್ ನೆಟ್‌ವರ್ಕ್ ಪ್ರಮುಖವಾಗಿರುವ ನೆಟ್ ಆಗಿದೆ."
   },
   "delete": {
     "message": "ಅಳಿಸಿ"
@@ -277,11 +293,23 @@
   "deleteNetworkDescription": {
     "message": "ನೀವು ಈ ನೆಟ್‌ವರ್ಕ್ ಅನ್ನು ಖಚಿತವಾಗಿ ಅಳಿಸಲು ಬಯಸುತ್ತೀರಾ?"
   },
+  "depositEther": {
+    "message": "ಎಥರ್ ಠೇವಣಿ ಮಾಡಿ"
+  },
   "details": {
     "message": "ವಿವರಗಳು"
   },
+  "directDepositEther": {
+    "message": "ಎಥರ್ ನೇರವಾಗಿ ಠೇವಣಿ ಮಾಡಿ"
+  },
+  "directDepositEtherExplainer": {
+    "message": "ನೀವು ಈಗಾಗಲೇ ಕೆಲವು ಎಥರ್ ಹೊಂದಿದ್ದರೆ, ನೇರ ಠೇವಣಿ ಮೂಲಕ ನಿಮ್ಮ ಹೊಸ ವ್ಯಾಲೆಟ್‌ನಲ್ಲಿ ಎಥರ್ ಅನ್ನು ಪಡೆಯುವ ತ್ವರಿತ ಮಾರ್ಗ."
+  },
   "done": {
     "message": "ಮುಗಿದಿದೆ"
+  },
+  "dontHaveAHardwareWallet": {
+    "message": "ಹಾರ್ಡ್‌ವೇರ್ ವ್ಯಾಲೆಟ್‌ ಅನ್ನು ಹೊಂದಿಲ್ಲವೇ?"
   },
   "downloadGoogleChrome": {
     "message": "Google Chrome ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ"
@@ -333,6 +361,9 @@
   },
   "ensRegistrationError": {
     "message": "ENS ಹೆಸರಿನ ನೋಂದಣಿಯಲ್ಲಿ ದೋಷ"
+  },
+  "enterAnAlias": {
+    "message": "ಆಲಿಯಾಸ್ ಅನ್ನು ನಮೂದಿಸಿ"
   },
   "enterPassword": {
     "message": "ಪಾಸ್‌ವರ್ಡ್‌ ಅನ್ನು ನಮೂದಿಸಿ"
@@ -402,12 +433,18 @@
   "general": {
     "message": "ಸಾಮಾನ್ಯ"
   },
+  "generalSettingsDescription": {
+    "message": "ಕರೆನ್ಸಿ ಪರಿವರ್ತನೆ, ಪ್ರಾಥಮಿಕ ಕರೆನ್ಸಿ, ಭಾಷೆ, ನಿರ್ಬಂಧಗಳ ಗುರುತಿಸುವಿಕೆ"
+  },
   "getEther": {
     "message": "ಎಥರ್ ಪಡೆಯಿರಿ"
   },
   "getEtherFromFaucet": {
     "message": "$1 ಗಾಗಿ ಫಾಸೆಟ್‌ನಿಂದ ಎಥರ್ ಅನ್ನು ಪಡೆಯಿರಿ",
     "description": "Displays network name for Ether faucet"
+  },
+  "getHelp": {
+    "message": "ಸಹಾಯವನ್ನು ಪಡೆಯಿರಿ."
   },
   "getStarted": {
     "message": "ಪ್ರಾರಂಭಗೊಂಡಿದೆ"
@@ -429,6 +466,9 @@
   },
   "hardwareWalletsMsg": {
     "message": "MetaMask ನೊಂದಿಗೆ ಬಳಸಲು ನೀವು ಇಷ್ಟಪಡುವ ಹಾರ್ಡ‌ವೇರ್ ವ್ಯಾಲೆಟ್ ಅನ್ನು ಆಯ್ಕೆಮಾಡಿ"
+  },
+  "havingTroubleConnecting": {
+    "message": "ಸಂಪರ್ಕಿಸುವಲ್ಲಿ ತೊಂದರೆ ಇದೆಯೇ?"
   },
   "here": {
     "message": "ಇಲ್ಲಿ",
@@ -509,16 +549,13 @@
   "learnMore": {
     "message": "ಇನ್ನಷ್ಟು ತಿಳಿಯಿರಿ"
   },
-  "learnMoreUpperCase": {
-    "message": "ಇನ್ನಷ್ಟು ತಿಳಿಯಿರಿ"
-  },
   "ledgerAccountRestriction": {
     "message": "ನೀವು ಹೊಸದನ್ನು ಸೇರಿಸುವುದರ ಮೊದಲು ನಿಮ್ಮ ಹಿಂದಿನ ಖಾತೆಯನ್ನು ನೀವು ಬಳಸಬೇಕು."
   },
   "letsGoSetUp": {
     "message": "ಹೌದು, ಹೊಂದಿಸೋಣ!"
   },
-  "likeToImportTokens": {
+  "likeToAddTokens": {
     "message": "ನೀವು ಈ ಟೋಕನ್‌ಗಳನ್ನು ಸೇರಿಸಲು ಬಯಸುತ್ತೀರಾ?"
   },
   "links": {
@@ -560,11 +597,17 @@
   "metamaskVersion": {
     "message": "MetaMask ಆವೃತ್ತಿ"
   },
+  "mobileSyncText": {
+    "message": "ಇದು ನೀವೇ ಎಂಬುದನ್ನು ಖಚಿತಪಡಿಸಲು ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ಅನ್ನು ನಮೂದಿಸಿ!"
+  },
   "mustSelectOne": {
     "message": "ಕನಿಷ್ಟ 1 ಟೋಕನ್ ಅನ್ನು ಆಯ್ಕೆಮಾಡಬೇಕು."
   },
   "myAccounts": {
     "message": "ನನ್ನ ಖಾತೆಗಳು"
+  },
+  "needEtherInWallet": {
+    "message": "MetaMask ಬಳಸಿಕೊಂಡು ವಿಕೇಂದ್ರೀಕೃತ ಖಾತೆಗಳೊಂದಿಗೆ ಸಂವಹನ ನಡೆಸಲು, ನಿಮ್ಮ ವ್ಯಾಲೆಟ್‌ನಲ್ಲಿ ನಿಮಗೆ ಎಥರ್ ಅಗತ್ಯವಿದೆ."
   },
   "needImportFile": {
     "message": "ಆಮದು ಮಾಡಲು ನೀವು ಫೈಲ್ ಅನ್ನು ಆಯ್ಕೆಮಾಡಬೇಕು.",
@@ -575,6 +618,9 @@
   },
   "networkName": {
     "message": "ನೆಟ್‌ವರ್ಕ್ ಹೆಸರು"
+  },
+  "networkSettingsDescription": {
+    "message": "ಕಸ್ಟಮ್ RPC ನೆಟ್‌ವರ್ಕ್‌ಗಳನ್ನು ಸೇರಿಸಿ ಮತ್ತು ಸಂಪಾದಿಸಿ"
   },
   "networks": {
     "message": "ನೆಟ್‌ವರ್ಕ್‌ಗಳು"
@@ -597,6 +643,9 @@
   },
   "newContract": {
     "message": "ಹೊಸ ಒಪ್ಪಂದ"
+  },
+  "newNetwork": {
+    "message": "ಹೊಸ ನೆಟ್‌ವರ್ಕ್"
   },
   "newPassword": {
     "message": "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ (ಕನಿಷ್ಟ 8 ಅಕ್ಷರಗಳು)"
@@ -645,6 +694,15 @@
   },
   "on": {
     "message": "ಆನ್‌"
+  },
+  "optionalBlockExplorerUrl": {
+    "message": "ಅನ್ವೇಷಕ URL ಅನ್ನು ನಿರ್ಬಂಧಿಸಿ (ಐಚ್ಛಿಕ)"
+  },
+  "optionalCurrencySymbol": {
+    "message": "ಚಿಹ್ನೆ (ಐಚ್ಛಿಕ)"
+  },
+  "orderOneHere": {
+    "message": "ಟ್ರೆಜರ್ ಅಥವಾ ಲೆಡ್ಜರ್ ಅನ್ನು ಆರ್ಡರ್ ಮಾಡಿ ಮತ್ತು ನಿಮ್ಮ ನಿಧಿಗಳನ್ನು ಕೋಲ್ಡ್ ಸ್ಟೋರೇಜ್‌ನಲ್ಲಿರಿಸಿ"
   },
   "origin": {
     "message": "ಮೂಲ"
@@ -705,8 +763,14 @@
   "readdToken": {
     "message": "ನಿಮ್ಮ ಖಾತೆಗಳ ಆಯ್ಕೆಗಳ ಮೆನುವಿನಲ್ಲಿ \"ಟೋಕನ್ ಸೇರಿಸು\" ಗೆ ಹೋಗುವ ಮೂಲಕ ನೀವು ಈ ಟೋಕನ್ ಅನ್ನು ಭವಿಷ್ಯದಲ್ಲಿ ಮರಳಿ ಸೇರಿಸಬಹುದು."
   },
+  "readyToConnect": {
+    "message": "ಸಂಪರ್ಕಿಸಲು ಸಿದ್ಧವೇ?"
+  },
   "recents": {
     "message": "ಇತ್ತೀಚಿನವುಗಳು"
+  },
+  "recipientAddress": {
+    "message": "ಸ್ವೀಕರಿಸುವವರ ವಿಳಾಸ"
   },
   "recipientAddressPlaceholder": {
     "message": "ಸಾರ್ವಜನಿಕ ವಿಳಾಸ (0x) ಅಥವಾ ENS ಹುಡುಕಿ"
@@ -756,8 +820,23 @@
   "restore": {
     "message": "ಮರುಸ್ಥಾಪನೆ"
   },
+  "restoreAccountWithSeed": {
+    "message": "ಸೀಡ್ ಫ್ರೇಸ್‌ನೊಂದಿಗೆ ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಮರುಸ್ಥಾಪಿಸಿ"
+  },
   "revealSeedWords": {
     "message": "ಸೀಡ್ ವರ್ಡ್ಸ್ ಬಹಿರಂಗಪಡಿಸಿ"
+  },
+  "revealSeedWordsDescription": {
+    "message": "ನೀವು ಬ್ರೌಸರ್‌ಗಳನ್ನು ಬದಲಾಯಿಸಿದರೆ ಅಥವಾ ಕಂಪ್ಯೂಟರ್‌ಗಳನ್ನು ಸರಿಸಿದರೆ, ನಿಮ್ಮ ಖಾತೆಗಳನ್ನು ಪ್ರವೇಶಿಸಲು ನಿಮಗೆ ಈ ಸೀಡ್ ಫ್ರೇಸ್‌ಗಳ ಅಗತ್ಯವಿರುತ್ತದೆ. ಅವುಗಳನ್ನು ಎಲ್ಲಿಯಾದರೂ ಸುರಕ್ಷಿತವಾಗಿ ಮತ್ತು ರಹಸ್ಯವಾಗಿ ಉಳಿಸಿ."
+  },
+  "revealSeedWordsTitle": {
+    "message": "ಸೀಡ್ ಫ್ರೇಸ್"
+  },
+  "revealSeedWordsWarning": {
+    "message": "ಈ ಪದಗಳನ್ನು ನಿಮ್ಮ ಎಲ್ಲಾ ಖಾತೆಗಳನ್ನು ಕದಿಯಲು ಬಳಸಬಹುದು."
+  },
+  "revealSeedWordsWarningTitle": {
+    "message": "ಈ ಫ್ರೇಸ್ ಅನ್ನು ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳಬೇಡಿ!"
   },
   "rinkeby": {
     "message": "Rinkeby ಪರೀಕ್ಷೆ ನೆಟ್‌ವರ್ಕ್"
@@ -770,6 +849,9 @@
   },
   "save": {
     "message": "ಉಳಿಸು"
+  },
+  "saveAsCsvFile": {
+    "message": "CSV ಫೈಲ್ ರೂಪದಲ್ಲಿ ಉಳಿಸಿ"
   },
   "scanInstructions": {
     "message": "ನಿಮ್ಮ ಕ್ಯಾಮರಾದ ಮುಂದೆ QR ಕೋಡ್ ಇರಿಸಿ"
@@ -786,6 +868,9 @@
   "searchTokens": {
     "message": "ಟೋಕನ್‌ಗಳನ್ನು ಹುಡುಕಿ"
   },
+  "secretBackupPhrase": {
+    "message": "ರಹಸ್ಯ ಬ್ಯಾಕಪ್ ಫ್ರೇಸ್"
+  },
   "secretBackupPhraseDescription": {
     "message": "ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಬ್ಯಾಕ್ ಅಪ್ ಮತ್ತು ಮರುಸ್ಥಾಪಿಸುವುದನ್ನು ನಿಮ್ಮ ರಹಸ್ಯ ಬ್ಯಾಕಪ್ ಫ್ರೇಸ್ ಸುಲಭವಾಗಿಸುತ್ತದೆ."
   },
@@ -795,6 +880,12 @@
   "securityAndPrivacy": {
     "message": "ಭದ್ರತೆ ಮತ್ತು ಗೌಪ್ಯತೆ"
   },
+  "securitySettingsDescription": {
+    "message": "ಗೌಪ್ಯತೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು ಮತ್ತು ವ್ಯಾಲೆಟ್ ಸೀಡ್ ಫ್ರೇಸ್"
+  },
+  "seedPhrasePlaceholder": {
+    "message": "ಒಂದು ಸ್ಪೇಸ್ ಮೂಲಕ ಪ್ರತಿ ಪದವನ್ನು ಬೇರ್ಪಡಿಸಿ"
+  },
   "seedPhraseReq": {
     "message": "ಸೀಡ್ ಫ್ರೇಸ್‌ಗಳು 12 ಪದಗಳಷ್ಟು ದೀರ್ಘವಾಗಿವೆ"
   },
@@ -803,6 +894,9 @@
   },
   "selectAnAccount": {
     "message": "ಖಾತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ"
+  },
+  "selectAnAccountHelp": {
+    "message": "MetaMask ನಲ್ಲಿ ವೀಕ್ಷಿಸಲು ಖಾತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ"
   },
   "selectEachPhrase": {
     "message": "ಅದು ಸರಿಯಾಗಿದೆಯೆ ಎಂಬುದನ್ನು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಲು ದಯವಿಟ್ಟು ಪ್ರತಿ ಫ್ರೇಸ್ ಅನ್ನು ಆಯ್ಕೆಮಾಡಿ."
@@ -824,6 +918,12 @@
   },
   "sendTokens": {
     "message": "ಟೋಕನ್‌ಗಳನ್ನು ಕಳುಹಿಸಿ"
+  },
+  "sentEther": {
+    "message": "ಕಳುಹಿಸಲಾದ ಎಥರ್"
+  },
+  "separateEachWord": {
+    "message": "ಒಂದು ಸ್ಪೇಸ್ ಮೂಲಕ ಪ್ರತಿ ಪದವನ್ನು ಬೇರ್ಪಡಿಸಿ"
   },
   "settings": {
     "message": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು"
@@ -887,6 +987,24 @@
   },
   "stateLogsDescription": {
     "message": "ರಾಜ್ಯದ ಲಾಗ್‌ಗಳು ನಿಮ್ಮ ಸಾರ್ವಜನಿಕ ಖಾತೆಯ ವಿಳಾಸಗಳು ಮತ್ತು ಕಳುಹಿಸಲಾದ ವಹಿವಾಟುಗಳನ್ನು ಹೊಂದಿರುತ್ತವೆ."
+  },
+  "step1HardwareWallet": {
+    "message": "1. ಹಾರ್ಡ್‌ವೆರ್ ವ್ಯಾಲೆಟ್ ಸಂಪರ್ಕಪಡಿಸಿ"
+  },
+  "step1HardwareWalletMsg": {
+    "message": "ನಿಮ್ಮ ಹಾರ್ಡ್‌ವೇರ್ ವ್ಯಾಲೆಟ್ ಅನ್ನು ನೇರವಾಗಿ ನಿಮ್ಮ ಕಂಪ್ಯೂಟರ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ."
+  },
+  "step2HardwareWallet": {
+    "message": "2. ಖಾತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ"
+  },
+  "step2HardwareWalletMsg": {
+    "message": "ನೀವು ವೀಕ್ಷಿಸಲು ಬಯಸುವ ಖಾತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ. ನೀವು ಒಮ್ಮೆಗೆ ಒಂದನ್ನು ಮಾತ್ರ ಆಯ್ಕೆಮಾಡಬಹುದು."
+  },
+  "step3HardwareWallet": {
+    "message": "3. dApps ಮತ್ತು ಹೆಚ್ಚಿನದನ್ನು ಬಳಸಲು ಪ್ರಾರಂಭಿಸಿ!"
+  },
+  "step3HardwareWalletMsg": {
+    "message": "ಯಾವುದೇ ಎಥೆರಿಯಮ್ ಖಾತೆಯೊಂದಿಗೆ ನಿಮ್ಮ ಹಾರ್ಡ್‌ವೇರ್ ಖಾತೆಯನ್ನು ಬಳಸಿ. dApps ಗೆ ಲಾಗಿನ್ ಮಾಡಿ, Eth ಕಳುಹಿಸಿ, ERC20 ಟೋಕನ್‌ಗಳನ್ನು ಮತ್ತು ಕ್ರಿಪ್ಟೋಕಿಟ್ಟೀಸ್‌ನಂತಹ ಫಂಗಿಬಲ್ ಟೋಕನ್‌ಗಳನ್ನು ಖರೀದಿಸಿ ಮತ್ತು ಸಂಗ್ರಹಿಸಿ."
   },
   "storePhrase": {
     "message": "ಈ ಫ್ರೇಸ್ ಅನ್ನು ಪಾಸ್‌ವರ್ಡ್ ನಿರ್ವಾಹಕದಲ್ಲಿ 1Password ರೂಪದಲ್ಲಿ ಸಂಗ್ರಹಿಸಿ."
@@ -1060,8 +1178,20 @@
   "viewContact": {
     "message": "ಸಂಪರ್ಕವನ್ನು ವೀಕ್ಷಿಸಿ"
   },
+  "viewOnCustomBlockExplorer": {
+    "message": "$1 ನಲ್ಲಿ ವೀಕ್ಷಿಸಿ"
+  },
+  "viewOnEtherscan": {
+    "message": "ಎಥೆರ್‌ಸ್ಕ್ಯಾನ್‌ನಲ್ಲಿ ವೀಕ್ಷಿಸಿ"
+  },
+  "viewinExplorer": {
+    "message": "ಎಕ್ಸ್‌ಪ್ಲೋರರ್‌ನಲ್ಲಿ ವೀಕ್ಷಿಸಿ"
+  },
   "visitWebSite": {
     "message": "ನಮ್ಮ ವೆಬ್ ಸೈಟ್ ಅನ್ನು ಭೇಟಿ ಮಾಡಿ"
+  },
+  "walletSeed": {
+    "message": "ವ್ಯಾಲೆಟ್ ಸೀಡ್"
   },
   "welcome": {
     "message": "MetaMask ಗೆ ಸ್ವಾಗತ"
@@ -1080,6 +1210,9 @@
   },
   "youSign": {
     "message": "ನೀವು ಸಹಿ ಮಾಡುತ್ತಿರುವಿರಿ"
+  },
+  "yourPrivateSeedPhrase": {
+    "message": "ನಿಮ್ಮ ಖಾಸಗಿ ಸೀಡ್ ಫ್ರೇಸ್"
   },
   "zeroGasPriceOnSpeedUpError": {
     "message": "ವೇಗ ಹೆಚ್ಚಿಸುವುದಕ್ಕೆ ಶೂನ್ಯ ಗ್ಯಾಸ್ ಬೆಲೆ"

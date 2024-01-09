@@ -739,6 +739,9 @@
   "done": {
     "message": "Выполнено"
   },
+  "dontHaveAHardwareWallet": {
+    "message": "У вас нет аппаратного кошелька?"
+  },
   "dontShowThisAgain": {
     "message": "Не показывать снова"
   },
@@ -1203,6 +1206,9 @@
     "message": "Получите Ether из крана для $1",
     "description": "Displays network name for Ether faucet"
   },
+  "getHelp": {
+    "message": "Получить справку."
+  },
   "getStarted": {
     "message": "Начало работы"
   },
@@ -1236,6 +1242,9 @@
   },
   "hardwareWalletsMsg": {
     "message": "Выберите аппаратный кошелек, который хотите использовать с MetaMask."
+  },
+  "havingTroubleConnecting": {
+    "message": "Проблемы с подключением?"
   },
   "here": {
     "message": "здесь",
@@ -2032,6 +2041,9 @@
   "or": {
     "message": "или"
   },
+  "orderOneHere": {
+    "message": "Закажите Trezor или Ledger и храните свои средства в холодном хранилище"
+  },
   "origin": {
     "message": "Источник"
   },
@@ -2141,6 +2153,9 @@
   },
   "readdToken": {
     "message": "Вы можете снова добавить этот токен в будущем, выбрав «Импорт токена» в меню параметров вашего счета."
+  },
+  "readyToConnect": {
+    "message": "Готовы подключиться?"
   },
   "receive": {
     "message": "Получить"
@@ -2617,6 +2632,24 @@
   "step2LedgerWalletMsg": {
     "message": "Подключите кошелек напрямую к компьютеру. Разблокируйте леджер и откройте приложение Ethereum. Для получения дополнительной информации об использовании аппаратного кошелька $1.",
     "description": "$1 represents the `hardwareWalletSupportLinkConversion` localization key"
+  },
+  "step1HardwareWallet": {
+    "message": "1. Подключить аппаратный кошелек"
+  },
+  "step1HardwareWalletMsg": {
+    "message": "Подключите свой аппаратный кошелек напрямую к компьютеру."
+  },
+  "step2HardwareWallet": {
+    "message": "2. Выберите счет"
+  },
+  "step2HardwareWalletMsg": {
+    "message": "Выберите желаемый счет для просмотра. Вы можете выбирать только по одному."
+  },
+  "step3HardwareWallet": {
+    "message": "3. Начните использовать сайты web3 и другое!"
+  },
+  "step3HardwareWalletMsg": {
+    "message": "Используйте свой аппаратный счет, как обычный счет Ethereum. Подключайтесь к сайтам web3, отправляйте ETH, покупайте и храните токены ERC20 и незаменяемые токены, такие как CryptoKitties."
   },
   "storePhrase": {
     "message": "Сохраните эту фразу в диспетчере паролей, например, в 1Password."

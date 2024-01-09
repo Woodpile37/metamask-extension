@@ -1,12 +1,9 @@
 {
-  "QRHardwareSignRequestCancel": {
-    "message": "Одбиј"
-  },
-  "QRHardwareWalletImporterTitle": {
-    "message": "Skenirajte QR kod"
-  },
   "about": {
     "message": "Основни подаци"
+  },
+  "aboutSettingsDescription": {
+    "message": "Verzija, centar za podršku i podaci za kontakt"
   },
   "acceleratingATransaction": {
     "message": "* Time što se ubrzava transakcija koristeći veću gas cenu, povećavaju se šanse da se procesuira brže od strane mreže, ali to nije uvek zagarantovano."
@@ -41,17 +38,32 @@
   "addNetwork": {
     "message": "Dodajte mrežu"
   },
+  "addRecipient": {
+    "message": "Dodaj primaoca"
+  },
   "addSuggestedTokens": {
     "message": "Dodajte sugerisane tokene"
   },
+  "addToAddressBook": {
+    "message": "Dodaj u adresar"
+  },
+  "addToAddressBookModalPlaceholder": {
+    "message": "npr. John D."
+  },
   "addToken": {
     "message": "Dodaj token"
+  },
+  "addTokens": {
+    "message": "Dodaj tokene"
   },
   "advanced": {
     "message": "Напредне опције"
   },
   "advancedOptions": {
     "message": "Dodatne opcije"
+  },
+  "advancedSettingsDescription": {
+    "message": "Pristupite funkcijama za programere, preuzmite državne evidencije, resetujte nalog, postavite testne mreže i prilagođeni RPC"
   },
   "amount": {
     "message": "Iznos"
@@ -63,14 +75,6 @@
   "appName": {
     "message": "MetaMask",
     "description": "The name of the application"
-  },
-  "appNameBeta": {
-    "message": "MetaMask Beta",
-    "description": "The name of the application (Beta)"
-  },
-  "appNameFlask": {
-    "message": "MetaMask Flask",
-    "description": "The name of the application (Flask)"
   },
   "approve": {
     "message": "Odobrite"
@@ -133,8 +137,14 @@
     "message": "Pogledajte nalog za $1",
     "description": "$1 replaced by URL for custom block explorer"
   },
+  "blockiesIdenticon": {
+    "message": "Koristite „Blockies Identicon”"
+  },
   "browserNotSupported": {
     "message": "Vaš pregledač nije podržan..."
+  },
+  "builtInCalifornia": {
+    "message": "MetaMask je dizajniran i izgrađen u Kaliforniji."
   },
   "buyWithWyre": {
     "message": "Kupite ETH preko servisa Wyre"
@@ -214,6 +224,9 @@
   "copiedExclamation": {
     "message": "Kopirano!"
   },
+  "copiedTransactionId": {
+    "message": "Kopiran identifikator transakcije"
+  },
   "copyAddress": {
     "message": "Kopirajte adresu u ostavu"
   },
@@ -244,14 +257,14 @@
   "currentLanguage": {
     "message": "Trenutni jezik"
   },
-  "custom": {
-    "message": "Напредне опције"
-  },
   "customGas": {
     "message": "Prilagodi gas"
   },
   "customGasSubTitle": {
     "message": "Povećanje naknade može smanjiti vreme obrade, ali to nije zagarantovano."
+  },
+  "customRPC": {
+    "message": "Korisnički definisan RPC"
   },
   "customToken": {
     "message": "Prilagođeni token"
@@ -261,6 +274,9 @@
   },
   "decimalsMustZerotoTen": {
     "message": "Decimalni broj mora biti najmanje 0, a ne veći od 36."
+  },
+  "defaultNetwork": {
+    "message": "Podrazumevana mreža za Ether transakcije je Main Net."
   },
   "delete": {
     "message": "Избриши"
@@ -274,11 +290,23 @@
   "deleteNetworkDescription": {
     "message": "Da li ste sigurni da želite da izbrišete ovu mrežu?"
   },
+  "depositEther": {
+    "message": "Dajte depozit Ether-u"
+  },
   "details": {
     "message": "Детаљи"
   },
+  "directDepositEther": {
+    "message": "Direktno deponujte Ether"
+  },
+  "directDepositEtherExplainer": {
+    "message": "Ako već imate neki Ether, najbrži način da preuzmete Ether u svoj novi novčanik jeste direktnim deponovanjem."
+  },
   "done": {
     "message": "Gotovo"
+  },
+  "dontHaveAHardwareWallet": {
+    "message": "Nemate hardverski novčanik?"
   },
   "downloadGoogleChrome": {
     "message": "Preuzmi Google Chrome"
@@ -330,6 +358,9 @@
   },
   "ensRegistrationError": {
     "message": "Greška u registraciji ENS imena."
+  },
+  "enterAnAlias": {
+    "message": "Unesite pseudonim"
   },
   "enterPassword": {
     "message": "Unesite lozinku"
@@ -399,12 +430,18 @@
   "general": {
     "message": "Opšte"
   },
+  "generalSettingsDescription": {
+    "message": "Konverzija valuta, primarna valuta, jezik, blockies identicon"
+  },
   "getEther": {
     "message": "Nabavite Ether"
   },
   "getEtherFromFaucet": {
     "message": "Preuzmite Ether sa slavine za $1",
     "description": "Displays network name for Ether faucet"
+  },
+  "getHelp": {
+    "message": "Potražite pomoć."
   },
   "getStarted": {
     "message": "Започнимо"
@@ -426,6 +463,9 @@
   },
   "hardwareWalletsMsg": {
     "message": "Izaberite hardverski novčanik koji biste voleli da koristite sa MetaMask-om"
+  },
+  "havingTroubleConnecting": {
+    "message": "Da li imate problem sa povezivanjem?"
   },
   "here": {
     "message": "ovde",
@@ -506,16 +546,13 @@
   "learnMore": {
     "message": "Nauči više"
   },
-  "learnMoreUpperCase": {
-    "message": "Nauči više"
-  },
   "ledgerAccountRestriction": {
     "message": "Treba da koristite svoj poslednji nalog pre nego što budete mogli da dodate novi."
   },
   "letsGoSetUp": {
     "message": "Da, hajde da sve podesimo!"
   },
-  "likeToImportTokens": {
+  "likeToAddTokens": {
     "message": "Želite li da dodate ove tokene?"
   },
   "links": {
@@ -551,11 +588,17 @@
   "metamaskVersion": {
     "message": "MetaMask verzija"
   },
+  "mobileSyncText": {
+    "message": "Molimo vas unesite šifru kako biste potvrdili da ste to vi!"
+  },
   "mustSelectOne": {
     "message": "Morate izabrati najmanje 1 token."
   },
   "myAccounts": {
     "message": "Moji nalozi"
+  },
+  "needEtherInWallet": {
+    "message": "Da biste stupili u interakciju sa decentralizovanim aplikacijama koristeći MetaMask, biće vam potreban Ether u vašem novčaniku."
   },
   "needImportFile": {
     "message": "Morate izabrati fajl koji ćete uvesti.",
@@ -566,6 +609,9 @@
   },
   "networkName": {
     "message": "Ime mreže"
+  },
+  "networkSettingsDescription": {
+    "message": "Dodajte i uredite prilagođene RPC mreže"
   },
   "networks": {
     "message": "Mreže"
@@ -588,6 +634,9 @@
   },
   "newContract": {
     "message": "Novi ugovor"
+  },
+  "newNetwork": {
+    "message": "Nova mreža"
   },
   "newPassword": {
     "message": "Nova lozinka (minimalno 8 karaktera)"
@@ -636,6 +685,15 @@
   },
   "on": {
     "message": "Укључено"
+  },
+  "optionalBlockExplorerUrl": {
+    "message": "Blokirajte URL Explorer-a (opciono)"
+  },
+  "optionalCurrencySymbol": {
+    "message": "Simbol (opciono)"
+  },
+  "orderOneHere": {
+    "message": "Naručite Trezor ili Ledger i čuvajte svoja sredstva u hladnom skladištu"
   },
   "origin": {
     "message": "Извор"
@@ -696,8 +754,14 @@
   "readdToken": {
     "message": "U budućnosti možete vratiti ovaj token tako što ćete otvoriti „Dodaj token“ u meniju opcija vašeg naloga."
   },
+  "readyToConnect": {
+    "message": "Spremni za povezivanje?"
+  },
   "recents": {
     "message": "Skorašnje"
+  },
+  "recipientAddress": {
+    "message": "Adresa primaoca"
   },
   "recipientAddressPlaceholder": {
     "message": "Pretraga, javna adresa (0x) ili ENS"
@@ -747,8 +811,23 @@
   "restore": {
     "message": "Поново отвори"
   },
+  "restoreAccountWithSeed": {
+    "message": "Povratite svoj nalog uz pomoć seed fraze"
+  },
   "revealSeedWords": {
     "message": "Otkrivanje početnih reči"
+  },
+  "revealSeedWordsDescription": {
+    "message": "Ukoliko ikad promenite pregledač ili kompjuter, trebaće vam ova šifra za oporavak naloga (seed phrase) kako biste pristupili svojim nalozima. Čuvajte je na bezbednom i tajnom mestu."
+  },
+  "revealSeedWordsTitle": {
+    "message": "Seed fraza"
+  },
+  "revealSeedWordsWarning": {
+    "message": "Ove reči se mogu iskoristiti za krađu svih vaših naloga."
+  },
+  "revealSeedWordsWarningTitle": {
+    "message": "NE delite ovu frazu ni sa kim!"
   },
   "rinkeby": {
     "message": "Rinkeby test mreža"
@@ -761,6 +840,9 @@
   },
   "save": {
     "message": "Сачувај"
+  },
+  "saveAsCsvFile": {
+    "message": "Sačuvajte u formi CSV datoteke"
   },
   "scanInstructions": {
     "message": "Stavite QR kod ispred vaše kamere"
@@ -777,6 +859,9 @@
   "searchTokens": {
     "message": "Pretražite tokene"
   },
+  "secretBackupPhrase": {
+    "message": "Tajna rezervna kopija fraze"
+  },
   "secretBackupPhraseDescription": {
     "message": "Vaša tajna fraza za rezervnu kopiju olakšava pravljenje rezervne kopije i vraćanje naloga u prethodno stanje."
   },
@@ -786,6 +871,12 @@
   "securityAndPrivacy": {
     "message": "Bezbednost i privatnost"
   },
+  "securitySettingsDescription": {
+    "message": "Podešavanja privatnosti i novčanik fraze početnih vrednosti"
+  },
+  "seedPhrasePlaceholder": {
+    "message": "Odvojite svaku reč jednim razmakom"
+  },
   "seedPhraseReq": {
     "message": "Šifre za oporavak naloga (seed phrases) imaju 12 reči"
   },
@@ -794,6 +885,9 @@
   },
   "selectAnAccount": {
     "message": "Izaberite nalog"
+  },
+  "selectAnAccountHelp": {
+    "message": "Izaberite nalog za prikaz u MetaMask-u"
   },
   "selectEachPhrase": {
     "message": "Molimo vas izaberite svaki izraz kako biste proverili da je tačan."
@@ -815,6 +909,12 @@
   },
   "sendTokens": {
     "message": "Pošalji tokene"
+  },
+  "sentEther": {
+    "message": "ether je poslat"
+  },
+  "separateEachWord": {
+    "message": "Razdvojite svaku reč jednim mestom razmaka"
   },
   "settings": {
     "message": "Podešavanja"
@@ -878,6 +978,24 @@
   },
   "stateLogsDescription": {
     "message": "Dnevnici stanja sadrže adrese vaših javnih naloga i poslatih transakcija."
+  },
+  "step1HardwareWallet": {
+    "message": "1. Poveži hardverski novčanik"
+  },
+  "step1HardwareWalletMsg": {
+    "message": "Povežite svoj hardverski novčanik direktno sa kompjuterom."
+  },
+  "step2HardwareWallet": {
+    "message": "2. Izaberite nalog"
+  },
+  "step2HardwareWalletMsg": {
+    "message": "Izaberite nalog koji želite da pogledatee. Možete izabrati samo po jedan nalog."
+  },
+  "step3HardwareWallet": {
+    "message": "3. Počnite da koristite dApps i još mnogo toga!"
+  },
+  "step3HardwareWalletMsg": {
+    "message": "Koristite nalog na vašem hardveru isto onako kako biste koristili bilo koji Ethereum nalog. Prijavite se na dApps, šaljite Eth, kupujte i skladištite ERC20 tokene i nezamenljive tokene poput CryptoKitties."
   },
   "storePhrase": {
     "message": "Čuvajte ovaj izraz u menadžeru šifri kao što je 1Password."
@@ -1045,8 +1163,20 @@
   "viewContact": {
     "message": "Pogledaj kontakt"
   },
+  "viewOnCustomBlockExplorer": {
+    "message": "Pogledaj na $1"
+  },
+  "viewOnEtherscan": {
+    "message": "Pogledaj na Etherscan-u"
+  },
+  "viewinExplorer": {
+    "message": "Pogledati u Explorer-u"
+  },
   "visitWebSite": {
     "message": "Posetite našu veb lokaciju"
+  },
+  "walletSeed": {
+    "message": "Šifra za oporavak novčanika"
   },
   "welcome": {
     "message": "Dobro došli na MetaMask"
@@ -1065,6 +1195,9 @@
   },
   "youSign": {
     "message": "Vi potpisujete"
+  },
+  "yourPrivateSeedPhrase": {
+    "message": "Vaša privatna šifra za oporavak naloga (seed phrase)"
   },
   "zeroGasPriceOnSpeedUpError": {
     "message": "Nulta cena gasa ubrzava"
