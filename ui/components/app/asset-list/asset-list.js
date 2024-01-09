@@ -13,6 +13,17 @@ import {
   getCurrentAccountWithSendEtherInfo,
   getShouldShowFiat,
   getNativeCurrencyImage,
+<<<<<<< HEAD
+=======
+  getDetectedTokensInCurrentNetwork,
+  getIstokenDetectionInactiveOnNonMainnetSupportedNetwork,
+  getShouldHideZeroBalanceTokens,
+  getIsBuyableChain,
+  getCurrentChainId,
+  getSwapsDefaultToken,
+  getSelectedAddress,
+  getPreferences,
+>>>>>>> upstream/develop
   getIsMainnet,
 } from '../../../selectors';
 import { getNativeCurrency } from '../../../ducks/metamask/metamask';
@@ -35,6 +46,7 @@ const AssetList = ({ onClickAsset }) => {
   );
   const nativeCurrency = useSelector(getNativeCurrency);
   const showFiat = useSelector(getShouldShowFiat);
+<<<<<<< HEAD
   const selectTokenEvent = useMetricEvent({
     eventOpts: {
       category: 'Navigation',
@@ -49,6 +61,26 @@ const AssetList = ({ onClickAsset }) => {
       name: 'Clicked "Add Token"',
     },
   });
+=======
+  const chainId = useSelector(getCurrentChainId);
+  const isMainnet = useSelector(getIsMainnet);
+  const { useNativeCurrencyAsPrimaryCurrency } = useSelector(getPreferences);
+  const { ticker, type } = useSelector(getProviderConfig);
+  const isOriginalNativeSymbol = useIsOriginalNativeTokenSymbol(
+    chainId,
+    ticker,
+    type,
+  );
+  const trackEvent = useContext(MetaMetricsContext);
+  const balance = useSelector(getSelectedAccountCachedBalance);
+  const balanceIsLoading = !balance;
+  const selectedAddress = useSelector(getSelectedAddress);
+  const shouldHideZeroBalanceTokens = useSelector(
+    getShouldHideZeroBalanceTokens,
+  );
+
+  const [showReceiveModal, setShowReceiveModal] = useState(false);
+>>>>>>> upstream/develop
 
   const {
     currency: primaryCurrency,
@@ -86,10 +118,34 @@ const AssetList = ({ onClickAsset }) => {
         primary={
           primaryCurrencyProperties.value ?? secondaryCurrencyProperties.value
         }
+<<<<<<< HEAD
         tokenSymbol={primaryCurrencyProperties.suffix}
         secondary={showFiat ? secondaryCurrencyDisplay : undefined}
         tokenImage={primaryTokenImage}
         identiconBorder
+=======
+        tokenSymbol={
+          showPrimaryCurrency(
+            isOriginalNativeSymbol,
+            useNativeCurrencyAsPrimaryCurrency,
+          )
+            ? primaryCurrencyProperties.suffix
+            : null
+        }
+        secondary={
+          showFiat &&
+          showSecondaryCurrency(
+            isOriginalNativeSymbol,
+            useNativeCurrencyAsPrimaryCurrency,
+          )
+            ? secondaryCurrencyDisplay
+            : undefined
+        }
+        tokenImage={balanceIsLoading ? null : primaryTokenImage}
+        isOriginalTokenSymbol={isOriginalNativeSymbol}
+        isNativeCurrency
+        isStakeable={isMainnet}
+>>>>>>> upstream/develop
       />
       <TokenList
         onTokenClick={(tokenAddress) => {

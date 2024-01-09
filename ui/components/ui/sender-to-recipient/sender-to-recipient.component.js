@@ -2,12 +2,21 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import copyToClipboard from 'copy-to-clipboard';
+import { NameType } from '@metamask/name-controller';
 import Tooltip from '../tooltip';
 import Identicon from '../identicon';
 import { shortenAddress } from '../../../helpers/utils/util';
 import AccountMismatchWarning from '../account-mismatch-warning/account-mismatch-warning.component';
 import { useI18nContext } from '../../../hooks/useI18nContext';
 import { toChecksumHexAddress } from '../../../../shared/modules/hexstring-utils';
+<<<<<<< HEAD
+=======
+import Name from '../../app/name/name';
+import { COPY_OPTIONS } from '../../../../shared/constants/copy';
+import NicknamePopovers from '../../app/modals/nickname-popovers';
+import { Icon, IconName } from '../../component-library';
+import { usePetnamesEnabled } from '../../../hooks/usePetnamesEnabled';
+>>>>>>> upstream/develop
 import {
   DEFAULT_VARIANT,
   CARDS_VARIANT,
@@ -95,6 +104,7 @@ SenderAddress.propTypes = {
 };
 
 export function RecipientWithAddress({
+  recipientAddress,
   checksummedRecipientAddress,
   onRecipientClick,
   addressOnly,
@@ -104,8 +114,46 @@ export function RecipientWithAddress({
   showNicknameModal,
 }) {
   const t = useI18nContext();
+<<<<<<< HEAD
+=======
+  const [showNicknamePopovers, setShowNicknamePopovers] = useState(false);
+  const [addressCopied, setAddressCopied] = useState(false);
+  const petnamesEnabled = usePetnamesEnabled();
+
+  let tooltipHtml = <p>{t('copiedExclamation')}</p>;
+  if (!addressCopied) {
+    tooltipHtml = addressOnly ? (
+      <p>{t('copyAddress')}</p>
+    ) : (
+      <p>
+        {shortenAddress(checksummedRecipientAddress)}
+        <br />
+        {t('copyAddress')}
+      </p>
+    );
+  }
+>>>>>>> upstream/develop
+
+  let displayName;
+  if (petnamesEnabled) {
+    displayName = (
+      <Name value={recipientAddress} type={NameType.ETHEREUM_ADDRESS} />
+    );
+  } else {
+    displayName =
+      recipientName ||
+      recipientNickname ||
+      recipientMetadataName ||
+      recipientEns ||
+      shortenAddress(checksummedRecipientAddress);
+
+    if (addressOnly && !displayName) {
+      displayName = t('newContract');
+    }
+  }
 
   return (
+<<<<<<< HEAD
     <div
       className="sender-to-recipient__party sender-to-recipient__party--recipient sender-to-recipient__party--recipient-with-address"
       onClick={() => {
@@ -133,10 +181,54 @@ export function RecipientWithAddress({
             t('newContract')}
       </div>
     </div>
+=======
+    <>
+      <div
+        className="sender-to-recipient__party sender-to-recipient__party--recipient sender-to-recipient__party--recipient-with-address"
+        onClick={() => {
+          if (recipientIsOwnedAccount) {
+            setAddressCopied(true);
+            copyToClipboard(checksummedRecipientAddress, COPY_OPTIONS);
+          } else {
+            setShowNicknamePopovers(true);
+            if (onRecipientClick) {
+              onRecipientClick();
+            }
+          }
+        }}
+      >
+        <div className="sender-to-recipient__sender-icon">
+          <Identicon address={checksummedRecipientAddress} diameter={24} />
+        </div>
+        <Tooltip
+          position="bottom"
+          disabled={!recipientName}
+          html={tooltipHtml}
+          wrapperClassName="sender-to-recipient__tooltip-wrapper"
+          containerClassName="sender-to-recipient__tooltip-container"
+          onHidden={() => setAddressCopied(false)}
+        >
+          <div
+            className="sender-to-recipient__name"
+            data-testid="sender-to-recipient__name"
+          >
+            {displayName}
+          </div>
+        </Tooltip>
+      </div>
+      {showNicknamePopovers && !petnamesEnabled ? (
+        <NicknamePopovers
+          onClose={() => setShowNicknamePopovers(false)}
+          address={checksummedRecipientAddress}
+        />
+      ) : null}
+    </>
+>>>>>>> upstream/develop
   );
 }
 
 RecipientWithAddress.propTypes = {
+  recipientAddress: PropTypes.string,
   checksummedRecipientAddress: PropTypes.string,
   recipientName: PropTypes.string,
   recipientEns: PropTypes.string,
@@ -195,6 +287,7 @@ export default function SenderToRecipient({
       <Arrow variant={variant} />
       {recipientAddress ? (
         <RecipientWithAddress
+          recipientAddress={recipientAddress}
           checksummedRecipientAddress={checksummedRecipientAddress}
           onRecipientClick={onRecipientClick}
           addressOnly={addressOnly}
