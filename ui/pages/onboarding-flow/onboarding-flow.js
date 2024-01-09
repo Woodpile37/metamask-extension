@@ -1,229 +1,152 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { Switch, Route, useHistory, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Switch, Route, useHistory } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import Unlock from '../unlock-page';
 import {
-  ///: BEGIN:ONLY_INCLUDE_IF(build-flask)
-  ONBOARDING_EXPERIMENTAL_AREA,
-  ///: END:ONLY_INCLUDE_IF
+  DEFAULT_ROUTE,
+  ONBOARDING_ROUTE,
+  ONBOARDING_GET_STARTED_ROUTE,
+  ONBOARDING_HELP_US_IMPROVE_ROUTE,
   ONBOARDING_CREATE_PASSWORD_ROUTE,
+  ONBOARDING_IMPORT_WITH_SRP_ROUTE,
+  ONBOARDING_IMPORT_MOBILE_ROUTE,
+  ONBOARDING_SECURE_YOUR_WALLET_ROUTE,
   ONBOARDING_REVIEW_SRP_ROUTE,
   ONBOARDING_CONFIRM_SRP_ROUTE,
-  ONBOARDING_UNLOCK_ROUTE,
-  ONBOARDING_WELCOME_ROUTE,
-  DEFAULT_ROUTE,
-  ONBOARDING_SECURE_YOUR_WALLET_ROUTE,
   ONBOARDING_PRIVACY_SETTINGS_ROUTE,
   ONBOARDING_COMPLETION_ROUTE,
-  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-  MMI_ONBOARDING_COMPLETION_ROUTE,
-  ///: END:ONLY_INCLUDE_IF
-  ONBOARDING_IMPORT_WITH_SRP_ROUTE,
-  ONBOARDING_PIN_EXTENSION_ROUTE,
-  ONBOARDING_METAMETRICS,
+  ONBOARDING_UNLOCK_ROUTE,
 } from '../../helpers/constants/routes';
-import { getCompletedOnboarding } from '../../ducks/metamask/metamask';
-import {
-  createNewVaultAndGetSeedPhrase,
-  unlockAndGetSeedPhrase,
-  createNewVaultAndRestore,
-} from '../../store/actions';
-import { getFirstTimeFlowTypeRoute } from '../../selectors';
-import { MetaMetricsContext } from '../../contexts/metametrics';
-import Button from '../../components/ui/button';
-import RevealSRPModal from '../../components/app/reveal-SRP-modal';
-import { useI18nContext } from '../../hooks/useI18nContext';
-import {
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-} from '../../../shared/constants/metametrics';
-///: BEGIN:ONLY_INCLUDE_IF(build-flask)
-import ExperimentalArea from '../../components/app/flask/experimental-area';
-///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-import OnboardingSuccessful from '../institutional/onboarding-successful/onboarding-successful';
-///: END:ONLY_INCLUDE_IF
 import OnboardingFlowSwitch from './onboarding-flow-switch/onboarding-flow-switch';
 import CreatePassword from './create-password/create-password';
-import ReviewRecoveryPhrase from './recovery-phrase/review-recovery-phrase';
 import SecureYourWallet from './secure-your-wallet/secure-your-wallet';
+import RecoveryPhrase from './recovery-phrase/confirm-recovery-phrase';
 import ConfirmRecoveryPhrase from './recovery-phrase/confirm-recovery-phrase';
-import PrivacySettings from './privacy-settings/privacy-settings';
-import CreationSuccessful from './creation-successful/creation-successful';
-import OnboardingWelcome from './welcome/welcome';
-import ImportSRP from './import-srp/import-srp';
-import OnboardingPinExtension from './pin-extension/pin-extension';
-import MetaMetricsComponent from './metametrics/metametrics';
-
-const TWITTER_URL = 'https://twitter.com/MetaMask';
+import StepProgressBar, {
+  stages,
+} from '../../components/app/step-progress-bar';
+import {
+  getCompletedOnboarding,
+  getIsInitialized,
+  getIsUnlocked,
+  getSeedPhraseBackedUp,
+} from '../../selectors';
+import {
+  createNewVaultAndGetSeedPhrase,
+  createNewVaultAndRestore,
+  unlockAndGetSeedPhrase,
+  verifySeedPhrase,
+} from '../../store/actions';
 
 export default function OnboardingFlow() {
-  const [secretRecoveryPhrase, setSecretRecoveryPhrase] = useState('');
+  const [seedPhrase, setSeedPhrase] = useState('');
   const dispatch = useDispatch();
-  const { pathname, search } = useLocation();
   const history = useHistory();
-  const t = useI18nContext();
   const completedOnboarding = useSelector(getCompletedOnboarding);
-  const nextRoute = useSelector(getFirstTimeFlowTypeRoute);
-  const isFromReminder = new URLSearchParams(search).get('isFromReminder');
-  const trackEvent = useContext(MetaMetricsContext);
+  const isInitialized = useSelector(getIsInitialized);
+  const isUnlocked = useSelector(getIsUnlocked);
+  const seedPhraseBackedUp = useSelector(getSeedPhraseBackedUp);
 
   useEffect(() => {
-    if (completedOnboarding && !isFromReminder) {
-      history.push(DEFAULT_ROUTE);
-    }
-  }, [history, completedOnboarding, isFromReminder]);
+    history.push(ONBOARDING_SECURE_YOUR_WALLET_ROUTE);
+   
+    // if (
+    //   completedOnboarding && seedPhraseBackedUp
+    // ) {
+    //   history.push(DEFAULT_ROUTE);
+    //   return;
+    // }
+
+    // if (isInitialized && !isUnlocked) {
+    //   history.push(ONBOARDING_UNLOCK_ROUTE);
+    // }
+  }, []);
 
   const handleCreateNewAccount = async (password) => {
-    const newSecretRecoveryPhrase = await dispatch(
-      createNewVaultAndGetSeedPhrase(password),
-    );
-    setSecretRecoveryPhrase(newSecretRecoveryPhrase);
+    try {
+      const seedPhrase = await dispatch(
+        createNewVaultAndGetSeedPhrase(password),
+      );
+      setSeedPhrase(seedPhrase);
+    } catch (error) {
+      throw new Error(error.message);
+    }
   };
 
-  const handleUnlock = async (password) => {
-    const retrievedSecretRecoveryPhrase = await dispatch(
-      unlockAndGetSeedPhrase(password),
-    );
-    setSecretRecoveryPhrase(retrievedSecretRecoveryPhrase);
-    history.push(nextRoute);
-  };
+    const handleImportWithSeedPhrase = async (password, seedPhrase) => {
+      try {
+        const vault = await dispatch(
+          createNewVaultAndRestore(password, seedPhrase),
+        );
+        return vault;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    };
 
-  const handleImportWithRecoveryPhrase = async (password, srp) => {
-    return await dispatch(createNewVaultAndRestore(password, srp));
-  };
-
-  const showPasswordModalToAllowSRPReveal =
-    pathname === `${ONBOARDING_REVIEW_SRP_ROUTE}/` &&
-    completedOnboarding &&
-    !secretRecoveryPhrase &&
-    isFromReminder;
+    const handleUnlock = async (password) => {
+      try {
+        const seedPhrase = await unlockAndGetSeedPhrase(password);
+        setSeedPhrase(seedPhrase)
+        // TODO - get next route
+        // history.push()
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    };
 
   return (
     <div className="onboarding-flow">
-      <RevealSRPModal
-        setSecretRecoveryPhrase={setSecretRecoveryPhrase}
-        onClose={() => history.push(DEFAULT_ROUTE)}
-        isOpen={showPasswordModalToAllowSRPReveal}
-      />
       <div className="onboarding-flow__wrapper">
         <Switch>
+          {/* <Route exact path={ONBOARDING_GET_STARTED_ROUTE} component={GetStarted} /> */}
+          {/* <Route
+            exact
+            path={ONBOARDING_HELP_US_IMPROVE_ROUTE}
+            component={MetaMetricsOptInScreen}
+          /> */}
+          {/* 
+        <Route
+            path={ONBOARDING_IMPORT_WITH_SRP_ROUTE}
+            component={}
+          /> */}
+
           <Route
             path={ONBOARDING_CREATE_PASSWORD_ROUTE}
             render={(routeProps) => (
               <CreatePassword
                 {...routeProps}
                 createNewAccount={handleCreateNewAccount}
-                importWithRecoveryPhrase={handleImportWithRecoveryPhrase}
-                secretRecoveryPhrase={secretRecoveryPhrase}
               />
             )}
+          />
+          {/* <Route path={ONBOARDING_IMPORT_MOBILE_ROUTE} component={ImportMobile} /> */}
+          <Route
+            path={ONBOARDING_REVIEW_SRP_ROUTE}
+            render={() => <RecoveryPhrase seedPhrase={seedPhrase} />}
+          />
+          <Route
+            path={ONBOARDING_CONFIRM_SRP_ROUTE}
+            component={() => <ConfirmRecoveryPhrase seedPhrase={seedPhrase} />}
           />
           <Route
             path={ONBOARDING_SECURE_YOUR_WALLET_ROUTE}
             component={SecureYourWallet}
           />
           <Route
-            path={ONBOARDING_REVIEW_SRP_ROUTE}
-            render={() => (
-              <ReviewRecoveryPhrase
-                secretRecoveryPhrase={secretRecoveryPhrase}
-              />
-            )}
-          />
-          <Route
-            path={ONBOARDING_CONFIRM_SRP_ROUTE}
-            render={() => (
-              <ConfirmRecoveryPhrase
-                secretRecoveryPhrase={secretRecoveryPhrase}
-              />
-            )}
-          />
-          <Route
-            path={ONBOARDING_IMPORT_WITH_SRP_ROUTE}
-            render={(routeProps) => (
-              <ImportSRP
-                {...routeProps}
-                submitSecretRecoveryPhrase={setSecretRecoveryPhrase}
-              />
-            )}
-          />
-          <Route
-            path={ONBOARDING_UNLOCK_ROUTE}
-            render={(routeProps) => (
-              <Unlock {...routeProps} onSubmit={handleUnlock} />
-            )}
-          />
-          <Route
-            path={ONBOARDING_PRIVACY_SETTINGS_ROUTE}
-            component={PrivacySettings}
-          />
-          <Route
-            path={ONBOARDING_COMPLETION_ROUTE}
-            component={CreationSuccessful}
-          />
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-          }
-          <Route
-            path={MMI_ONBOARDING_COMPLETION_ROUTE}
-            component={OnboardingSuccessful}
-          />
-          {
-            ///: END:ONLY_INCLUDE_IF
-          }
-          <Route
-            path={ONBOARDING_WELCOME_ROUTE}
-            component={OnboardingWelcome}
-          />
-          <Route
-            path={ONBOARDING_PIN_EXTENSION_ROUTE}
-            component={OnboardingPinExtension}
-          />
-          <Route
-            path={ONBOARDING_METAMETRICS}
-            component={MetaMetricsComponent}
-          />
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(build-flask)
-          }
-          <Route
-            path={ONBOARDING_EXPERIMENTAL_AREA}
-            render={(routeProps) => (
-              <ExperimentalArea
-                {...routeProps}
-                redirectTo={ONBOARDING_WELCOME_ROUTE}
-              />
-            )}
-          />
-          {
-            ///: END:ONLY_INCLUDE_IF
-          }
+          path={ONBOARDING_UNLOCK_ROUTE}
+          render={(routeProps) => (
+            <Unlock {...routeProps} onSubmit={handleUnlock} />
+          )}
+        />
+          {/* <Route
+          exact
+          path={ONBOARDING_COMPLETION_ROUTE}
+          component={EndOfFlow}
+        /> */}
           <Route exact path="*" component={OnboardingFlowSwitch} />
         </Switch>
       </div>
-      {pathname === ONBOARDING_COMPLETION_ROUTE && (
-        <Button
-          className="onboarding-flow__twitter-button"
-          type="link"
-          href={TWITTER_URL}
-          onClick={() => {
-            trackEvent({
-              category: MetaMetricsEventCategory.Onboarding,
-              event: MetaMetricsEventName.OnboardingTwitterClick,
-              properties: {
-                text: t('followUsOnTwitter'),
-                location: MetaMetricsEventName.OnboardingWalletCreationComplete,
-                url: TWITTER_URL,
-              },
-            });
-          }}
-          target="_blank"
-        >
-          <span>{t('followUsOnTwitter')}</span>
-          <i className="fab fa-twitter onboarding-flow__twitter-button__icon" />
-        </Button>
-      )}
     </div>
   );
 }
