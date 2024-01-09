@@ -6,13 +6,14 @@ import {
   setFeatureFlag,
   showModal,
   setShowFiatConversionOnTestnetsPreference,
+  setShowTestNetworks,
   setAutoLockTimeLimit,
   setThreeBoxSyncingPermission,
   turnThreeBoxSyncingOnAndInitialize,
   setUseNonceField,
   setIpfsGateway,
-  setLedgerLivePreference,
   setDismissSeedBackUpReminder,
+  setUseTokenDetection,
 } from '../../../store/actions';
 import { getPreferences } from '../../../selectors';
 import AdvancedTab from './advanced-tab.component';
@@ -28,23 +29,30 @@ export const mapStateToProps = (state) => {
     threeBoxDisabled,
     useNonceField,
     ipfsGateway,
-    useLedgerLive,
+    ledgerTransportType,
     dismissSeedBackUpReminder,
+    useTokenDetection,
   } = metamask;
-  const { showFiatInTestnets, autoLockTimeLimit } = getPreferences(state);
+  const {
+    showFiatInTestnets,
+    showTestNetworks,
+    autoLockTimeLimit = 0,
+  } = getPreferences(state);
 
   return {
     warning,
     sendHexData,
     advancedInlineGas,
     showFiatInTestnets,
+    showTestNetworks,
     autoLockTimeLimit,
     threeBoxSyncingAllowed,
     threeBoxDisabled,
     useNonceField,
     ipfsGateway,
-    useLedgerLive,
+    ledgerTransportType,
     dismissSeedBackUpReminder,
+    useTokenDetection,
   };
 };
 
@@ -61,6 +69,9 @@ export const mapDispatchToProps = (dispatch) => {
     setShowFiatConversionOnTestnetsPreference: (value) => {
       return dispatch(setShowFiatConversionOnTestnetsPreference(value));
     },
+    setShowTestNetworks: (value) => {
+      return dispatch(setShowTestNetworks(value));
+    },
     setAutoLockTimeLimit: (value) => {
       return dispatch(setAutoLockTimeLimit(value));
     },
@@ -74,11 +85,11 @@ export const mapDispatchToProps = (dispatch) => {
     setIpfsGateway: (value) => {
       return dispatch(setIpfsGateway(value));
     },
-    setLedgerLivePreference: (value) => {
-      return dispatch(setLedgerLivePreference(value));
-    },
     setDismissSeedBackUpReminder: (value) => {
       return dispatch(setDismissSeedBackUpReminder(value));
+    },
+    setUseTokenDetection: (value) => {
+      return dispatch(setUseTokenDetection(value));
     },
   };
 };

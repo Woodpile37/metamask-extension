@@ -4,9 +4,8 @@ import { getAccountLink } from '@metamask/etherscan-link';
 
 import Button from '../../../components/ui/button';
 import Checkbox from '../../../components/ui/check-box';
-import Dropdown from '../../../components/ui/dropdown';
-
 import { getURLHostName } from '../../../helpers/utils/util';
+import Dropdown from '../../../components/ui/dropdown';
 
 import { HardwareDeviceNames } from '../../../../shared/constants/hardware-wallets';
 import { MetaMetricsEventCategory } from '../../../../shared/constants/metametrics';
@@ -40,7 +39,6 @@ class AccountList extends Component {
   renderHdPathSelector() {
     const { device, selectedPath, hdPaths, onPathChange } = this.props;
     const { pathValue } = this.state;
-
     return (
       <div>
         <h3 className="hw-connect__hdPath__title">

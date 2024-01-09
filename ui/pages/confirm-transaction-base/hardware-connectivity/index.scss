@@ -1,0 +1,64 @@
+.hardware-connectivity-content {
+  &__close {
+    padding: 10px 0;
+    flex-direction: column;
+    text-align: right;
+
+    i {
+      cursor: pointer;
+    }
+  }
+
+  &-list-container {
+    display: flex;
+    justify-content: center;
+  }
+
+  ol {
+    list-style-type: decimal;
+    padding-inline-start: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+
+    li {
+      font-size: 0.875rem;
+      line-height: 35px;
+    }
+  }
+
+  &-advanced {
+    font-size: 0.75rem;
+  }
+}
+
+.hardware-connectivity {
+  &-message {
+    margin-bottom: 24px;
+
+    .actionable-message {
+      padding: 8px;
+      flex-flow: wrap;
+      margin-top: 0;
+      justify-content: unset;
+
+      &__message,
+      &__actions {
+        text-align: start;
+        width: auto;
+        margin-top: 0;
+      }
+
+      button {
+        margin-inline-start: 10px;
+      }
+
+      .fa-check-circle {
+        color: var(--success-1);
+      }
+
+      .fa-exclamation-circle {
+        color: var(--alert-3);
+      }
+    }
+  }
+}
