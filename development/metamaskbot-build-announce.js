@@ -1,13 +1,8 @@
 #!/usr/bin/env node
-
 const { promises: fs } = require('fs');
 const path = require('path');
-// Fetch is part of node js in future versions, thus triggering no-shadow
-// eslint-disable-next-line no-shadow
 const fetch = require('node-fetch');
-const glob = require('fast-glob');
-const VERSION = require('../package.json').version;
-const { getHighlights } = require('./highlights');
+const VERSION = require('../dist/chrome/manifest.json').version; // eslint-disable-line import/no-unresolved
 
 start().catch(console.error);
 
@@ -15,44 +10,13 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-function getHumanReadableSize(bytes) {
-  if (!bytes) {
-    return '0 Bytes';
-  }
-
-  const absBytes = Math.abs(bytes);
-  const kibibyteSize = 1024;
-  const magnitudes = ['Bytes', 'KiB', 'MiB'];
-  let magnitudeIndex = 0;
-  if (absBytes > Math.pow(kibibyteSize, 2)) {
-    magnitudeIndex = 2;
-  } else if (absBytes > kibibyteSize) {
-    magnitudeIndex = 1;
-  }
-  return `${parseFloat(
-    (bytes / Math.pow(kibibyteSize, magnitudeIndex)).toFixed(2),
-  )} ${magnitudes[magnitudeIndex]}`;
-}
-
-function getPercentageChange(from, to) {
-  return parseFloat(((to - from) / Math.abs(from)) * 100).toFixed(2);
-}
-
 async function start() {
-  const {
-    GITHUB_COMMENT_TOKEN,
-    CIRCLE_PULL_REQUEST,
-    CIRCLE_SHA1,
-    CIRCLE_BUILD_NUM,
-    CIRCLE_WORKFLOW_JOB_ID,
-    PARENT_COMMIT,
-  } = process.env;
-
+  const { GITHUB_COMMENT_TOKEN, CIRCLE_PULL_REQUEST } = process.env;
   console.log('CIRCLE_PULL_REQUEST', CIRCLE_PULL_REQUEST);
+  const { CIRCLE_SHA1 } = process.env;
   console.log('CIRCLE_SHA1', CIRCLE_SHA1);
+  const { CIRCLE_BUILD_NUM } = process.env;
   console.log('CIRCLE_BUILD_NUM', CIRCLE_BUILD_NUM);
-  console.log('CIRCLE_WORKFLOW_JOB_ID', CIRCLE_WORKFLOW_JOB_ID);
-  console.log('PARENT_COMMIT', PARENT_COMMIT);
 
   if (!CIRCLE_PULL_REQUEST) {
     console.warn(`No pull request detected for commit "${CIRCLE_SHA1}"`);
@@ -61,76 +25,35 @@ async function start() {
 
   const CIRCLE_PR_NUMBER = CIRCLE_PULL_REQUEST.split('/').pop();
   const SHORT_SHA1 = CIRCLE_SHA1.slice(0, 7);
-  const BUILD_LINK_BASE = `https://output.circle-artifacts.com/output/job/${CIRCLE_WORKFLOW_JOB_ID}/artifacts/0`;
+  const BUILD_LINK_BASE = `https://${CIRCLE_BUILD_NUM}-42009758-gh.circle-artifacts.com/0`;
+
   // build the github comment content
 
   // links to extension builds
-  const platforms = ['chrome', 'firefox'];
+  const platforms = ['chrome', 'firefox', 'opera'];
   const buildLinks = platforms
     .map((platform) => {
       const url = `${BUILD_LINK_BASE}/builds/metamask-${platform}-${VERSION}.zip`;
       return `<a href="${url}">${platform}</a>`;
     })
     .join(', ');
-  const betaBuildLinks = `<a href="${BUILD_LINK_BASE}/builds-beta/metamask-beta-chrome-${VERSION}.zip">chrome</a>`;
-  const flaskBuildLinks = platforms
-    .map((platform) => {
-      const url = `${BUILD_LINK_BASE}/builds-flask/metamask-flask-${platform}-${VERSION}-flask.0.zip`;
-      return `<a href="${url}">${platform}</a>`;
-    })
-    .join(', ');
-  const mmiBuildLinks = platforms
-    .map((platform) => {
-      const url = `${BUILD_LINK_BASE}/builds-mmi/metamask-mmi-${platform}-${VERSION}-mmi.0.zip`;
-      return `<a href="${url}">${platform}</a>`;
-    })
-    .join(', ');
-  const testBuildLinks = platforms
-    .map((platform) => {
-      const url = `${BUILD_LINK_BASE}/builds-test/metamask-${platform}-${VERSION}.zip`;
-      return `<a href="${url}">${platform}</a>`;
-    })
-    .join(', ');
-  const testFlaskBuildLinks = platforms
-    .map((platform) => {
-      const url = `${BUILD_LINK_BASE}/builds-test-flask/metamask-flask-${platform}-${VERSION}-flask.0.zip`;
-      return `<a href="${url}">${platform}</a>`;
-    })
-    .join(', ');
 
   // links to bundle browser builds
-  const bundles = {};
-  const fileType = '.html';
-  const sourceMapRoot = '/build-artifacts/source-map-explorer/';
-  const bundleFiles = await glob(`.${sourceMapRoot}*${fileType}`);
-
-  bundleFiles.forEach((bundleFile) => {
-    const fileName = bundleFile.split(sourceMapRoot)[1];
-    const bundleName = fileName.split(fileType)[0];
-    const url = `${BUILD_LINK_BASE}${sourceMapRoot}${fileName}`;
-    let fileRoot = bundleName;
-    let fileIndex = bundleName.match(/-[0-9]{1,}$/u)?.index;
-
-    if (fileIndex) {
-      fileRoot = bundleName.slice(0, fileIndex);
-      fileIndex = bundleName.slice(fileIndex + 1, bundleName.length);
-    }
-
-    const link = `<a href="${url}">${fileIndex || fileRoot}</a>`;
-
-    if (fileRoot in bundles) {
-      bundles[fileRoot].push(link);
-    } else {
-      bundles[fileRoot] = [link];
-    }
-  });
-
-  const bundleMarkup = `<ul>${Object.keys(bundles)
-    .map((key) => `<li>${key}: ${bundles[key].join(', ')}</li>`)
-    .join('')}</ul>`;
-
-  const bundleSizeDataUrl =
-    'https://raw.githubusercontent.com/MetaMask/extension_bundlesize_stats/main/stats/bundle_size_data.json';
+  const bundles = [
+    'background',
+    'ui',
+    'inpage',
+    'contentscript',
+    'ui-libs',
+    'bg-libs',
+    'phishing-detect',
+  ];
+  const bundleLinks = bundles
+    .map((bundle) => {
+      const url = `${BUILD_LINK_BASE}/build-artifacts/source-map-explorer/${bundle}.html`;
+      return `<a href="${url}">${bundle}</a>`;
+    })
+    .join(', ');
 
   const coverageUrl = `${BUILD_LINK_BASE}/coverage/index.html`;
   const coverageLink = `<a href="${coverageUrl}">Report</a>`;
@@ -138,53 +61,26 @@ async function start() {
   const storybookUrl = `${BUILD_LINK_BASE}/storybook/index.html`;
   const storybookLink = `<a href="${storybookUrl}">Storybook</a>`;
 
-  const tsMigrationDashboardUrl = `${BUILD_LINK_BASE}/ts-migration-dashboard/index.html`;
-  const tsMigrationDashboardLink = `<a href="${tsMigrationDashboardUrl}">Dashboard</a>`;
-
   // links to bundle browser builds
   const depVizUrl = `${BUILD_LINK_BASE}/build-artifacts/build-viz/index.html`;
   const depVizLink = `<a href="${depVizUrl}">Build System</a>`;
-  const moduleInitStatsBackgroundUrl = `${BUILD_LINK_BASE}/test-artifacts/chrome/mv3/initialisation/background/index.html`;
-  const moduleInitStatsBackgroundLink = `<a href="${moduleInitStatsBackgroundUrl}">Background Module Init Stats</a>`;
-  const moduleInitStatsUIUrl = `${BUILD_LINK_BASE}/test-artifacts/chrome/mv3/initialisation/ui/index.html`;
-  const moduleInitStatsUILink = `<a href="${moduleInitStatsUIUrl}">UI Init Stats</a>`;
-  const moduleLoadStatsUrl = `${BUILD_LINK_BASE}/test-artifacts/chrome/mv3/load_time/index.html`;
-  const moduleLoadStatsLink = `<a href="${moduleLoadStatsUrl}">Module Load Stats</a>`;
-  const bundleSizeStatsUrl = `${BUILD_LINK_BASE}/test-artifacts/chrome/mv3/bundle_size.json`;
-  const bundleSizeStatsLink = `<a href="${bundleSizeStatsUrl}">Bundle Size Stats</a>`;
-  const userActionsStatsUrl = `${BUILD_LINK_BASE}/test-artifacts/chrome/benchmark/user_actions.json`;
-  const userActionsStatsLink = `<a href="${userActionsStatsUrl}">E2e Actions Stats</a>`;
 
   // link to artifacts
   const allArtifactsUrl = `https://circleci.com/gh/MetaMask/metamask-extension/${CIRCLE_BUILD_NUM}#artifacts/containers/0`;
 
   const contentRows = [
     `builds: ${buildLinks}`,
-    `builds (beta): ${betaBuildLinks}`,
-    `builds (flask): ${flaskBuildLinks}`,
-    `builds (MMI): ${mmiBuildLinks}`,
-    `builds (test): ${testBuildLinks}`,
-    `builds (test-flask): ${testFlaskBuildLinks}`,
+    `bundle viz: ${bundleLinks}`,
     `build viz: ${depVizLink}`,
-    `mv3: ${moduleInitStatsBackgroundLink}`,
-    `mv3: ${moduleInitStatsUILink}`,
-    `mv3: ${moduleLoadStatsLink}`,
-    `mv3: ${bundleSizeStatsLink}`,
-    `mv2: ${userActionsStatsLink}`,
     `code coverage: ${coverageLink}`,
     `storybook: ${storybookLink}`,
-    `typescript migration: ${tsMigrationDashboardLink}`,
     `<a href="${allArtifactsUrl}">all artifacts</a>`,
-    `<details>
-       <summary>bundle viz:</summary>
-       ${bundleMarkup}
-     </details>`,
   ];
   const hiddenContent = `<ul>${contentRows
     .map((row) => `<li>${row}</li>`)
     .join('\n')}</ul>`;
   const exposedContent = `Builds ready [${SHORT_SHA1}]`;
-  const artifactsBody = `<details><summary>${exposedContent}</summary>${hiddenContent}</details>\n\n`;
+  const artifactsBody = `<details><summary>${exposedContent}</summary>${hiddenContent}</details>`;
 
   const benchmarkResults = {};
   for (const platform of platforms) {
@@ -210,7 +106,7 @@ async function start() {
 
   const summaryPlatform = 'chrome';
   const summaryPage = 'home';
-  let commentBody = artifactsBody;
+  let commentBody;
   if (benchmarkResults[summaryPlatform]) {
     try {
       const summaryPageLoad = Math.round(
@@ -282,88 +178,15 @@ async function start() {
         .join('')}</tr></thead>`;
       const benchmarkTableBody = `<tbody>${tableRows.join('')}</tbody>`;
       const benchmarkTable = `<table>${benchmarkTableHeader}${benchmarkTableBody}</table>`;
-      const benchmarkBody = `<details><summary>${benchmarkSummary}</summary>${benchmarkTable}</details>\n\n`;
-      commentBody += `${benchmarkBody}`;
+      const benchmarkBody = `<details><summary>${benchmarkSummary}</summary>${benchmarkTable}</details>`;
+      commentBody = `${artifactsBody}${benchmarkBody}`;
     } catch (error) {
       console.error(`Error constructing benchmark results: '${error}'`);
+      commentBody = artifactsBody;
     }
   } else {
     console.log(`No results for ${summaryPlatform} found; skipping benchmark`);
-  }
-
-  try {
-    const prBundleSizeStats = JSON.parse(
-      await fs.readFile(
-        path.resolve(
-          __dirname,
-          '..',
-          path.join('test-artifacts', 'chrome', 'mv3', 'bundle_size.json'),
-        ),
-        'utf-8',
-      ),
-    );
-
-    const devBundleSizeStats = await (
-      await fetch(bundleSizeDataUrl, {
-        method: 'GET',
-      })
-    ).json();
-
-    const prSizes = {
-      background: prBundleSizeStats.background.size,
-      ui: prBundleSizeStats.ui.size,
-      common: prBundleSizeStats.common.size,
-    };
-
-    const devSizes = Object.keys(prSizes).reduce((sizes, part) => {
-      sizes[part] = devBundleSizeStats[PARENT_COMMIT][part] || 0;
-      return sizes;
-    }, {});
-
-    const diffs = Object.keys(prSizes).reduce((output, part) => {
-      output[part] = prSizes[part] - devSizes[part];
-      return output;
-    }, {});
-
-    const sizeDiffRows = Object.keys(diffs).map(
-      (part) =>
-        `${part}: ${getHumanReadableSize(diffs[part])} (${getPercentageChange(
-          devSizes[part],
-          prSizes[part],
-        )}%)`,
-    );
-
-    const sizeDiffHiddenContent = `<ul>${sizeDiffRows
-      .map((row) => `<li>${row}</li>`)
-      .join('\n')}</ul>`;
-
-    const sizeDiff = diffs.background + diffs.common;
-
-    const sizeDiffWarning =
-      sizeDiff > 0
-        ? `🚨 Warning! Bundle size has increased!`
-        : `🚀 Bundle size reduced!`;
-
-    const sizeDiffExposedContent =
-      sizeDiff === 0
-        ? `Bundle size diffs`
-        : `Bundle size diffs [${sizeDiffWarning}]`;
-
-    const sizeDiffBody = `<details><summary>${sizeDiffExposedContent}</summary>${sizeDiffHiddenContent}</details>\n\n`;
-
-    commentBody += sizeDiffBody;
-  } catch (error) {
-    console.error(`Error constructing bundle size diffs results: '${error}'`);
-  }
-
-  try {
-    const highlights = await getHighlights({ artifactBase: BUILD_LINK_BASE });
-    if (highlights) {
-      const highlightsBody = `### highlights:\n${highlights}\n`;
-      commentBody += highlightsBody;
-    }
-  } catch (error) {
-    console.error(`Error constructing highlight results: '${error}'`);
+    commentBody = artifactsBody;
   }
 
   const JSON_PAYLOAD = JSON.stringify({ body: commentBody });

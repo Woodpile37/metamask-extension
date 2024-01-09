@@ -27,12 +27,11 @@ module.exports = {
     'docs/**',
     'coverage/',
     'app/scripts/chromereload.js',
-    'app/scripts/lockdown.umd.js',
     'app/vendor/**',
     'test/e2e/send-eth-with-private-key-test/**',
     'nyc_output/**',
     '.vscode/**',
-    'lavamoat/*/policy.json',
+    'lavamoat/**',
   ],
 
   extends: [
@@ -181,11 +180,7 @@ module.exports = {
       },
     },
     {
-      files: [
-        'development/**/*.js',
-        'test/e2e/benchmark.js',
-        'test/helpers/setup-helper.js',
-      ],
+      files: ['development/**/*.js', 'test/e2e/benchmark.js', 'test/helper.js'],
       rules: {
         'node/no-process-exit': 'off',
         'node/shebang': 'off',

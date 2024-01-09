@@ -1,15 +1,11 @@
 node_modules/**
-lavamoat/**/policy.json
+lavamoat/**
 dist/**
 builds/**
 test-*/**
 coverage/
-jest-coverage/
 app/vendor/**
-app/scripts/lockdown.umd.js
 .nyc_output/**
 .vscode/**
 test/e2e/send-eth-with-private-key-test/**
 *.scss
-development/chromereload.js
-development/ts-migration-dashboard/filesToConvert.json
