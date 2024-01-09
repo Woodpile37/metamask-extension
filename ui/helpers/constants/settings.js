@@ -8,6 +8,9 @@ import {
   NETWORKS_ROUTE,
   CONTACT_LIST_ROUTE,
   EXPERIMENTAL_ROUTE,
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  SNAPS_LIST_ROUTE,
+  ///: END:ONLY_INCLUDE_IN
 } from './routes';
 
 export const SETTINGS_CONSTANTS = [
@@ -104,16 +107,16 @@ export const SETTINGS_CONSTANTS = [
   },
   {
     tabMessage: (t) => t('advanced'),
-    sectionMessage: (t) => t('dismissReminderField'),
-    descriptionMessage: (t) => t('dismissReminderDescriptionField'),
-    route: `${ADVANCED_ROUTE}#dismiss-secretrecovery`,
+    sectionMessage: (t) => t('preferredLedgerConnectionType'),
+    descriptionMessage: (t) => t('preferredLedgerConnectionType'),
+    route: `${ADVANCED_ROUTE}#ledger-connection`,
     icon: 'fas fa-sliders-h',
   },
   {
     tabMessage: (t) => t('advanced'),
-    sectionMessage: (t) => t('toggleEthSignField'),
-    descriptionMessage: (t) => t('toggleEthSignDescriptionField'),
-    route: `${ADVANCED_ROUTE}#toggle-ethsign`,
+    sectionMessage: (t) => t('dismissReminderField'),
+    descriptionMessage: (t) => t('dismissReminderDescriptionField'),
+    route: `${ADVANCED_ROUTE}#dismiss-secretrecovery`,
     icon: 'fas fa-sliders-h',
   },
   {
@@ -130,6 +133,15 @@ export const SETTINGS_CONSTANTS = [
     route: CONTACT_LIST_ROUTE,
     iconName: IconName.Book,
   },
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  {
+    tabMessage: (t) => t('snaps'),
+    sectionMessage: (t) => t('snaps'),
+    descriptionMessage: (t) => t('snaps'),
+    route: SNAPS_LIST_ROUTE,
+    iconName: IconName.Snaps,
+  },
+  ///: END:ONLY_INCLUDE_IN
   {
     tabMessage: (t) => t('securityAndPrivacy'),
     sectionMessage: (t) => t('revealSeedWords'),
@@ -153,13 +165,6 @@ export const SETTINGS_CONSTANTS = [
   },
   {
     tabMessage: (t) => t('securityAndPrivacy'),
-    sectionMessage: (t) => t('use4ByteResolution'),
-    descriptionMessage: (t) => t('use4ByteResolutionDescription'),
-    route: `${SECURITY_ROUTE}#decode-smart-contracts`,
-    icon: 'fa fa-lock',
-  },
-  {
-    tabMessage: (t) => t('securityAndPrivacy'),
     sectionMessage: (t) => t('participateInMetaMetrics'),
     descriptionMessage: (t) => t('participateInMetaMetricsDescription'),
     route: `${SECURITY_ROUTE}#metametrics`,
@@ -174,8 +179,8 @@ export const SETTINGS_CONSTANTS = [
   },
   {
     tabMessage: (t) => t('securityAndPrivacy'),
-    sectionMessage: (t) => t('ipfsGateway'),
-    descriptionMessage: (t) => t('ipfsGatewayDescription'),
+    sectionMessage: (t) => t('addCustomIPFSGateway'),
+    descriptionMessage: (t) => t('addCustomIPFSGatewayDescription'),
     route: `${SECURITY_ROUTE}#add-custom-ipfs-gateway`,
     icon: 'fa fa-lock',
   },
@@ -204,22 +209,8 @@ export const SETTINGS_CONSTANTS = [
   {
     tabMessage: (t) => t('securityAndPrivacy'),
     sectionMessage: (t) => t('ensDomainsSettingTitle'),
-    descriptionMessage: (t) => t('ensDomainsSettingDescriptionIntroduction'),
+    descriptionMessage: (t) => t('ensDomainsSettingDescriptionIntro'),
     route: `${SECURITY_ROUTE}#ens-domains`,
-    icon: 'fa fa-lock',
-  },
-  {
-    tabMessage: (t) => t('securityAndPrivacy'),
-    sectionMessage: (t) => t('displayNftMedia'),
-    descriptionMessage: (t) => t('displayNftMediaDescription'),
-    route: `${SECURITY_ROUTE}#display-nft-media`,
-    icon: 'fa fa-lock',
-  },
-  {
-    tabMessage: (t) => t('securityAndPrivacy'),
-    sectionMessage: (t) => t('useNftDetection'),
-    descriptionMessage: (t) => t('useNftDetectionDescriptionText'),
-    route: `${SECURITY_ROUTE}#autodetect-nfts`,
     icon: 'fa fa-lock',
   },
   {
@@ -346,6 +337,20 @@ export const SETTINGS_CONSTANTS = [
     iconName: IconName.Info,
   },
   {
+    tabMessage: (t) => t('experimental'),
+    sectionMessage: (t) => t('displayNftMedia'),
+    descriptionMessage: (t) => t('displayNftMediaDescription'),
+    route: `${EXPERIMENTAL_ROUTE}#opensea-api`,
+    icon: 'fa fa-flask',
+  },
+  {
+    tabMessage: (t) => t('experimental'),
+    sectionMessage: (t) => t('useNftDetection'),
+    descriptionMessage: (t) => t('useNftDetectionDescription'),
+    route: `${EXPERIMENTAL_ROUTE}#autodetect-nfts`,
+    icon: 'fa fa-flask',
+  },
+  {
     tabMessage: (t) => t('advanced'),
     sectionMessage: (t) => t('backupUserData'),
     descriptionMessage: (t) => t('backupUserDataDescription'),
@@ -361,9 +366,9 @@ export const SETTINGS_CONSTANTS = [
   },
   {
     tabMessage: (t) => t('experimental'),
-    sectionMessage: (t) => t('securityAlerts'),
-    descriptionMessage: (t) => t('securityAlertsDescription'),
-    route: `${EXPERIMENTAL_ROUTE}#security-alerts`,
+    sectionMessage: (t) => t('transactionSecurityCheck'),
+    descriptionMessage: (t) => t('transactionSecurityCheckDescription'),
+    route: `${EXPERIMENTAL_ROUTE}#transaction-security-check`,
     icon: 'fa fa-flask',
   },
 ];
