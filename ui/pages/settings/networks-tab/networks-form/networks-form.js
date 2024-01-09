@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import validUrl from 'valid-url';
 import log from 'loglevel';
 import classnames from 'classnames';
-import { isEqual } from 'lodash';
 import { useI18nContext } from '../../../../hooks/useI18nContext';
 import {
   isPrefixedFormattedHexString,
@@ -14,21 +14,20 @@ import { jsonRpcRequest } from '../../../../../shared/modules/rpc.utils';
 import ActionableMessage from '../../../../components/ui/actionable-message';
 import Button from '../../../../components/ui/button';
 import FormField from '../../../../components/ui/form-field';
+import { decimalToHex } from '../../../../helpers/utils/conversions.util';
 import {
-  setSelectedNetworkConfigurationId,
-  upsertNetworkConfiguration,
-  editAndSetNetworkConfiguration,
+  setSelectedSettingsRpcUrl,
+  updateAndSetCustomRpc,
+  editRpc,
   showModal,
   setNewNetworkAdded,
 } from '../../../../store/actions';
-import fetchWithCache from '../../../../../shared/lib/fetch-with-cache';
-import { usePrevious } from '../../../../hooks/usePrevious';
-import { EVENT } from '../../../../../shared/constants/metametrics';
 import {
-  infuraProjectId,
-  FEATURED_RPCS,
-} from '../../../../../shared/constants/network';
-import { decimalToHex } from '../../../../../shared/modules/conversion.utils';
+  DEFAULT_ROUTE,
+  NETWORKS_ROUTE,
+} from '../../../../helpers/constants/routes';
+import fetchWithCache from '../../../../helpers/utils/fetch-with-cache';
+import { usePrevious } from '../../../../hooks/usePrevious';
 
 /**
  * Attempts to convert the given chainId to a decimal string, for display
@@ -69,14 +68,12 @@ const isValidWhenAppended = (url) => {
 
 const NetworksForm = ({
   addNewNetwork,
-  restrictHeight,
   isCurrentRpcTarget,
   networksToRender,
   selectedNetwork,
-  cancelCallback,
-  submitCallback,
 }) => {
   const t = useI18nContext();
+  const history = useHistory();
   const dispatch = useDispatch();
   const { label, labelKey, viewOnly, rpcPrefs } = selectedNetwork;
   const selectedNetworkName = label || (labelKey && t(labelKey));
@@ -90,11 +87,6 @@ const NetworksForm = ({
   const [errors, setErrors] = useState({});
   const [warnings, setWarnings] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const chainIdMatchesFeaturedRPC = FEATURED_RPCS.some(
-    (featuredRpc) => Number(featuredRpc.chainId) === Number(chainId),
-  );
-  const [isEditing, setIsEditing] = useState(Boolean(addNewNetwork));
-  const [previousNetwork, setPreviousNetwork] = useState(selectedNetwork);
 
   const resetForm = useCallback(() => {
     setNetworkName(selectedNetworkName || '');
@@ -105,8 +97,6 @@ const NetworksForm = ({
     setErrors({});
     setWarnings({});
     setIsSubmitting(false);
-    setIsEditing(false);
-    setPreviousNetwork(selectedNetwork);
   }, [selectedNetwork, selectedNetworkName]);
 
   const stateIsUnchanged = () => {
@@ -142,12 +132,11 @@ const NetworksForm = ({
       setErrors({});
       setIsSubmitting(false);
     } else if (
-      (prevNetworkName.current !== selectedNetworkName ||
-        prevRpcUrl.current !== selectedNetwork.rpcUrl ||
-        prevChainId.current !== selectedNetwork.chainId ||
-        prevTicker.current !== selectedNetwork.ticker ||
-        prevBlockExplorerUrl.current !== selectedNetwork.blockExplorerUrl) &&
-      (!isEditing || !isEqual(selectedNetwork, previousNetwork))
+      prevNetworkName.current !== selectedNetworkName ||
+      prevRpcUrl.current !== selectedNetwork.rpcUrl ||
+      prevChainId.current !== selectedNetwork.chainId ||
+      prevTicker.current !== selectedNetwork.ticker ||
+      prevBlockExplorerUrl.current !== selectedNetwork.blockExplorerUrl
     ) {
       resetForm(selectedNetwork);
     }
@@ -155,9 +144,14 @@ const NetworksForm = ({
     selectedNetwork,
     selectedNetworkName,
     addNewNetwork,
-    previousNetwork,
+    setNetworkName,
+    setRpcUrl,
+    setChainId,
+    setTicker,
+    setBlockExplorerUrl,
+    setErrors,
+    setIsSubmitting,
     resetForm,
-    isEditing,
   ]);
 
   useEffect(() => {
@@ -168,7 +162,7 @@ const NetworksForm = ({
       setTicker('');
       setBlockExplorerUrl('');
       setErrors({});
-      dispatch(setSelectedNetworkConfigurationId(''));
+      dispatch(setSelectedSettingsRpcUrl(''));
     };
   }, [
     setNetworkName,
@@ -220,8 +214,6 @@ const NetworksForm = ({
       const formChainId = chainArg.trim();
       let errorKey = '';
       let errorMessage = '';
-      let warningKey = '';
-      let warningMessage = '';
       let radix = 10;
       let hexChainId = formChainId;
 
@@ -230,10 +222,8 @@ const NetworksForm = ({
           hexChainId = `0x${decimalToHex(hexChainId)}`;
         } catch (err) {
           return {
-            error: {
-              key: 'invalidHexNumber',
-              msg: t('invalidHexNumber'),
-            },
+            key: 'invalidHexNumber',
+            msg: t('invalidHexNumber'),
           };
         }
       }
@@ -245,8 +235,8 @@ const NetworksForm = ({
       if (formChainId === '') {
         return null;
       } else if (matchingChainId) {
-        warningKey = 'chainIdExistsErrorMsg';
-        warningMessage = t('chainIdExistsErrorMsg', [
+        errorKey = 'chainIdExistsErrorMsg';
+        errorMessage = t('chainIdExistsErrorMsg', [
           matchingChainId.label ?? matchingChainId.labelKey,
         ]);
       } else if (formChainId.startsWith('0x')) {
@@ -308,18 +298,8 @@ const NetworksForm = ({
       }
       if (errorKey) {
         return {
-          error: {
-            key: errorKey,
-            msg: errorMessage,
-          },
-        };
-      }
-      if (warningKey) {
-        return {
-          warning: {
-            key: warningKey,
-            msg: warningMessage,
-          },
+          key: errorKey,
+          msg: errorMessage,
         };
       }
 
@@ -348,14 +328,15 @@ const NetworksForm = ({
       }
 
       try {
-        safeChainsList =
-          (await fetchWithCache('https://chainid.network/chains.json')) || [];
+        safeChainsList = await fetchWithCache(
+          'https://chainid.network/chains.json',
+        );
       } catch (err) {
         log.warn('Failed to fetch the chainList from chainid.network', err);
         providerError = err;
       }
 
-      if (providerError) {
+      if (providerError || !Array.isArray(safeChainsList)) {
         warningKey = 'failedToFetchTickerSymbolData';
         warningMessage = t('failedToFetchTickerSymbolData');
       } else {
@@ -449,20 +430,18 @@ const NetworksForm = ({
       return;
     }
     async function validate() {
-      const { error: chainIdError, warning: chainIdWarning } =
-        (await validateChainId(chainId)) || {};
+      const chainIdError = await validateChainId(chainId);
       const tickerWarning = await validateTickerSymbol(chainId, ticker);
       const blockExplorerError = validateBlockExplorerURL(blockExplorerUrl);
       const rpcUrlError = validateRPCUrl(rpcUrl);
       setErrors({
         ...errors,
+        chainId: chainIdError,
         blockExplorerUrl: blockExplorerError,
         rpcUrl: rpcUrlError,
-        chainId: chainIdError,
       });
       setWarnings({
         ...warnings,
-        chainId: chainIdWarning,
         ticker: tickerWarning,
       });
     }
@@ -492,53 +471,34 @@ const NetworksForm = ({
     try {
       const formChainId = chainId.trim().toLowerCase();
       const prefixedChainId = prefixChainId(formChainId);
-      let networkConfigurationId;
+
       // After this point, isSubmitting will be reset in componentDidUpdate
       if (selectedNetwork.rpcUrl && rpcUrl !== selectedNetwork.rpcUrl) {
         await dispatch(
-          editAndSetNetworkConfiguration({
+          editRpc(
+            selectedNetwork.rpcUrl,
             rpcUrl,
+            prefixedChainId,
             ticker,
-            networkConfigurationId: selectedNetwork.networkConfigurationId,
-            chainId: prefixedChainId,
-            nickname: networkName,
-            rpcPrefs: {
+            networkName,
+            {
               ...rpcPrefs,
               blockExplorerUrl: blockExplorerUrl || rpcPrefs?.blockExplorerUrl,
             },
-          }),
+          ),
         );
       } else {
-        networkConfigurationId = await dispatch(
-          upsertNetworkConfiguration(
-            {
-              rpcUrl,
-              ticker,
-              chainId: prefixedChainId,
-              nickname: networkName,
-              rpcPrefs: {
-                ...rpcPrefs,
-                blockExplorerUrl:
-                  blockExplorerUrl || rpcPrefs?.blockExplorerUrl,
-              },
-            },
-            {
-              setActive: true,
-              source: EVENT.SOURCE.NETWORK.CUSTOM_NETWORK_FORM,
-            },
-          ),
+        await dispatch(
+          updateAndSetCustomRpc(rpcUrl, prefixedChainId, ticker, networkName, {
+            ...rpcPrefs,
+            blockExplorerUrl: blockExplorerUrl || rpcPrefs?.blockExplorerUrl,
+          }),
         );
       }
 
       if (addNewNetwork) {
-        dispatch(
-          setNewNetworkAdded({
-            nickname: networkName,
-            networkConfigurationId,
-          }),
-        );
-
-        submitCallback?.();
+        dispatch(setNewNetworkAdded(networkName));
+        history.push(DEFAULT_ROUTE);
       }
     } catch (error) {
       setIsSubmitting(false);
@@ -548,8 +508,8 @@ const NetworksForm = ({
 
   const onCancel = () => {
     if (addNewNetwork) {
-      dispatch(setSelectedNetworkConfigurationId(''));
-      cancelCallback?.();
+      dispatch(setSelectedSettingsRpcUrl(''));
+      history.push(NETWORKS_ROUTE);
     } else {
       resetForm();
     }
@@ -559,23 +519,20 @@ const NetworksForm = ({
     dispatch(
       showModal({
         name: 'CONFIRM_DELETE_NETWORK',
-        target: selectedNetwork.networkConfigurationId,
+        target: selectedNetwork.rpcUrl,
         onConfirm: () => {
           resetForm();
-          dispatch(setSelectedNetworkConfigurationId(''));
+          dispatch(setSelectedSettingsRpcUrl(''));
         },
       }),
     );
   };
   const deletable = !isCurrentRpcTarget && !viewOnly && !addNewNetwork;
   const stateUnchanged = stateIsUnchanged();
-  const chainIdErrorOnFeaturedRpcDuringEdit =
-    selectedNetwork?.rpcUrl && errors.chainId && chainIdMatchesFeaturedRPC;
   const isSubmitDisabled =
     hasErrors() ||
     isSubmitting ||
     stateUnchanged ||
-    chainIdErrorOnFeaturedRpcDuringEdit ||
     !rpcUrl ||
     !chainId ||
     !ticker;
@@ -585,7 +542,6 @@ const NetworksForm = ({
       className={classnames({
         'networks-tab__network-form': !addNewNetwork,
         'networks-tab__add-network-form': addNewNetwork,
-        'networks-tab__restrict-height': restrictHeight,
       })}
     >
       {addNewNetwork ? (
@@ -595,7 +551,6 @@ const NetworksForm = ({
           iconFillColor="var(--color-warning-default)"
           useIcon
           withRightButton
-          className="networks-tab__add-network-form__alert"
         />
       ) : null}
       <div
@@ -608,35 +563,21 @@ const NetworksForm = ({
         <FormField
           autoFocus
           error={errors.networkName?.msg || ''}
-          onChange={(value) => {
-            setIsEditing(true);
-            setNetworkName(value);
-          }}
+          onChange={setNetworkName}
           titleText={t('networkName')}
           value={networkName}
           disabled={viewOnly}
         />
         <FormField
           error={errors.rpcUrl?.msg || ''}
-          onChange={(value) => {
-            setIsEditing(true);
-            setRpcUrl(value);
-          }}
+          onChange={setRpcUrl}
           titleText={t('rpcUrl')}
-          value={
-            rpcUrl?.includes(`/v3/${infuraProjectId}`)
-              ? rpcUrl.replace(`/v3/${infuraProjectId}`, '')
-              : rpcUrl
-          }
+          value={rpcUrl}
           disabled={viewOnly}
         />
         <FormField
-          warning={warnings.chainId?.msg || ''}
           error={errors.chainId?.msg || ''}
-          onChange={(value) => {
-            setIsEditing(true);
-            setChainId(value);
-          }}
+          onChange={setChainId}
           titleText={t('chainId')}
           value={chainId}
           disabled={viewOnly}
@@ -644,25 +585,18 @@ const NetworksForm = ({
         />
         <FormField
           warning={warnings.ticker?.msg || ''}
-          onChange={(value) => {
-            setIsEditing(true);
-            setTicker(value);
-          }}
+          onChange={setTicker}
           titleText={t('currencySymbol')}
           value={ticker}
           disabled={viewOnly}
         />
         <FormField
           error={errors.blockExplorerUrl?.msg || ''}
-          onChange={(value) => {
-            setIsEditing(true);
-            setBlockExplorerUrl(value);
-          }}
+          onChange={setBlockExplorerUrl}
           titleText={t('blockExplorerUrl')}
           titleUnit={t('optionalWithParanthesis')}
           value={blockExplorerUrl}
           disabled={viewOnly}
-          autoFocus={window.location.hash.split('#')[2] === 'blockExplorerUrl'}
         />
       </div>
       <div
@@ -704,9 +638,6 @@ NetworksForm.propTypes = {
   isCurrentRpcTarget: PropTypes.bool,
   networksToRender: PropTypes.array.isRequired,
   selectedNetwork: PropTypes.object,
-  cancelCallback: PropTypes.func,
-  submitCallback: PropTypes.func,
-  restrictHeight: PropTypes.bool,
 };
 
 NetworksForm.defaultProps = {

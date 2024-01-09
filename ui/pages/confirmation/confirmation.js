@@ -5,54 +5,29 @@ import React, {
   useReducer,
   useState,
 } from 'react';
-import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { isEqual } from 'lodash';
 import { produce } from 'immer';
-import log from 'loglevel';
-
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { ApprovalType } from '@metamask/controller-utils';
-///: END:ONLY_INCLUDE_IF
-import fetchWithCache from '../../../shared/lib/fetch-with-cache';
 import Box from '../../components/ui/box';
+import Chip from '../../components/ui/chip';
 import MetaMaskTemplateRenderer from '../../components/app/metamask-template-renderer';
-import ConfirmationWarningModal from '../../components/app/confirmation-warning-modal';
+import SiteIcon from '../../components/ui/site-icon';
 import { DEFAULT_ROUTE } from '../../helpers/constants/routes';
-import { Size, TextColor } from '../../helpers/constants/design-system';
-import { useI18nContext } from '../../hooks/useI18nContext';
 import {
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  getTargetSubjectMetadata,
-  ///: END:ONLY_INCLUDE_IF
-  getUnapprovedTemplatedConfirmations,
-  getUnapprovedTxCount,
-  getApprovalFlows,
-  getTotalUnapprovedCount,
-  useSafeChainsListValidationSelector,
-} from '../../selectors';
+  COLORS,
+  FLEX_DIRECTION,
+  SIZES,
+} from '../../helpers/constants/design-system';
+import { stripHttpsScheme } from '../../helpers/utils/util';
+import { useI18nContext } from '../../hooks/useI18nContext';
+import { useOriginMetadata } from '../../hooks/useOriginMetadata';
+import { getUnapprovedTemplatedConfirmations } from '../../selectors';
 import NetworkDisplay from '../../components/app/network-display/network-display';
 import Callout from '../../components/ui/callout';
-import { Icon, IconName } from '../../components/component-library';
-import Loading from '../../components/ui/loading-screen';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import SnapAuthorshipHeader from '../../components/app/snaps/snap-authorship-header';
-import { getSnapName } from '../../helpers/utils/util';
-///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../../../shared/constants/app';
-///: END:ONLY_INCLUDE_IF
-import { DAY } from '../../../shared/constants/time';
+import { addCustomNetwork } from '../../store/actions';
 import ConfirmationFooter from './components/confirmation-footer';
-import {
-  getTemplateValues,
-  getTemplateAlerts,
-  getTemplateState,
-} from './templates';
-
-// TODO(rekmarks): This component and all of its sub-components should probably
-// be renamed to "Dialog", now that we are using it in that manner.
+import { getTemplateValues, getTemplateAlerts } from './templates';
 
 /**
  * a very simple reducer using produce from Immer to keep state manipulation
@@ -94,27 +69,12 @@ const alertStateReducer = produce((state, action) => {
  * outside of this file, but it helps to reduce complexity of the primary
  * component.
  *
- * @param {object} pendingConfirmation - a pending confirmation waiting for
+ * @param {Object} pendingConfirmation - a pending confirmation waiting for
  * user approval
- * @param {object} state - The state object consist of required info to determine alerts.
- * @param state.unapprovedTxsCount
- * @param state.useSafeChainsListValidation
- * @param state.matchedChain
- * @param state.providerError
- * @param state.preventAlertsForAddChainValidation
- * @returns {[alertState: object, dismissAlert: Function]} A tuple with
+ * @returns {[alertState: Object, dismissAlert: Function]} A tuple with
  * the current alert state and function to dismiss an alert by id
  */
-function useAlertState(
-  pendingConfirmation,
-  {
-    unapprovedTxsCount,
-    useSafeChainsListValidation,
-    matchedChain,
-    providerError,
-    preventAlertsForAddChainValidation = false,
-  } = {},
-) {
+function useAlertState(pendingConfirmation) {
   const [alertState, dispatch] = useReducer(alertStateReducer, {});
 
   /**
@@ -127,13 +87,8 @@ function useAlertState(
    */
   useEffect(() => {
     let isMounted = true;
-    if (pendingConfirmation && !preventAlertsForAddChainValidation) {
-      getTemplateAlerts(pendingConfirmation, {
-        unapprovedTxsCount,
-        useSafeChainsListValidation,
-        matchedChain,
-        providerError,
-      }).then((alerts) => {
+    if (pendingConfirmation) {
+      getTemplateAlerts(pendingConfirmation).then((alerts) => {
         if (isMounted && alerts.length > 0) {
           dispatch({
             type: 'set',
@@ -146,14 +101,7 @@ function useAlertState(
     return () => {
       isMounted = false;
     };
-  }, [
-    pendingConfirmation,
-    unapprovedTxsCount,
-    useSafeChainsListValidation,
-    matchedChain,
-    providerError,
-    preventAlertsForAddChainValidation,
-  ]);
+  }, [pendingConfirmation]);
 
   const dismissAlert = useCallback(
     (alertId) => {
@@ -169,31 +117,7 @@ function useAlertState(
   return [alertState, dismissAlert];
 }
 
-function useTemplateState(pendingConfirmation) {
-  const [templateState, setTemplateState] = useState({});
-  useEffect(() => {
-    let isMounted = true;
-    if (pendingConfirmation) {
-      getTemplateState(pendingConfirmation).then((state) => {
-        if (isMounted && Object.values(state).length > 0) {
-          setTemplateState((prevState) => ({
-            ...prevState,
-            [pendingConfirmation.id]: state,
-          }));
-        }
-      });
-    }
-    return () => {
-      isMounted = false;
-    };
-  }, [pendingConfirmation]);
-
-  return [templateState];
-}
-
-export default function ConfirmationPage({
-  redirectToHomeOnZeroConfirmations = true,
-}) {
+export default function ConfirmationPage() {
   const t = useI18nContext();
   const dispatch = useDispatch();
   const history = useHistory();
@@ -201,239 +125,36 @@ export default function ConfirmationPage({
     getUnapprovedTemplatedConfirmations,
     isEqual,
   );
-  const unapprovedTxsCount = useSelector(getUnapprovedTxCount);
-  const approvalFlows = useSelector(getApprovalFlows, isEqual);
-  const totalUnapprovedCount = useSelector(getTotalUnapprovedCount);
-  const useSafeChainsListValidation = useSelector(
-    useSafeChainsListValidationSelector,
+  const [currentPendingConfirmation, setCurrentPendingConfirmation] = useState(
+    0,
   );
-  const [approvalFlowLoadingText, setApprovalFlowLoadingText] = useState(null);
-  const [currentPendingConfirmation, setCurrentPendingConfirmation] =
-    useState(0);
   const pendingConfirmation = pendingConfirmations[currentPendingConfirmation];
-  const [matchedChain, setMatchedChain] = useState({});
-  const [chainFetchComplete, setChainFetchComplete] = useState(false);
-  const preventAlertsForAddChainValidation =
-    pendingConfirmation?.type === ApprovalType.AddEthereumChain &&
-    !chainFetchComplete;
-  const [currencySymbolWarning, setCurrencySymbolWarning] = useState(null);
-  const [providerError, setProviderError] = useState(null);
-  const [alertState, dismissAlert] = useAlertState(pendingConfirmation, {
-    unapprovedTxsCount,
-    useSafeChainsListValidation,
-    matchedChain,
-    providerError,
-    preventAlertsForAddChainValidation,
-  });
-  const [templateState] = useTemplateState(pendingConfirmation);
-  const [showWarningModal, setShowWarningModal] = useState(false);
-
-  const [inputStates, setInputStates] = useState({});
-  const setInputState = (key, value) => {
-    setInputStates((currentState) => ({ ...currentState, [key]: value }));
-  };
-  const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState();
-
-  const [submitAlerts, setSubmitAlerts] = useState([]);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  const targetSubjectMetadata = useSelector((state) =>
-    getTargetSubjectMetadata(state, pendingConfirmation?.origin),
-  );
-
-  const SNAP_DIALOG_TYPE = [
-    ApprovalType.SnapDialogAlert,
-    ApprovalType.SnapDialogConfirmation,
-    ApprovalType.SnapDialogPrompt,
-  ];
-  ///: END:ONLY_INCLUDE_IF
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  SNAP_DIALOG_TYPE.push(
-    ...Object.values(SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES),
-  );
-  ///: END:ONLY_INCLUDE_IF
-
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps,keyring-snaps)
-  const isSnapDialog = SNAP_DIALOG_TYPE.includes(pendingConfirmation?.type);
-  let useSnapHeader = isSnapDialog;
-
-  // When pendingConfirmation is undefined, this will also be undefined
-  const snapName =
-    isSnapDialog &&
-    targetSubjectMetadata &&
-    getSnapName(pendingConfirmation?.origin, targetSubjectMetadata);
-  ///: END:ONLY_INCLUDE_IF
-
-  const INPUT_STATE_CONFIRMATIONS = [
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-    ApprovalType.SnapDialogPrompt,
-    ///: END:ONLY_INCLUDE_IF
-  ];
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (
-    Object.values(SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES).includes(
-      pendingConfirmation?.type,
-    )
-  ) {
-    useSnapHeader = false;
-  }
-  ///: END:ONLY_INCLUDE_IF
+  const originMetadata = useOriginMetadata(pendingConfirmation?.origin) || {};
+  const [alertState, dismissAlert] = useAlertState(pendingConfirmation);
 
   // Generating templatedValues is potentially expensive, and if done on every render
   // will result in a new object. Avoiding calling this generation unnecessarily will
   // improve performance and prevent unnecessary draws.
   const templatedValues = useMemo(() => {
     return pendingConfirmation
-      ? getTemplateValues(
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-            snapName: isSnapDialog && snapName,
-            ///: END:ONLY_INCLUDE_IF
-            ...pendingConfirmation,
-          },
-          t,
-          dispatch,
-          history,
-          setInputState,
-          { matchedChain, currencySymbolWarning },
-        )
+      ? getTemplateValues(pendingConfirmation, t, dispatch)
       : {};
-  }, [
-    pendingConfirmation,
-    t,
-    dispatch,
-    history,
-    matchedChain,
-    currencySymbolWarning,
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps,keyring-snaps)
-    isSnapDialog,
-    snapName,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  }, [pendingConfirmation, t, dispatch]);
 
   useEffect(() => {
     // If the number of pending confirmations reduces to zero when the user
     // return them to the default route. Otherwise, if the number of pending
     // confirmations reduces to a number that is less than the currently
     // viewed index, reset the index.
-    if (
-      pendingConfirmations.length === 0 &&
-      (approvalFlows.length === 0 || totalUnapprovedCount !== 0) &&
-      redirectToHomeOnZeroConfirmations
-    ) {
+    if (pendingConfirmations.length === 0) {
       history.push(DEFAULT_ROUTE);
-    } else if (
-      pendingConfirmations.length &&
-      pendingConfirmations.length <= currentPendingConfirmation
-    ) {
+    } else if (pendingConfirmations.length <= currentPendingConfirmation) {
       setCurrentPendingConfirmation(pendingConfirmations.length - 1);
     }
-  }, [
-    pendingConfirmations,
-    approvalFlows,
-    totalUnapprovedCount,
-    history,
-    currentPendingConfirmation,
-    redirectToHomeOnZeroConfirmations,
-  ]);
-
-  useEffect(() => {
-    const childFlow = approvalFlows[approvalFlows.length - 1];
-
-    setApprovalFlowLoadingText(childFlow?.loadingText ?? null);
-  }, [approvalFlows]);
-
-  useEffect(() => {
-    async function fetchSafeChainsList(_pendingConfirmation) {
-      try {
-        if (useSafeChainsListValidation) {
-          const response = await fetchWithCache({
-            url: 'https://chainid.network/chains.json',
-            cacheOptions: { cacheRefreshTime: DAY },
-            functionName: 'getSafeChainsList',
-          });
-          const safeChainsList = response;
-          const _matchedChain = safeChainsList.find(
-            (chain) =>
-              chain.chainId ===
-              parseInt(_pendingConfirmation.requestData.chainId, 16),
-          );
-          setMatchedChain(_matchedChain);
-          setChainFetchComplete(true);
-          setProviderError(null);
-          if (
-            _matchedChain?.nativeCurrency?.symbol?.toLowerCase() ===
-            _pendingConfirmation.requestData.ticker?.toLowerCase()
-          ) {
-            setCurrencySymbolWarning(null);
-          } else {
-            setCurrencySymbolWarning(
-              t('chainListReturnedDifferentTickerSymbol', [
-                _matchedChain?.nativeCurrency?.symbol,
-              ]),
-            );
-          }
-        }
-      } catch (error) {
-        log.warn('Failed to fetch the chainList from chainid.network', error);
-        setProviderError(error);
-        setMatchedChain(null);
-        setCurrencySymbolWarning(null);
-        setChainFetchComplete(true);
-        // Swallow the error here to not block the user from adding a custom network
-      }
-    }
-    if (pendingConfirmation?.type === ApprovalType.AddEthereumChain) {
-      fetchSafeChainsList(pendingConfirmation);
-    }
-  }, [
-    pendingConfirmation,
-    t,
-    useSafeChainsListValidation,
-    setChainFetchComplete,
-  ]);
-
+  }, [pendingConfirmations, history, currentPendingConfirmation]);
   if (!pendingConfirmation) {
-    if (approvalFlows.length > 0) {
-      return <Loading loadingMessage={approvalFlowLoadingText} />;
-    }
-
     return null;
   }
-
-  const hasInputState = (type) => {
-    return INPUT_STATE_CONFIRMATIONS.includes(type);
-  };
-
-  const getInputState = (type) => {
-    return inputStates[type] ?? '';
-  };
-
-  const handleSubmitResult = (submitResult) => {
-    if (submitResult?.length > 0) {
-      setLoadingText(templatedValues.submitText);
-      setSubmitAlerts(submitResult);
-      setLoading(true);
-    } else {
-      setLoading(false);
-    }
-  };
-  const handleSubmit = async () => {
-    setLoading(true);
-    if (templateState[pendingConfirmation.id]?.useWarningModal) {
-      setShowWarningModal(true);
-    } else {
-      const inputState = hasInputState(pendingConfirmation.type)
-        ? getInputState(pendingConfirmation.type)
-        : null;
-      // submit result is an array of errors or empty on success
-      const submitResult = await templatedValues.onSubmit(inputState);
-      handleSubmitResult(submitResult);
-    }
-  };
 
   return (
     <div className="confirmation-page">
@@ -452,7 +173,7 @@ export default function ConfirmationPage({
                 setCurrentPendingConfirmation(currentPendingConfirmation - 1)
               }
             >
-              <Icon name={IconName.ArrowLeft} />
+              <i className="fas fa-chevron-left" />
             </button>
           )}
           <button
@@ -464,37 +185,38 @@ export default function ConfirmationPage({
               setCurrentPendingConfirmation(currentPendingConfirmation + 1)
             }
           >
-            <Icon name={IconName.ArrowRight} />
+            <i className="fas fa-chevron-right" />
           </button>
         </div>
       )}
       <div className="confirmation-page__content">
         {templatedValues.networkDisplay ? (
-          <Box justifyContent="center" marginTop={2}>
+          <Box justifyContent="center">
             <NetworkDisplay
-              indicatorSize={Size.XS}
-              labelProps={{ color: TextColor.textDefault }}
+              indicatorSize={SIZES.XS}
+              labelProps={{ color: COLORS.TEXT_DEFAULT }}
             />
           </Box>
         ) : null}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-          useSnapHeader && (
-            <SnapAuthorshipHeader snapId={pendingConfirmation?.origin} />
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
-        <MetaMaskTemplateRenderer sections={templatedValues.content} />
-        {showWarningModal && (
-          <ConfirmationWarningModal
-            onSubmit={async () => {
-              const res = await templatedValues.onSubmit();
-              await handleSubmitResult(res);
-              setShowWarningModal(false);
-            }}
-            onCancel={templatedValues.onCancel}
-          />
+        {pendingConfirmation.origin === 'metamask' ? null : (
+          <Box
+            alignItems="center"
+            marginTop={1}
+            padding={[1, 4, 4]}
+            flexDirection={FLEX_DIRECTION.COLUMN}
+          >
+            <SiteIcon
+              icon={originMetadata.iconUrl}
+              name={originMetadata.hostname}
+              size={36}
+            />
+            <Chip
+              label={stripHttpsScheme(originMetadata.origin)}
+              borderColor={COLORS.BORDER_DEFAULT}
+            />
+          </Box>
         )}
+        <MetaMaskTemplateRenderer sections={templatedValues.content} />
       </div>
       <ConfirmationFooter
         alerts={
@@ -514,38 +236,14 @@ export default function ConfirmationPage({
               </Callout>
             ))
         }
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps,keyring-snaps)
-        style={
-          isSnapDialog
-            ? {
-                boxShadow: 'var(--shadow-size-lg) var(--color-shadow-default)',
-              }
-            : {}
-        }
-        actionsStyle={
-          isSnapDialog
-            ? {
-                borderTop: 0,
-              }
-            : {}
-        }
-        ///: END:ONLY_INCLUDE_IF
-        onSubmit={handleSubmit}
+        onApprove={() => {
+          templatedValues.onApprove.apply();
+          dispatch(addCustomNetwork(pendingConfirmation.requestData));
+        }}
         onCancel={templatedValues.onCancel}
-        submitText={templatedValues.submitText}
+        approveText={templatedValues.approvalText}
         cancelText={templatedValues.cancelText}
-        loadingText={loadingText || templatedValues.loadingText}
-        loading={loading}
-        submitAlerts={submitAlerts.map((alert, idx) => (
-          <Callout key={alert.id} severity={alert.severity} isFirst={idx === 0}>
-            <MetaMaskTemplateRenderer sections={alert.content} />
-          </Callout>
-        ))}
       />
     </div>
   );
 }
-
-ConfirmationPage.propTypes = {
-  redirectToHomeOnZeroConfirmations: PropTypes.bool,
-};

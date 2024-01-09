@@ -4,27 +4,13 @@ import classnames from 'classnames';
 import { omit } from 'lodash';
 import Typography from '../typography';
 import UrlIcon from '../url-icon';
-import {
-  BackgroundColor,
-  BorderColor,
-  TextColor,
-  TypographyVariant,
-} from '../../../helpers/constants/design-system';
-
-/**
- * @deprecated The `<Chip />` component has been deprecated in favor of the new `<Tag>` component from the component-library.
- * Please update your code to use the new `<Tag>` component instead, which can be found at ui/components/component-library/tag/tag.tsx.
- * You can find documentation for the new `Tag` component in the MetaMask Storybook:
- * {@link https://metamask.github.io/metamask-storybook/?path=/docs/components-componentlibrary-tag--docs}
- * If you would like to help with the replacement of the old `Chip` component, please submit a pull request against this GitHub issue:
- * {@link https://github.com/MetaMask/metamask-extension/issues/20487}
- */
+import { COLORS, TYPOGRAPHY } from '../../../helpers/constants/design-system';
 
 export default function Chip({
   dataTestId,
   className,
   children,
-  borderColor = BorderColor.borderDefault,
+  borderColor = COLORS.BORDER_DEFAULT,
   backgroundColor,
   label,
   labelProps = {},
@@ -68,9 +54,9 @@ export default function Chip({
       {children ?? (
         <Typography
           className="chip__label"
-          variant={TypographyVariant.H6}
-          as="span"
-          color={TextColor.textAlternative}
+          variant={TYPOGRAPHY.H6}
+          tag="span"
+          color={COLORS.TEXT_ALTERNATIVE}
           {...labelProps}
         >
           {label}
@@ -89,11 +75,11 @@ Chip.propTypes = {
   /**
    * The border color of the Chip
    */
-  borderColor: PropTypes.oneOf(Object.values(BorderColor)),
+  borderColor: PropTypes.oneOf(Object.values(COLORS)),
   /**
    * The background color of the Chip component
    */
-  backgroundColor: PropTypes.oneOf(Object.values(BackgroundColor)),
+  backgroundColor: PropTypes.oneOf(Object.values(COLORS)),
   /**
    * The label of the Chip component has a default typography variant of h6 and is a span html element
    */
@@ -102,7 +88,7 @@ Chip.propTypes = {
    * The label props of the component. Most Typography props can be used
    */
   labelProps: PropTypes.shape({
-    ...omit(TypographyVariant.propTypes, ['children', 'className']),
+    ...omit(Typography.propTypes, ['children', 'className']),
   }),
   /**
    * Children will replace the label of the Chip component.

@@ -25,40 +25,41 @@ import {
   SETTINGS_ROUTE,
   EXPERIMENTAL_ROUTE,
   ADD_NETWORK_ROUTE,
+  SNAPS_LIST_ROUTE,
+  SNAPS_VIEW_ROUTE,
   ADD_POPULAR_CUSTOM_NETWORK,
 } from '../../helpers/constants/routes';
 import Settings from './settings.component';
 
 const ROUTES_TO_I18N_KEYS = {
   [ABOUT_US_ROUTE]: 'about',
-  [ADD_NETWORK_ROUTE]: 'networks',
-  [ADD_POPULAR_CUSTOM_NETWORK]: 'addNetwork',
   [ADVANCED_ROUTE]: 'advanced',
   [ALERTS_ROUTE]: 'alerts',
+  [GENERAL_ROUTE]: 'general',
   [CONTACT_ADD_ROUTE]: 'newContact',
   [CONTACT_EDIT_ROUTE]: 'editContact',
   [CONTACT_LIST_ROUTE]: 'contacts',
+  [SNAPS_LIST_ROUTE]: 'snaps',
+  [SNAPS_VIEW_ROUTE]: 'snaps',
   [CONTACT_VIEW_ROUTE]: 'viewContact',
-  [EXPERIMENTAL_ROUTE]: 'experimental',
-  [GENERAL_ROUTE]: 'general',
-  [NETWORKS_FORM_ROUTE]: 'networks',
   [NETWORKS_ROUTE]: 'networks',
+  [NETWORKS_FORM_ROUTE]: 'networks',
+  [ADD_NETWORK_ROUTE]: 'networks',
   [SECURITY_ROUTE]: 'securityAndPrivacy',
+  [EXPERIMENTAL_ROUTE]: 'experimental',
+  [ADD_POPULAR_CUSTOM_NETWORK]: 'addNetwork',
 };
 
 const mapStateToProps = (state, ownProps) => {
   const { location } = ownProps;
   const { pathname } = location;
   const {
-    metamask: {
-      providerConfig: { ticker },
-      currencyRates,
-    },
+    metamask: { conversionDate },
   } = state;
-  const conversionDate = currencyRates[ticker]?.conversionDate;
 
   const pathNameTail = pathname.match(/[^/]+$/u)[0];
   const isAddressEntryPage = pathNameTail.includes('0x');
+  const isSnapViewPage = Boolean(pathname.match(SNAPS_VIEW_ROUTE));
   const isAddContactPage = Boolean(pathname.match(CONTACT_ADD_ROUTE));
   const isEditContactPage = Boolean(pathname.match(CONTACT_EDIT_ROUTE));
   const isNetworksFormPage =
@@ -79,6 +80,8 @@ const mapStateToProps = (state, ownProps) => {
     backRoute = CONTACT_LIST_ROUTE;
   } else if (isNetworksFormPage) {
     backRoute = NETWORKS_ROUTE;
+  } else if (isSnapViewPage) {
+    backRoute = SNAPS_LIST_ROUTE;
   } else if (isAddPopularCustomNetwork) {
     backRoute = NETWORKS_ROUTE;
   }
@@ -95,17 +98,18 @@ const mapStateToProps = (state, ownProps) => {
   );
 
   return {
-    addNewNetwork,
-    addressName,
-    backRoute,
-    conversionDate,
-    currentPath: pathname,
-    initialBreadCrumbKey,
-    initialBreadCrumbRoute,
     isAddressEntryPage,
+    backRoute,
+    currentPath: pathname,
     isPopup,
-    mostRecentOverviewPage: getMostRecentOverviewPage(state),
     pathnameI18nKey,
+    addressName,
+    initialBreadCrumbRoute,
+    initialBreadCrumbKey,
+    mostRecentOverviewPage: getMostRecentOverviewPage(state),
+    addNewNetwork,
+    conversionDate,
+    isSnapViewPage,
   };
 };
 

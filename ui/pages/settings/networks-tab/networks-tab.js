@@ -1,26 +1,23 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import classnames from 'classnames';
 import { useLocation, useHistory } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useI18nContext } from '../../../hooks/useI18nContext';
 import {
   ADD_POPULAR_CUSTOM_NETWORK,
   NETWORKS_FORM_ROUTE,
-  DEFAULT_ROUTE,
-  NETWORKS_ROUTE,
 } from '../../../helpers/constants/routes';
-import { setSelectedNetworkConfigurationId } from '../../../store/actions';
+import { setSelectedSettingsRpcUrl } from '../../../store/actions';
 import Button from '../../../components/ui/button';
 import { getEnvironmentType } from '../../../../app/scripts/lib/util';
 import { ENVIRONMENT_TYPE_FULLSCREEN } from '../../../../shared/constants/app';
 import {
-  getNetworkConfigurations,
-  getNetworksTabSelectedNetworkConfigurationId,
+  getFrequentRpcListDetail,
+  getNetworksTabSelectedRpcUrl,
   getProvider,
 } from '../../../selectors';
 import {
-  NETWORK_TYPES,
+  NETWORK_TYPE_RPC,
   TEST_CHAINS,
 } from '../../../../shared/constants/network';
 import { defaultNetworksData } from './networks-tab.constants';
@@ -43,38 +40,32 @@ const NetworksTab = ({ addNewNetwork }) => {
   const environmentType = getEnvironmentType();
   const isFullScreen = environmentType === ENVIRONMENT_TYPE_FULLSCREEN;
   const shouldRenderNetworkForm =
-    isFullScreen ||
-    Boolean(pathname.match(NETWORKS_FORM_ROUTE)) ||
-    window.location.hash.split('#')[2] === 'blockExplorerUrl';
+    isFullScreen || Boolean(pathname.match(NETWORKS_FORM_ROUTE));
 
-  const networkConfigurations = useSelector(getNetworkConfigurations);
+  const frequentRpcListDetail = useSelector(getFrequentRpcListDetail);
   const provider = useSelector(getProvider);
-  const networksTabSelectedNetworkConfigurationId = useSelector(
-    getNetworksTabSelectedNetworkConfigurationId,
-  );
+  const networksTabSelectedRpcUrl = useSelector(getNetworksTabSelectedRpcUrl);
 
-  const networkConfigurationsList = Object.entries(networkConfigurations).map(
-    ([networkConfigurationId, networkConfiguration]) => {
-      return {
-        label: networkConfiguration.nickname,
-        iconColor: 'var(--color-icon-alternative)',
-        providerType: NETWORK_TYPES.RPC,
-        rpcUrl: networkConfiguration.rpcUrl,
-        chainId: networkConfiguration.chainId,
-        ticker: networkConfiguration.ticker,
-        blockExplorerUrl: networkConfiguration.rpcPrefs?.blockExplorerUrl || '',
-        isATestNetwork: TEST_CHAINS.includes(networkConfiguration.chainId),
-        networkConfigurationId,
-      };
-    },
-  );
+  const frequentRpcNetworkListDetails = frequentRpcListDetail.map((rpc) => {
+    return {
+      label: rpc.nickname,
+      iconColor: 'var(--color-icon-default)',
+      providerType: NETWORK_TYPE_RPC,
+      rpcUrl: rpc.rpcUrl,
+      chainId: rpc.chainId,
+      ticker: rpc.ticker,
+      blockExplorerUrl: rpc.rpcPrefs?.blockExplorerUrl || '',
+      isATestNetwork: TEST_CHAINS.includes(rpc.chainId),
+    };
+  });
 
-  const networksToRender = [...defaultNetworks, ...networkConfigurationsList];
+  const networksToRender = [
+    ...defaultNetworks,
+    ...frequentRpcNetworkListDetails,
+  ];
   let selectedNetwork =
     networksToRender.find(
-      (network) =>
-        network.networkConfigurationId ===
-        networksTabSelectedNetworkConfigurationId,
+      (network) => network.rpcUrl === networksTabSelectedRpcUrl,
     ) || {};
   const networkIsSelected = Boolean(selectedNetwork.rpcUrl);
 
@@ -84,7 +75,7 @@ const NetworksTab = ({ addNewNetwork }) => {
       networksToRender.find((network) => {
         return (
           network.rpcUrl === provider.rpcUrl ||
-          (network.providerType !== NETWORK_TYPES.RPC &&
+          (network.providerType !== NETWORK_TYPE_RPC &&
             network.providerType === provider.type)
         );
       }) || {};
@@ -93,7 +84,7 @@ const NetworksTab = ({ addNewNetwork }) => {
 
   useEffect(() => {
     return () => {
-      dispatch(setSelectedNetworkConfigurationId(''));
+      dispatch(setSelectedSettingsRpcUrl(''));
     };
   }, [dispatch]);
 
@@ -102,18 +93,11 @@ const NetworksTab = ({ addNewNetwork }) => {
       {isFullScreen ? (
         <NetworksFormSubheader addNewNetwork={addNewNetwork} />
       ) : null}
-      <div
-        className={classnames('networks-tab__content', {
-          'networks-tab__content--with-networks-list-popup-footer':
-            !isFullScreen && !shouldRenderNetworkForm,
-        })}
-      >
+      <div className="networks-tab__content">
         {addNewNetwork ? (
           <NetworksForm
             networksToRender={networksToRender}
             addNewNetwork={addNewNetwork}
-            submitCallback={() => history.push(DEFAULT_ROUTE)}
-            cancelCallback={() => history.push(NETWORKS_ROUTE)}
           />
         ) : (
           <>
@@ -130,11 +114,7 @@ const NetworksTab = ({ addNewNetwork }) => {
                 <Button
                   type="primary"
                   onClick={() => {
-                    isFullScreen
-                      ? history.push(ADD_POPULAR_CUSTOM_NETWORK)
-                      : global.platform.openExtensionInBrowser(
-                          ADD_POPULAR_CUSTOM_NETWORK,
-                        );
+                    history.push(ADD_POPULAR_CUSTOM_NETWORK);
                   }}
                 >
                   {t('addNetwork')}

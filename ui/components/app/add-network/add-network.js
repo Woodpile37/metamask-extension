@@ -5,100 +5,102 @@ import { I18nContext } from '../../../contexts/i18n';
 import Box from '../../ui/box';
 import Typography from '../../ui/typography';
 import {
-  AlignItems,
+  ALIGN_ITEMS,
+  COLORS,
   DISPLAY,
   FLEX_DIRECTION,
   FONT_WEIGHT,
-  TypographyVariant,
-  JustifyContent,
-  BorderRadius,
-  BackgroundColor,
-  TextColor,
-  IconColor,
+  TYPOGRAPHY,
+  JUSTIFY_CONTENT,
+  SIZES,
 } from '../../../helpers/constants/design-system';
 import Button from '../../ui/button';
+import IconCaretLeft from '../../ui/icon/icon-caret-left';
 import Tooltip from '../../ui/tooltip';
 import IconWithFallback from '../../ui/icon-with-fallback';
 import IconBorder from '../../ui/icon-border';
 import {
-  getNetworkConfigurations,
+  getTheme,
+  getFrequentRpcListDetail,
   getUnapprovedConfirmations,
 } from '../../../selectors';
+import { THEME_TYPE } from '../../../pages/settings/experimental-tab/experimental-tab.constant';
 
 import {
   ENVIRONMENT_TYPE_FULLSCREEN,
   ENVIRONMENT_TYPE_POPUP,
   MESSAGE_TYPE,
-  ORIGIN_METAMASK,
 } from '../../../../shared/constants/app';
 import { requestUserApproval } from '../../../store/actions';
 import Popover from '../../ui/popover';
 import ConfirmationPage from '../../../pages/confirmation/confirmation';
 import { FEATURED_RPCS } from '../../../../shared/constants/network';
-import { ADD_NETWORK_ROUTE } from '../../../helpers/constants/routes';
+import {
+  ADD_NETWORK_ROUTE,
+  NETWORKS_ROUTE,
+} from '../../../helpers/constants/routes';
 import { getEnvironmentType } from '../../../../app/scripts/lib/util';
-import ZENDESK_URLS from '../../../helpers/constants/zendesk-url';
-import { Icon, ICON_NAMES, ICON_SIZES } from '../../component-library';
-import { EVENT } from '../../../../shared/constants/metametrics';
 
 const AddNetwork = () => {
   const t = useContext(I18nContext);
   const dispatch = useDispatch();
   const history = useHistory();
-  const networkConfigurations = useSelector(getNetworkConfigurations);
+  const frequentRpcList = useSelector(getFrequentRpcListDetail);
 
-  const networkConfigurationChainIds = Object.values(networkConfigurations).map(
-    (net) => net.chainId,
-  );
+  const frequentRpcListChainIds = frequentRpcList.map((net) => net.chainId);
 
   const infuraRegex = /infura.io/u;
 
   const nets = FEATURED_RPCS.sort((a, b) =>
-    a.nickname > b.nickname ? 1 : -1,
+    a.ticker > b.ticker ? 1 : -1,
   ).slice(0, FEATURED_RPCS.length);
 
-  const notExistingNetworkConfigurations = nets.filter(
-    (net) => networkConfigurationChainIds.indexOf(net.chainId) === -1,
+  const notFrequentRpcNetworks = nets.filter(
+    (net) => frequentRpcListChainIds.indexOf(net.chainId) === -1,
   );
   const unapprovedConfirmations = useSelector(getUnapprovedConfirmations);
   const [showPopover, setShowPopover] = useState(false);
+  const [theme, setTheme] = useState(useSelector(getTheme));
+
+  if (theme === THEME_TYPE.OS) {
+    const osTheme = window?.matchMedia('(prefers-color-scheme: dark)')?.matches
+      ? THEME_TYPE.DARK
+      : THEME_TYPE.LIGHT;
+
+    setTheme(osTheme);
+  }
 
   useEffect(() => {
-    const anAddNetworkConfirmationFromMetaMaskExists =
-      unapprovedConfirmations?.find((confirmation) => {
+    const anAddNetworkConfirmationFromMetaMaskExists = unapprovedConfirmations.find(
+      (confirmation) => {
         return (
           confirmation.origin === 'metamask' &&
           confirmation.type === MESSAGE_TYPE.ADD_ETHEREUM_CHAIN
         );
-      });
+      },
+    );
     if (!showPopover && anAddNetworkConfirmationFromMetaMaskExists) {
       setShowPopover(true);
-    }
-
-    if (showPopover && !anAddNetworkConfirmationFromMetaMaskExists) {
-      setShowPopover(false);
     }
   }, [unapprovedConfirmations, showPopover]);
 
   return (
     <>
-      {Object.keys(notExistingNetworkConfigurations).length === 0 ? (
+      {Object.keys(notFrequentRpcNetworks).length === 0 ? (
         <Box
           className="add-network__edge-case-box"
-          borderRadius={BorderRadius.MD}
+          borderRadius={SIZES.MD}
           padding={4}
-          marginTop={4}
-          marginRight={6}
-          marginLeft={6}
+          margin={[4, 6, 0, 6]}
           display={DISPLAY.FLEX}
           flexDirection={FLEX_DIRECTION.ROW}
-          backgroundColor={BackgroundColor.backgroundAlternative}
+          backgroundColor={COLORS.BACKGROUND_ALTERNATIVE}
         >
           <Box marginRight={4}>
             <img src="images/info-fox.svg" />
           </Box>
           <Box>
-            <Typography variant={TypographyVariant.H7}>
+            <Typography variant={TYPOGRAPHY.H7}>
               {t('youHaveAddedAll', [
                 <a
                   key="link"
@@ -122,8 +124,8 @@ const AddNetwork = () => {
                   }}
                 >
                   <Typography
-                    variant={TypographyVariant.H7}
-                    color={TextColor.infoDefault}
+                    variant={TYPOGRAPHY.H7}
+                    color={COLORS.INFO_DEFAULT}
                   >
                     {t('addMoreNetworks')}.
                   </Typography>
@@ -133,87 +135,76 @@ const AddNetwork = () => {
           </Box>
         </Box>
       ) : (
-        <Box className="add-network__networks-container">
+        <Box>
           {getEnvironmentType() === ENVIRONMENT_TYPE_FULLSCREEN && (
             <Box
               display={DISPLAY.FLEX}
-              alignItems={AlignItems.center}
+              alignItems={ALIGN_ITEMS.CENTER}
               flexDirection={FLEX_DIRECTION.ROW}
               marginTop={7}
               marginBottom={4}
               paddingBottom={2}
               className="add-network__header"
             >
-              <Typography
-                variant={TypographyVariant.H4}
-                color={TextColor.textMuted}
-              >
-                {t('networks')}
-              </Typography>
-              <span className="add-network__header__subtitle">{'  >  '}</span>
-              <Typography
-                variant={TypographyVariant.H4}
-                color={TextColor.textDefault}
-              >
-                {t('addANetwork')}
+              <IconCaretLeft
+                aria-label={t('back')}
+                onClick={() => history.push(NETWORKS_ROUTE)}
+                className="add-network__header__back-icon"
+              />
+              <Typography variant={TYPOGRAPHY.H3} color={COLORS.TEXT_DEFAULT}>
+                {t('addNetwork')}
               </Typography>
             </Box>
           )}
           <Box
-            marginTop={getEnvironmentType() === ENVIRONMENT_TYPE_POPUP ? 0 : 4}
-            marginBottom={1}
+            margin={
+              getEnvironmentType() === ENVIRONMENT_TYPE_POPUP
+                ? [0, 0, 1, 0]
+                : [4, 0, 1, 0]
+            }
             className="add-network__main-container"
           >
             <Typography
-              variant={TypographyVariant.H6}
-              color={TextColor.textAlternative}
-              margin={0}
-              marginTop={4}
+              variant={TYPOGRAPHY.H6}
+              color={COLORS.TEXT_ALTERNATIVE}
+              margin={[4, 0, 0, 0]}
             >
               {t('addFromAListOfPopularNetworks')}
             </Typography>
             <Typography
-              variant={TypographyVariant.H7}
-              color={TextColor.textMuted}
-              marginTop={4}
-              marginBottom={3}
+              variant={TYPOGRAPHY.H7}
+              color={COLORS.TEXT_MUTED}
+              margin={[4, 0, 3, 0]}
             >
               {t('popularCustomNetworks')}
             </Typography>
-            {notExistingNetworkConfigurations.map((item, index) => (
+            {notFrequentRpcNetworks.map((item, index) => (
               <Box
                 key={index}
                 display={DISPLAY.FLEX}
-                alignItems={AlignItems.center}
-                justifyContent={JustifyContent.spaceBetween}
+                alignItems={ALIGN_ITEMS.CENTER}
+                justifyContent={JUSTIFY_CONTENT.SPACE_BETWEEN}
                 marginBottom={6}
                 className="add-network__list-of-networks"
               >
-                <Box display={DISPLAY.FLEX} alignItems={AlignItems.center}>
-                  <Box>
-                    <IconBorder size={24}>
-                      <IconWithFallback
-                        icon={item.rpcPrefs.imageUrl}
-                        name={item.nickname}
-                        size={24}
-                      />
-                    </IconBorder>
-                  </Box>
-                  <Box marginLeft={2}>
-                    <Typography
-                      variant={TypographyVariant.H7}
-                      color={TextColor.textDefault}
-                      fontWeight={FONT_WEIGHT.BOLD}
-                    >
-                      {item.nickname}
-                    </Typography>
-                  </Box>
+                <Box display={DISPLAY.FLEX} alignItems={ALIGN_ITEMS.CENTER}>
+                  <IconBorder size={24}>
+                    <IconWithFallback
+                      icon={item.rpcPrefs.imageUrl}
+                      name={item.nickname}
+                      size={24}
+                    />
+                  </IconBorder>
+                  <Typography
+                    variant={TYPOGRAPHY.H7}
+                    color={COLORS.TEXT_DEFAULT}
+                    fontWeight={FONT_WEIGHT.BOLD}
+                    boxProps={{ marginLeft: 2 }}
+                  >
+                    {item.nickname}
+                  </Typography>
                 </Box>
-                <Box
-                  display={DISPLAY.FLEX}
-                  alignItems={AlignItems.center}
-                  marginLeft={1}
-                >
+                <Box display={DISPLAY.FLEX} alignItems={ALIGN_ITEMS.CENTER}>
                   {
                     // Warning for the networks that doesn't use infura.io as the RPC
                     !infuraRegex.test(item.rpcUrl) && (
@@ -228,7 +219,7 @@ const AddNetwork = () => {
                             {t('addNetworkTooltipWarning', [
                               <a
                                 key="zendesk_page_link"
-                                href={ZENDESK_URLS.UNKNOWN_NETWORK}
+                                href="https://metamask.zendesk.com/hc/en-us/articles/4417500466971"
                                 rel="noreferrer"
                                 target="_blank"
                               >
@@ -238,12 +229,11 @@ const AddNetwork = () => {
                           </Box>
                         }
                         trigger="mouseenter"
+                        theme={theme}
                       >
-                        <Icon
-                          className="add-network__warning-icon"
-                          name={ICON_NAMES.DANGER}
-                          color={IconColor.iconMuted}
-                          size={ICON_SIZES.SM}
+                        <i
+                          className="fa fa-exclamation-triangle add-network__warning-icon"
+                          title={t('warning')}
                         />
                       </Tooltip>
                     )
@@ -252,21 +242,7 @@ const AddNetwork = () => {
                     type="inline"
                     className="add-network__add-button"
                     onClick={async () => {
-                      await dispatch(
-                        requestUserApproval({
-                          origin: ORIGIN_METAMASK,
-                          type: MESSAGE_TYPE.ADD_ETHEREUM_CHAIN,
-                          requestData: {
-                            chainId: item.chainId,
-                            rpcUrl: item.rpcUrl,
-                            ticker: item.ticker,
-                            rpcPrefs: item.rpcPrefs,
-                            imageUrl: item.rpcPrefs.imageUrl,
-                            chainName: item.nickname,
-                            source: EVENT.SOURCE.NETWORK.POPULAR_NETWORK_LIST,
-                          },
-                        }),
-                      );
+                      await dispatch(requestUserApproval(item));
                     }}
                   >
                     {t('add')}
@@ -285,7 +261,6 @@ const AddNetwork = () => {
           >
             <Button
               type="link"
-              data-testid="add-network-manually"
               onClick={(event) => {
                 event.preventDefault();
                 getEnvironmentType() === ENVIRONMENT_TYPE_POPUP
@@ -294,8 +269,8 @@ const AddNetwork = () => {
               }}
             >
               <Typography
-                variant={TypographyVariant.H6}
-                color={TextColor.primaryDefault}
+                variant={TYPOGRAPHY.H6}
+                color={COLORS.PRIMARY_DEFAULT}
               >
                 {t('addANetworkManually')}
               </Typography>
@@ -305,7 +280,7 @@ const AddNetwork = () => {
       )}
       {showPopover && (
         <Popover>
-          <ConfirmationPage redirectToHomeOnZeroConfirmations={false} />
+          <ConfirmationPage />
         </Popover>
       )}
     </>
