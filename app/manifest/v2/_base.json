@@ -1,7 +1,14 @@
 {
   "author": "https://metamask.io",
   "background": {
-    "page": "background.html",
+    "scripts": [
+      "globalthis.js",
+      "initSentry.js",
+      "lockdown.js",
+      "runLockdown.js",
+      "bg-libs.js",
+      "background.js"
+    ],
     "persistent": true
   },
   "browser_action": {
@@ -45,7 +52,6 @@
       "js": ["vendor/trezor/content-script.js"]
     }
   ],
-  "content_security_policy": "script-src 'unsafe-eval' 'self'; object-src 'self'",
   "default_locale": "en",
   "description": "__MSG_appDescription__",
   "icons": {
@@ -72,6 +78,7 @@
     "notifications"
   ],
   "short_name": "__MSG_appName__",
-  "version": "9.2.1",
-  "web_accessible_resources": ["inpage.js", "phishing.html"]
+  "version": "8.1.9",
+  "web_accessible_resources": ["inpage.js", "phishing.html"],
+  "content_security_policy": "script-src 'unsafe-eval' 'self'; object-src 'self'"
 }
