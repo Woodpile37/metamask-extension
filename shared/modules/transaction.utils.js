@@ -1,4 +1,4 @@
-import { addHexPrefixToObjectValues } from './hexstring-utils';
+import { isHexString } from './hexstring-utils';
 
 export function transactionMatchesNetwork(transaction, chainId, networkId) {
   if (typeof transaction.chainId !== 'undefined') {
@@ -8,37 +8,53 @@ export function transactionMatchesNetwork(transaction, chainId, networkId) {
 }
 
 /**
- * Given the standard set of information about a transaction, returns a transaction properly formatted for
- * publishing via JSON RPC and web3
- *
- * @param {boolean} [sendToken] - Indicates whether or not the transaciton is a token transaction
- * @param {string} data - A hex string containing the data to include in the transaction
- * @param {string} to - A hex address of the tx recipient address
- * @param {string} from - A hex address of the tx sender address
- * @param {string} gas - A hex representation of the gas value for the transaction
- * @param {string} gasPrice - A hex representation of the gas price for the transaction
- * @returns {Object} An object ready for submission to the blockchain, with all values appropriately hex prefixed
+ * Determines if the maxFeePerGas and maxPriorityFeePerGas fields are supplied
+ * and valid inputs. This will return false for non hex string inputs.
+ * @param {import("../constants/transaction").TransactionMeta} transaction -
+ *  the transaction to check
+ * @returns {boolean} true if transaction uses valid EIP1559 fields
  */
-export function constructTxParams({
-  sendToken,
-  data,
-  to,
-  amount,
-  from,
-  gas,
-  gasPrice,
-}) {
-  const txParams = {
-    data,
-    from,
-    value: '0',
-    gas,
-    gasPrice,
-  };
+export function isEIP1559Transaction(transaction) {
+  return (
+    isHexString(transaction?.txParams?.maxFeePerGas) &&
+    isHexString(transaction?.txParams?.maxPriorityFeePerGas)
+  );
+}
 
-  if (!sendToken) {
-    txParams.value = amount;
-    txParams.to = to;
-  }
-  return addHexPrefixToObjectValues(txParams);
+/**
+ * Determine if the maxFeePerGas and maxPriorityFeePerGas fields are not
+ * supplied and that the gasPrice field is valid if it is provided. This will
+ * return false if gasPrice is a non hex string.
+ * @param {import("../constants/transaction").TransactionMeta} transaction -
+ *  the transaction to check
+ * @returns {boolean} true if transaction uses valid Legacy fields OR lacks
+ *  EIP1559 fields
+ */
+export function isLegacyTransaction(transaction) {
+  return (
+    typeof transaction.txParams.maxFeePerGas === 'undefined' &&
+    typeof transaction.txParams.maxPriorityFeePerGas === 'undefined' &&
+    (typeof transaction.txParams.gasPrice === 'undefined' ||
+      isHexString(transaction.txParams.gasPrice))
+  );
+}
+
+/**
+ * Determine if a transactions gas fees in txParams match those in its dappSuggestedGasFees property
+ * @param {import("../constants/transaction").TransactionMeta} transaction -
+ *  the transaction to check
+ * @returns {boolean} true if both the txParams and dappSuggestedGasFees are objects with truthy gas fee properties,
+ *   and those properties are strictly equal
+ */
+export function txParamsAreDappSuggested(transaction) {
+  const { gasPrice, maxPriorityFeePerGas, maxFeePerGas } =
+    transaction?.txParams || {};
+  return (
+    (gasPrice && gasPrice === transaction?.dappSuggestedGasFees?.gasPrice) ||
+    (maxPriorityFeePerGas &&
+      maxFeePerGas &&
+      transaction?.dappSuggestedGasFees?.maxPriorityFeePerGas ===
+        maxPriorityFeePerGas &&
+      transaction?.dappSuggestedGasFees?.maxFeePerGas === maxFeePerGas)
+  );
 }

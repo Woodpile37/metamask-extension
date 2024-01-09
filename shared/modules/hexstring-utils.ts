@@ -1,3 +1,4 @@
+import BN from 'bn.js';
 import {
   isHexString,
   isValidAddress,
@@ -5,23 +6,34 @@ import {
   addHexPrefix,
   toChecksumAddress,
   zeroAddress,
+  isValidPrivate,
+  bufferToHex,
+  stripHexPrefix,
+  bnToHex,
+  pubToAddress,
+  keccak,
   isHexPrefixed,
 } from 'ethereumjs-util';
+import { toBuffer } from './buffer-utils';
+
+export {
+  toBuffer,
+  isValidPrivate,
+  bufferToHex,
+  addHexPrefix,
+  stripHexPrefix,
+  bnToHex,
+  isHexString,
+  toChecksumAddress,
+  pubToAddress,
+  keccak,
+  isHexPrefixed,
+};
 
 export const BURN_ADDRESS = zeroAddress();
 
-export function isBurnAddress(address: string) {
+export function isBurnAddress(address) {
   return address === BURN_ADDRESS;
-}
-
-export function isEmptyHexString(value: string): boolean {
-  return [
-    undefined,
-    null,
-    '0x',
-    '0x0',
-    '0x0000000000000000000000000000000000000000000000000000000000000000',
-  ].includes(value);
 }
 
 /**
@@ -32,18 +44,17 @@ export function isEmptyHexString(value: string): boolean {
  * meet the length requirement of a hex address, but are not prefixed with `0x`
  * Finally, if the mixedCaseUseChecksum flag is true and a mixed case string is
  * provided this method will validate it has the proper checksum formatting.
- *
- * @param possibleAddress - Input parameter to check against
- * @param [options] - options bag
- * @param [options.allowNonPrefixed] - If true will first ensure '0x'
- * is prepended to the string
- * @param [options.mixedCaseUseChecksum] - If true will treat mixed
- * case addresses as checksum addresses and validate that proper checksum
- * format is used
- * @returns whether or not the input is a valid hex address
+ * @param {string} possibleAddress - Input parameter to check against
+ * @param {Object} [options] - options bag
+ * @param {boolean} [options.allowNonPrefixed] - If true will first ensure '0x'
+ *  is prepended to the string
+ * @param {boolean} [options.mixedCaseUseChecksum] - If true will treat mixed
+ *  case addresses as checksum addresses and validate that proper checksum
+ *  format is used
+ * @returns {boolean} whether or not the input is a valid hex address
  */
 export function isValidHexAddress(
-  possibleAddress: string,
+  possibleAddress,
   { allowNonPrefixed = true, mixedCaseUseChecksum = false } = {},
 ) {
   const addressToCheck = allowNonPrefixed
@@ -66,7 +77,7 @@ export function isValidHexAddress(
   return isValidAddress(addressToCheck);
 }
 
-export function toChecksumHexAddress(address: string) {
+export function toChecksumHexAddress(address) {
   if (!address) {
     // our internal checksumAddress function that this method replaces would
     // return an empty string for nullish input. If any direct usages of
@@ -82,32 +93,16 @@ export function toChecksumHexAddress(address: string) {
     // closely mimics the original behavior.
     return hexPrefixed;
   }
-  return toChecksumAddress(hexPrefixed);
-}
-
-export function stripHexPrefix(str: string) {
-  if (typeof str !== 'string') {
-    return str;
-  }
-  return isHexPrefixed(str) ? str.slice(2) : str;
+  return toChecksumAddress(addHexPrefix(address));
 }
 
 /**
- * Given and object where all values are strings, returns the same object with all values
- * now prefixed with '0x'
+ * Converts a hex string to a BN object
+ *
+ * @param {string} inputHex - A number represented as a hex string
+ * @returns {Object} A BN object
+ *
  */
-export function addHexPrefixToObjectValues(obj) {
-  return Object.keys(obj).reduce((newObj, key) => {
-    return { ...newObj, [key]: addHexPrefix(obj[key]) };
-  }, {});
-}
-
-/**
- * Given and object where all values are strings, returns the same object with all values
- * now prefixed with '0x'
- */
-export function addHexPrefixToObjectValues(obj) {
-  return Object.keys(obj).reduce((newObj, key) => {
-    return { ...newObj, [key]: addHexPrefix(obj[key]) };
-  }, {});
+export function hexToBn(inputHex) {
+  return new BN(stripHexPrefix(inputHex), 16);
 }

@@ -1,24 +1,13 @@
 import { createSelector } from 'reselect';
-///: BEGIN:ONLY_INCLUDE_IN(flask)
-import { memoize } from 'lodash';
-///: END:ONLY_INCLUDE_IN
-import { addHexPrefix } from '../../app/scripts/lib/util';
+import {
+  addHexPrefix,
+  toChecksumHexAddress,
+} from '../../shared/modules/hexstring-utils';
 import {
   MAINNET_CHAIN_ID,
   TEST_CHAINS,
   NETWORK_TYPE_RPC,
   NATIVE_CURRENCY_TOKEN_IMAGE_MAP,
-  OPTIMISM_CHAIN_ID,
-  OPTIMISM_TESTNET_CHAIN_ID,
-  BUYABLE_CHAINS_MAP,
-  MAINNET_DISPLAY_NAME,
-  BSC_CHAIN_ID,
-  POLYGON_CHAIN_ID,
-  AVALANCHE_CHAIN_ID,
-  BSC_DISPLAY_NAME,
-  POLYGON_DISPLAY_NAME,
-  AVALANCHE_DISPLAY_NAME,
-  CHAIN_ID_TO_RPC_URL_MAP,
 } from '../../shared/constants/network';
 import {
   KEYRING_TYPES,
@@ -28,23 +17,16 @@ import {
 } from '../../shared/constants/hardware-wallets';
 
 import {
-  MESSAGE_TYPE,
-  ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  SUBJECT_TYPES,
-  ///: END:ONLY_INCLUDE_IN
-} from '../../shared/constants/app';
-
-import { TRUNCATED_NAME_CHAR_LIMIT } from '../../shared/constants/labels';
-
-import {
   SWAPS_CHAINID_DEFAULT_TOKEN_MAP,
   ALLOWED_SWAPS_CHAIN_IDS,
 } from '../../shared/constants/swaps';
 
+import { TRUNCATED_NAME_CHAR_LIMIT } from '../../shared/constants/labels';
+
 import {
   shortenAddress,
   getAccountByAddress,
-  getURLHostName,
+  isEqualCaseInsensitive,
 } from '../helpers/utils/util';
 import {
   getValueFromWeiHex,
@@ -53,7 +35,6 @@ import {
 
 import { TEMPLATED_CONFIRMATION_MESSAGE_TYPES } from '../pages/confirmation/templates';
 
-import { toChecksumHexAddress } from '../../shared/modules/hexstring-utils';
 import { DAY } from '../../shared/constants/time';
 import {
   getNativeCurrency,
@@ -68,7 +49,6 @@ import {
   getLedgerWebHidConnectedStatus,
   getLedgerTransportStatus,
 } from '../ducks/app/app';
-import { isEqualCaseInsensitive } from '../../shared/modules/string-utils';
 
 /**
  * One of the only remaining valid uses of selecting the network subkey of the
@@ -76,7 +56,6 @@ import { isEqualCaseInsensitive } from '../../shared/modules/string-utils';
  *
  * This will be used for all cases where this state key is accessed only for that
  * purpose.
- *
  * @param {Object} state - redux state object
  */
 export function isNetworkLoading(state) {
@@ -103,54 +82,6 @@ export function getCurrentChainId(state) {
   return chainId;
 }
 
-export function getCurrentQRHardwareState(state) {
-  const { qrHardware } = state.metamask;
-  return qrHardware || {};
-}
-
-export function hasUnsignedQRHardwareTransaction(state) {
-  const { txParams } = state.confirmTransaction.txData;
-  if (!txParams) {
-    return false;
-  }
-  const { from } = txParams;
-  const { keyrings } = state.metamask;
-  const qrKeyring = keyrings.find((kr) => kr.type === KEYRING_TYPES.QR);
-  if (!qrKeyring) {
-    return false;
-  }
-  return Boolean(
-    qrKeyring.accounts.find(
-      (account) => account.toLowerCase() === from.toLowerCase(),
-    ),
-  );
-}
-
-export function hasUnsignedQRHardwareMessage(state) {
-  const { type, msgParams } = state.confirmTransaction.txData;
-  if (!type || !msgParams) {
-    return false;
-  }
-  const { from } = msgParams;
-  const { keyrings } = state.metamask;
-  const qrKeyring = keyrings.find((kr) => kr.type === KEYRING_TYPES.QR);
-  if (!qrKeyring) {
-    return false;
-  }
-  switch (type) {
-    case MESSAGE_TYPE.ETH_SIGN_TYPED_DATA:
-    case MESSAGE_TYPE.ETH_SIGN:
-    case MESSAGE_TYPE.PERSONAL_SIGN:
-      return Boolean(
-        qrKeyring.accounts.find(
-          (account) => account.toLowerCase() === from.toLowerCase(),
-        ),
-      );
-    default:
-      return false;
-  }
-}
-
 export function getCurrentKeyring(state) {
   const identity = getSelectedIdentity(state);
 
@@ -167,15 +98,15 @@ export function getParticipateInMetaMetrics(state) {
   return Boolean(state.metamask.participateInMetaMetrics);
 }
 
-export function isEIP1559Account() {
-  return true;
+export function isEIP1559Account(state) {
+  // Trezor does not support 1559 at this time
+  const currentKeyring = getCurrentKeyring(state);
+  return currentKeyring && currentKeyring.type !== KEYRING_TYPES.TREZOR;
 }
 
 /**
  * The function returns true if network and account details are fetched and
  * both of them support EIP-1559.
- *
- * @param state
  */
 export function checkNetworkAndAccountSupports1559(state) {
   const networkSupports1559 = isEIP1559Network(state);
@@ -187,8 +118,6 @@ export function checkNetworkAndAccountSupports1559(state) {
 /**
  * The function returns true if network and account details are fetched and
  * either of them do not support EIP-1559.
- *
- * @param state
  */
 export function checkNetworkOrAccountNotSupports1559(state) {
   const networkNotSupports1559 = isNotEIP1559Network(state);
@@ -199,9 +128,8 @@ export function checkNetworkOrAccountNotSupports1559(state) {
 
 /**
  * Checks if the current wallet is a hardware wallet.
- *
  * @param {Object} state
- * @returns {boolean}
+ * @returns {Boolean}
  */
 export function isHardwareWallet(state) {
   const keyring = getCurrentKeyring(state);
@@ -210,9 +138,8 @@ export function isHardwareWallet(state) {
 
 /**
  * Get a HW wallet type, e.g. "Ledger Hardware"
- *
  * @param {Object} state
- * @returns {string | undefined}
+ * @returns {String|undefined}
  */
 export function getHardwareWalletType(state) {
   const keyring = getCurrentKeyring(state);
@@ -241,7 +168,6 @@ export function getAccountType(state) {
  * instead use chainId in most situations. There are a limited number of
  * use cases to use this method still, such as when comparing transaction
  * metadata that predates the switch to using chainId.
- *
  * @deprecated - use getCurrentChainId instead
  * @param {Object} state - redux state object
  */
@@ -441,10 +367,6 @@ export function getGasIsLoading(state) {
   return state.appState.gasIsLoading;
 }
 
-export function getAppIsLoading(state) {
-  return state.appState.isLoading;
-}
-
 export function getCurrentCurrency(state) {
   return state.metamask.currentCurrency;
 }
@@ -491,10 +413,6 @@ export function getUnapprovedTemplatedConfirmations(state) {
 function getSuggestedAssetCount(state) {
   const { suggestedAssets = [] } = state.metamask;
   return suggestedAssets.length;
-}
-
-export function getSuggestedAssets(state) {
-  return state.metamask.suggestedAssets;
 }
 
 export function getIsMainnet(state) {
@@ -544,33 +462,8 @@ export function getCustomNonceValue(state) {
   return String(state.metamask.customNonceValue);
 }
 
-export function getSubjectMetadata(state) {
-  return state.metamask.subjectMetadata;
-}
-
-///: BEGIN:ONLY_INCLUDE_IN(flask)
-/**
- * @param {string} svgString - The raw SVG string to make embeddable.
- * @returns {string} The embeddable SVG string.
- */
-const getEmbeddableSvg = memoize(
-  (svgString) => `data:image/svg+xml;utf8,${encodeURIComponent(svgString)}`,
-);
-///: END:ONLY_INCLUDE_IN
-
-export function getTargetSubjectMetadata(state, origin) {
-  const metadata = getSubjectMetadata(state)[origin];
-
-  ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  if (metadata?.subjectType === SUBJECT_TYPES.SNAP) {
-    const { svgIcon, ...remainingMetadata } = metadata;
-    return {
-      ...remainingMetadata,
-      iconUrl: svgIcon ? getEmbeddableSvg(svgIcon) : null,
-    };
-  }
-  ///: END:ONLY_INCLUDE_IN
-  return metadata;
+export function getDomainMetadata(state) {
+  return state.metamask.domainMetadata;
 }
 
 export function getRpcPrefsForCurrentProvider(state) {
@@ -674,21 +567,6 @@ export function getIsSwapsChain(state) {
   return ALLOWED_SWAPS_CHAIN_IDS[chainId];
 }
 
-export function getIsBuyableChain(state) {
-  const chainId = getCurrentChainId(state);
-  return Object.keys(BUYABLE_CHAINS_MAP).includes(chainId);
-}
-
-export function getIsBuyableTransakChain(state) {
-  const chainId = getCurrentChainId(state);
-  return Boolean(BUYABLE_CHAINS_MAP?.[chainId]?.transakCurrencies);
-}
-
-export function getIsBuyableMoonPayChain(state) {
-  const chainId = getCurrentChainId(state);
-  return Boolean(BUYABLE_CHAINS_MAP?.[chainId]?.moonPay);
-}
-
 export function getNativeCurrencyImage(state) {
   const nativeCurrency = getNativeCurrency(state).toUpperCase();
   return NATIVE_CURRENCY_TOKEN_IMAGE_MAP[nativeCurrency];
@@ -702,15 +580,8 @@ export function getShowWhatsNewPopup(state) {
   return state.appState.showWhatsNewPopup;
 }
 
-///: BEGIN:ONLY_INCLUDE_IN(flask)
-export function getSnaps(state) {
-  return state.metamask.snaps;
-}
-///: END:ONLY_INCLUDE_IN
-
 /**
  * Get an object of notification IDs and if they are allowed or not.
- *
  * @param {Object} state
  * @returns {Object}
  */
@@ -730,10 +601,6 @@ function getAllowedNotificationIds(state) {
     6: false,
     7: false,
     8: supportsWebHid && currentKeyringIsLedger && currentlyUsingLedgerLive,
-    9: getIsMainnet(state),
-    10: Boolean(process.env.TOKEN_DETECTION_V2),
-    11: Boolean(process.env.TOKEN_DETECTION_V2),
-    12: true,
   };
 }
 
@@ -782,7 +649,6 @@ export function getShowRecoveryPhraseReminder(state) {
 
 /**
  * To get the useTokenDetection flag which determines whether a static or dynamic token list is used
- *
  * @param {*} state
  * @returns Boolean
  */
@@ -791,38 +657,7 @@ export function getUseTokenDetection(state) {
 }
 
 /**
- * To get the useCollectibleDetection flag which determines whether we autodetect NFTs
- *
- * @param {*} state
- * @returns Boolean
- */
-export function getUseCollectibleDetection(state) {
-  return Boolean(state.metamask.useCollectibleDetection);
-}
-
-/**
- * To get the openSeaEnabled flag which determines whether we use OpenSea's API
- *
- * @param {*} state
- * @returns Boolean
- */
-export function getOpenSeaEnabled(state) {
-  return Boolean(state.metamask.openSeaEnabled);
-}
-
-/**
- * To get the `theme` value which determines which theme is selected
- *
- * @param {*} state
- * @returns Boolean
- */
-export function getTheme(state) {
-  return state.metamask.theme;
-}
-
-/**
  * To retrieve the tokenList produced by TokenListcontroller
- *
  * @param {*} state
  * @returns {Object}
  */
@@ -848,13 +683,8 @@ export function doesAddressRequireLedgerHidConnection(state, address) {
   );
 }
 
-export function getNewCollectibleAddedMessage(state) {
-  return state.appState.newCollectibleAddedMessage;
-}
-
 /**
  * To retrieve the name of the new Network added using add network form
- *
  * @param {*} state
  * @returns string
  */
@@ -872,129 +702,4 @@ export function getProvider(state) {
 
 export function getFrequentRpcListDetail(state) {
   return state.metamask.frequentRpcListDetail;
-}
-
-export function getIsOptimism(state) {
-  return (
-    getCurrentChainId(state) === OPTIMISM_CHAIN_ID ||
-    getCurrentChainId(state) === OPTIMISM_TESTNET_CHAIN_ID
-  );
-}
-
-export function getNetworkSupportsSettingGasFees(state) {
-  return !getIsOptimism(state);
-}
-
-export function getIsMultiLayerFeeNetwork(state) {
-  return getIsOptimism(state);
-}
-/**
- *  To retrieve the maxBaseFee and priotitFee teh user has set as default
- *
- * @param {*} state
- * @returns Boolean
- */
-export function getAdvancedGasFeeValues(state) {
-  return state.metamask.advancedGasFee;
-}
-
-export function getEIP1559V2Enabled(state) {
-  return state.metamask.eip1559V2Enabled;
-}
-
-/**
- *  To check if the user has set advanced gas fee settings as default with a non empty  maxBaseFee and priotityFee.
- *
- * @param {*} state
- * @returns Boolean
- */
-export function getIsAdvancedGasFeeDefault(state) {
-  const { advancedGasFee } = state.metamask;
-  return (
-    Boolean(advancedGasFee?.maxBaseFee) && Boolean(advancedGasFee?.priorityFee)
-  );
-}
-
-/**
- * @param state
- * @returns string e.g. ethereum, bsc or polygon
- */
-export const getTokenDetectionSupportNetworkByChainId = (state) => {
-  const chainId = getCurrentChainId(state);
-  switch (chainId) {
-    case MAINNET_CHAIN_ID:
-      return MAINNET_DISPLAY_NAME;
-    case BSC_CHAIN_ID:
-      return BSC_DISPLAY_NAME;
-    case POLYGON_CHAIN_ID:
-      return POLYGON_DISPLAY_NAME;
-    case AVALANCHE_CHAIN_ID:
-      return AVALANCHE_DISPLAY_NAME;
-    default:
-      return '';
-  }
-};
-/**
- * To check for the chainId that supports token detection ,
- * currently it returns true for Ethereum Mainnet, Polygon, BSC and Avalanche
- *
- * @param {*} state
- * @returns Boolean
- */
-export function getIsTokenDetectionSupported(state) {
-  const chainId = getCurrentChainId(state);
-  return [
-    MAINNET_CHAIN_ID,
-    BSC_CHAIN_ID,
-    POLYGON_CHAIN_ID,
-    AVALANCHE_CHAIN_ID,
-  ].includes(chainId);
-}
-
-export function getTokenDetectionNoticeDismissed(state) {
-  return state.metamask.tokenDetectionNoticeDismissed;
-}
-
-export function getTokenDetectionWarningDismissed(state) {
-  return state.metamask.tokenDetectionWarningDismissed;
-}
-
-export function getIsCustomNetwork(state) {
-  const chainId = getCurrentChainId(state);
-
-  return !CHAIN_ID_TO_RPC_URL_MAP[chainId];
-}
-
-export function getBlockExplorerLinkText(
-  state,
-  accountDetailsModalComponent = false,
-) {
-  const isCustomNetwork = getIsCustomNetwork(state);
-  const rpcPrefs = getRpcPrefsForCurrentProvider(state);
-
-  let blockExplorerLinkText = {
-    firstPart: 'addBlockExplorer',
-    secondPart: '',
-  };
-
-  if (rpcPrefs.blockExplorerUrl) {
-    blockExplorerLinkText = accountDetailsModalComponent
-      ? {
-          firstPart: 'blockExplorerView',
-          secondPart: getURLHostName(rpcPrefs.blockExplorerUrl),
-        }
-      : {
-          firstPart: 'viewinExplorer',
-          secondPart: 'blockExplorerAccountAction',
-        };
-  } else if (isCustomNetwork === false) {
-    blockExplorerLinkText = accountDetailsModalComponent
-      ? { firstPart: 'etherscanViewOn', secondPart: '' }
-      : {
-          firstPart: 'viewOnEtherscan',
-          secondPart: 'blockExplorerAccountAction',
-        };
-  }
-
-  return blockExplorerLinkText;
 }

@@ -1,4 +1,9 @@
-import { Numeric } from './Numeric';
+import { addHexPrefix } from './hexstring-utils';
+import {
+  addCurrencies,
+  conversionGreaterThan,
+  multiplyCurrencies,
+} from './conversion.utils';
 
 /**
  * Accepts an options bag containing gas fee parameters in hex format and
@@ -14,7 +19,7 @@ import { Numeric } from './Numeric';
  *  gas used. maxFeePerGas is introduced in EIP 1559 and represents the max
  *  total a user will pay per gas. Actual cost is determined by baseFeePerGas
  *  on the block + maxPriorityFeePerGas. Value is hex string
- * @returns {string} The maximum total cost of transaction in hex wei string
+ * @returns {string} - The maximum total cost of transaction in hex wei string
  */
 export function getMaximumGasTotalInHexWei({
   gasLimit = '0x0',
@@ -22,19 +27,26 @@ export function getMaximumGasTotalInHexWei({
   maxFeePerGas,
 } = {}) {
   if (maxFeePerGas) {
-    return new Numeric(gasLimit, 16)
-      .times(new Numeric(maxFeePerGas, 16))
-      .toPrefixedHexString();
+    return addHexPrefix(
+      multiplyCurrencies(gasLimit, maxFeePerGas, {
+        toNumericBase: 'hex',
+        multiplicandBase: 16,
+        multiplierBase: 16,
+      }),
+    );
   }
   if (!gasPrice) {
     throw new Error(
       'getMaximumGasTotalInHexWei requires gasPrice be provided to calculate legacy gas total',
     );
   }
-
-  return new Numeric(gasLimit, 16)
-    .times(new Numeric(gasPrice, 16))
-    .toPrefixedHexString();
+  return addHexPrefix(
+    multiplyCurrencies(gasLimit, gasPrice, {
+      toNumericBase: 'hex',
+      multiplicandBase: 16,
+      multiplierBase: 16,
+    }),
+  );
 }
 
 /**
@@ -55,7 +67,7 @@ export function getMaximumGasTotalInHexWei({
  *  pay a miner to include this transaction.
  * @param {string} [options.baseFeePerGas] - The estimated block baseFeePerGas
  *  that will be burned. Introduced in EIP 1559. Value in hex wei.
- * @returns {string} The minimum total cost of transaction in hex wei string
+ * @returns {string} - The minimum total cost of transaction in hex wei string
  */
 export function getMinimumGasTotalInHexWei({
   gasLimit = '0x0',
@@ -93,14 +105,25 @@ export function getMinimumGasTotalInHexWei({
   if (isEIP1559Estimate === false) {
     return getMaximumGasTotalInHexWei({ gasLimit, gasPrice });
   }
-  const minimumFeePerGas = new Numeric(baseFeePerGas, 16)
-    .add(new Numeric(maxPriorityFeePerGas, 16))
-    .toString();
+  const minimumFeePerGas = addCurrencies(baseFeePerGas, maxPriorityFeePerGas, {
+    toNumericBase: 'hex',
+    aBase: 16,
+    bBase: 16,
+  });
 
-  if (new Numeric(minimumFeePerGas, 16).greaterThan(maxFeePerGas, 16)) {
+  if (
+    conversionGreaterThan(
+      { value: minimumFeePerGas, fromNumericBase: 'hex' },
+      { value: maxFeePerGas, fromNumericBase: 'hex' },
+    )
+  ) {
     return getMaximumGasTotalInHexWei({ gasLimit, maxFeePerGas });
   }
-  return new Numeric(gasLimit, 16)
-    .times(new Numeric(minimumFeePerGas, 16))
-    .toPrefixedHexString();
+  return addHexPrefix(
+    multiplyCurrencies(gasLimit, minimumFeePerGas, {
+      toNumericBase: 'hex',
+      multiplicandBase: 16,
+      multiplierBase: 16,
+    }),
+  );
 }

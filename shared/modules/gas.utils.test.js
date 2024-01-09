@@ -1,9 +1,9 @@
-const { addHexPrefix } = require('ethereumjs-util');
+const { addHexPrefix } = require('./hexstring-utils');
+const { conversionUtil } = require('./conversion.utils');
 const {
   getMaximumGasTotalInHexWei,
   getMinimumGasTotalInHexWei,
 } = require('./gas.utils');
-const { Numeric } = require('./Numeric');
 
 const feesToTest = [10, 24, 90];
 const tipsToTest = [2, 10, 50];
@@ -18,17 +18,15 @@ describe('gas utils', () => {
           gasLimitsToTest.forEach((gasLimit) => {
             const expectedResult = (gasLimit * maxFeePerGas).toString();
             const gasLimitHex = addHexPrefix(gasLimit.toString(16));
-            const result = new Numeric(
+            const result = conversionUtil(
               getMaximumGasTotalInHexWei({
                 gasLimit: gasLimitHex,
                 maxFeePerGas: addHexPrefix(maxFeePerGas.toString(16)),
               }),
-              16,
+              { fromNumericBase: 'hex', toNumericBase: 'dec' },
             );
             it(`returns ${expectedResult} when provided gasLimit: ${gasLimit}`, () => {
-              expect(result.toBase(10).toString()).toStrictEqual(
-                expectedResult,
-              );
+              expect(result).toStrictEqual(expectedResult);
             });
           });
         });
@@ -46,7 +44,7 @@ describe('gas utils', () => {
                 minimum < maximum ? minimum : maximum;
               const results = gasLimitsToTest.map((gasLimit) => {
                 const gasLimitHex = addHexPrefix(gasLimit.toString(16));
-                const result = new Numeric(
+                const result = conversionUtil(
                   getMinimumGasTotalInHexWei({
                     gasLimit: gasLimitHex,
                     maxFeePerGas: addHexPrefix(maxFeePerGas.toString(16)),
@@ -55,9 +53,9 @@ describe('gas utils', () => {
                     ),
                     baseFeePerGas: addHexPrefix(baseFeePerGas.toString(16)),
                   }),
-                  16,
+                  { fromNumericBase: 'hex', toNumericBase: 'dec' },
                 );
-                return { result: result.toBase(10).toString(), gasLimit };
+                return { result, gasLimit };
               });
               it(`should use an effective gasPrice of ${expectedEffectiveGasPrice}`, () => {
                 expect(
@@ -91,15 +89,13 @@ describe('gas utils', () => {
             const gasLimitHex = addHexPrefix(gasLimit.toString(16));
             it(`returns ${expectedResult} when provided gasLimit of ${gasLimit}`, () => {
               expect(
-                new Numeric(
+                conversionUtil(
                   getMaximumGasTotalInHexWei({
                     gasLimit: gasLimitHex,
                     gasPrice: addHexPrefix(gasPrice.toString(16)),
                   }),
-                  16,
-                )
-                  .toBase(10)
-                  .toString(),
+                  { fromNumericBase: 'hex', toNumericBase: 'dec' },
+                ),
               ).toStrictEqual(expectedResult);
             });
           });
@@ -115,15 +111,16 @@ describe('gas utils', () => {
             const gasLimitHex = addHexPrefix(gasLimit.toString(16));
             it(`returns ${expectedResult} when provided gasLimit of ${gasLimit}`, () => {
               expect(
-                new Numeric(
+                conversionUtil(
                   getMinimumGasTotalInHexWei({
                     gasLimit: gasLimitHex,
                     gasPrice: addHexPrefix(gasPrice.toString(16)),
                   }),
-                  16,
-                )
-                  .toBase(10)
-                  .toString(),
+                  {
+                    fromNumericBase: 'hex',
+                    toNumericBase: 'dec',
+                  },
+                ),
               ).toStrictEqual(expectedResult);
             });
           });

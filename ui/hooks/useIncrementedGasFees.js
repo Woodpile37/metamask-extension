@@ -1,9 +1,27 @@
 import BigNumber from 'bignumber.js';
 import { useMemo } from 'react';
-import { decGWEIToHexWEI } from '../../shared/modules/conversion.utils';
+import { multiplyCurrencies } from '../../shared/modules/conversion.utils';
 import { isEIP1559Transaction } from '../../shared/modules/transaction.utils';
-import { addTenPercentAndRound } from '../helpers/utils/gas';
+import { addHexPrefix } from '../../shared/modules/hexstring-utils';
+import { decGWEIToHexWEI } from '../helpers/utils/conversions.util';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
+
+/**
+ * Simple helper to save on duplication to multiply the supplied wei hex string
+ * by 1.10 to get bare minimum new gas fee.
+ *
+ * @param {string} hexStringValue - hex value in wei to be incremented
+ * @returns {string} - hex value in WEI 10% higher than the param.
+ */
+function addTenPercent(hexStringValue) {
+  return addHexPrefix(
+    multiplyCurrencies(hexStringValue, 1.1, {
+      toNumericBase: 'hex',
+      multiplicandBase: 16,
+      multiplierBase: 10,
+    }),
+  );
+}
 
 /**
  * Helper that returns the higher of two options for a new gas fee:
@@ -12,10 +30,10 @@ import { useGasFeeEstimates } from './useGasFeeEstimates';
  *
  * @param {string} originalFee - hexWei vale of the original fee (maxFee or maxPriority)
  * @param {string} currentEstimate - decGwei value of the current medium gasFee estimate (maxFee or maxPriorityfee)
- * @returns {string} hexWei value of the higher of the two inputs.
+ * @returns {string} - hexWei value of the higher of the two inputs.
  */
 function getHighestIncrementedFee(originalFee, currentEstimate) {
-  const buffedOriginalHexWei = addTenPercentAndRound(originalFee);
+  const buffedOriginalHexWei = addTenPercent(originalFee);
   const currentEstimateHexWei = decGWEIToHexWEI(currentEstimate);
 
   return new BigNumber(buffedOriginalHexWei, 16).greaterThan(
@@ -32,11 +50,10 @@ function getHighestIncrementedFee(originalFee, currentEstimate) {
  * discarded by the network to avoid DoS attacks. This hook returns an object
  * that either has gasPrice or maxFeePerGas/maxPriorityFeePerGas specified. In
  * addition the gasLimit will also be included.
- *
  * @param {} transaction
  * @returns {import(
  *   '../../app/scripts/controllers/transactions'
- * ).CustomGasSettings} Gas settings for cancellations/speed ups
+ * ).CustomGasSettings} - Gas settings for cancellations/speed ups
  */
 export function useIncrementedGasFees(transaction) {
   const { gasFeeEstimates = {} } = useGasFeeEstimates();
