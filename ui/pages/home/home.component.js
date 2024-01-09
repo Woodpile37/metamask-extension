@@ -1,9 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Redirect, Route } from 'react-router-dom';
-///: BEGIN:ONLY_INCLUDE_IN(main)
-import { SUPPORT_LINK } from '../../helpers/constants/common';
-///: END:ONLY_INCLUDE_IN
 import { formatDate } from '../../helpers/utils/util';
 import AssetList from '../../components/app/asset-list';
 import CollectiblesTab from '../../components/app/collectibles-tab';
@@ -13,7 +10,6 @@ import TransactionList from '../../components/app/transaction-list';
 import MenuBar from '../../components/app/menu-bar';
 import Popover from '../../components/ui/popover';
 import Button from '../../components/ui/button';
-import Box from '../../components/ui/box';
 import ConnectedSites from '../connected-sites';
 import ConnectedAccounts from '../connected-accounts';
 import { Tabs, Tab } from '../../components/ui/tabs';
@@ -25,9 +21,12 @@ import Typography from '../../components/ui/typography/typography';
 import {
   TYPOGRAPHY,
   FONT_WEIGHT,
-  DISPLAY,
+  ///: BEGIN:ONLY_INCLUDE_IN(flask)
   COLORS,
+  ///: END:ONLY_INCLUDE_IN
 } from '../../helpers/constants/design-system';
+
+import { isBeta } from '../../helpers/utils/build-types';
 
 import {
   ASSET_ROUTE,
@@ -44,12 +43,7 @@ import {
   CONFIRMATION_V_NEXT_ROUTE,
   ADD_COLLECTIBLE_ROUTE,
 } from '../../helpers/constants/routes';
-///: BEGIN:ONLY_INCLUDE_IN(beta)
-import BetaHomeFooter from './beta/beta-home-footer.component';
-///: END:ONLY_INCLUDE_IN
-///: BEGIN:ONLY_INCLUDE_IN(flask)
-import FlaskHomeFooter from './flask/flask-home-footer.component';
-///: END:ONLY_INCLUDE_IN
+import BetaHomeFooter from './beta-home-footer.component';
 
 const LEARN_MORE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/360045129011-Intro-to-MetaMask-v8-extension';
@@ -57,18 +51,6 @@ const LEGACY_WEB3_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/360053147012';
 const INFURA_BLOCKAGE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/360059386712';
-
-function shouldCloseNotificationPopup({
-  isNotification,
-  totalUnapprovedCount,
-  isSigningQRHardwareTransaction,
-}) {
-  return (
-    isNotification &&
-    totalUnapprovedCount === 0 &&
-    !isSigningQRHardwareTransaction
-  );
-}
 
 export default class Home extends PureComponent {
   static contextTypes = {
@@ -92,14 +74,10 @@ export default class Home extends PureComponent {
     setShowRestorePromptToFalse: PropTypes.func,
     threeBoxLastUpdated: PropTypes.number,
     firstPermissionsRequestId: PropTypes.string,
-    // This prop is used in the `shouldCloseNotificationPopup` function
-    // eslint-disable-next-line react/no-unused-prop-types
     totalUnapprovedCount: PropTypes.number.isRequired,
     setConnectedStatusPopoverHasBeenShown: PropTypes.func,
     connectedStatusPopoverHasBeenShown: PropTypes.bool,
     defaultHomeActiveTabName: PropTypes.string,
-    firstTimeFlowType: PropTypes.string,
-    completedOnboarding: PropTypes.bool,
     onTabClick: PropTypes.func.isRequired,
     haveSwapsQuotes: PropTypes.bool.isRequired,
     showAwaitingSwapScreen: PropTypes.bool.isRequired,
@@ -112,7 +90,7 @@ export default class Home extends PureComponent {
     infuraBlocked: PropTypes.bool.isRequired,
     showWhatsNewPopup: PropTypes.bool.isRequired,
     hideWhatsNewPopup: PropTypes.func.isRequired,
-    announcementsToShow: PropTypes.bool.isRequired,
+    notificationsToShow: PropTypes.bool.isRequired,
     ///: BEGIN:ONLY_INCLUDE_IN(flask)
     errorsToShow: PropTypes.object.isRequired,
     shouldShowErrors: PropTypes.bool.isRequired,
@@ -124,52 +102,16 @@ export default class Home extends PureComponent {
     seedPhraseBackedUp: PropTypes.bool.isRequired,
     newNetworkAdded: PropTypes.string,
     setNewNetworkAdded: PropTypes.func.isRequired,
-    // This prop is used in the `shouldCloseNotificationPopup` function
-    // eslint-disable-next-line react/no-unused-prop-types
     isSigningQRHardwareTransaction: PropTypes.bool.isRequired,
     newCollectibleAddedMessage: PropTypes.string,
     setNewCollectibleAddedMessage: PropTypes.func.isRequired,
-    closeNotificationPopup: PropTypes.func.isRequired,
-    newTokensImported: PropTypes.string,
-    setNewTokensImported: PropTypes.func.isRequired,
-    newCustomNetworkAdded: PropTypes.object,
-    setNewCustomNetworkAdded: PropTypes.func,
-    setRpcTarget: PropTypes.func,
   };
 
   state = {
+    // eslint-disable-next-line react/no-unused-state
+    mounted: false,
     canShowBlockageNotification: true,
-    notificationClosing: false,
-    redirecting: false,
   };
-
-  constructor(props) {
-    super(props);
-
-    const {
-      closeNotificationPopup,
-      firstPermissionsRequestId,
-      haveSwapsQuotes,
-      isNotification,
-      showAwaitingSwapScreen,
-      suggestedAssets = [],
-      swapsFetchParams,
-      unconfirmedTransactionsCount,
-    } = this.props;
-
-    if (shouldCloseNotificationPopup(props)) {
-      this.state.notificationClosing = true;
-      closeNotificationPopup();
-    } else if (
-      firstPermissionsRequestId ||
-      unconfirmedTransactionsCount > 0 ||
-      suggestedAssets.length > 0 ||
-      (!isNotification &&
-        (showAwaitingSwapScreen || haveSwapsQuotes || swapsFetchParams))
-    ) {
-      this.state.redirecting = true;
-    }
-  }
 
   checkStatusAndNavigate() {
     const {
@@ -177,13 +119,21 @@ export default class Home extends PureComponent {
       history,
       isNotification,
       suggestedAssets = [],
+      totalUnapprovedCount,
       unconfirmedTransactionsCount,
       haveSwapsQuotes,
       showAwaitingSwapScreen,
       swapsFetchParams,
       pendingConfirmations,
+      isSigningQRHardwareTransaction,
     } = this.props;
-    if (!isNotification && showAwaitingSwapScreen) {
+    if (
+      isNotification &&
+      totalUnapprovedCount === 0 &&
+      !isSigningQRHardwareTransaction
+    ) {
+      global.platform.closeCurrentWindow();
+    } else if (!isNotification && showAwaitingSwapScreen) {
       history.push(AWAITING_SWAP_ROUTE);
     } else if (!isNotification && haveSwapsQuotes) {
       history.push(VIEW_QUOTE_ROUTE);
@@ -201,36 +151,61 @@ export default class Home extends PureComponent {
   }
 
   componentDidMount() {
+    // eslint-disable-next-line react/no-unused-state
+    this.setState({ mounted: true });
     this.checkStatusAndNavigate();
   }
 
-  static getDerivedStateFromProps(props) {
-    if (shouldCloseNotificationPopup(props)) {
-      return { notificationClosing: true };
+  static getDerivedStateFromProps(
+    {
+      firstPermissionsRequestId,
+      isNotification,
+      suggestedAssets,
+      totalUnapprovedCount,
+      unconfirmedTransactionsCount,
+      haveSwapsQuotes,
+      showAwaitingSwapScreen,
+      swapsFetchParams,
+      isSigningQRHardwareTransaction,
+    },
+    { mounted },
+  ) {
+    if (!mounted) {
+      if (
+        isNotification &&
+        totalUnapprovedCount === 0 &&
+        !isSigningQRHardwareTransaction
+      ) {
+        return { closing: true };
+      } else if (
+        firstPermissionsRequestId ||
+        unconfirmedTransactionsCount > 0 ||
+        suggestedAssets.length > 0 ||
+        (!isNotification &&
+          (showAwaitingSwapScreen || haveSwapsQuotes || swapsFetchParams))
+      ) {
+        return { redirecting: true };
+      }
     }
     return null;
   }
 
-  componentDidUpdate(_prevProps, prevState) {
+  componentDidUpdate(_, prevState) {
     const {
-      closeNotificationPopup,
       setupThreeBox,
       showRestorePrompt,
       threeBoxLastUpdated,
       threeBoxSynced,
       isNotification,
     } = this.props;
-    const { notificationClosing } = this.state;
 
-    if (notificationClosing && !prevState.notificationClosing) {
-      closeNotificationPopup();
-    } else if (isNotification) {
-      this.checkStatusAndNavigate();
-    } else if (
-      threeBoxSynced &&
-      showRestorePrompt &&
-      threeBoxLastUpdated === null
-    ) {
+    if (!prevState.closing && this.state.closing) {
+      global.platform.closeCurrentWindow();
+    }
+
+    isNotification && this.checkStatusAndNavigate();
+
+    if (threeBoxSynced && showRestorePrompt && threeBoxLastUpdated === null) {
       setupThreeBox();
     }
   }
@@ -270,11 +245,6 @@ export default class Home extends PureComponent {
       setNewNetworkAdded,
       newCollectibleAddedMessage,
       setNewCollectibleAddedMessage,
-      newTokensImported,
-      setNewTokensImported,
-      newCustomNetworkAdded,
-      setNewCustomNetworkAdded,
-      setRpcTarget,
     } = this.props;
     return (
       <MultipleNotifications>
@@ -289,14 +259,14 @@ export default class Home extends PureComponent {
                     descriptionText={
                       <>
                         <Typography
-                          color={COLORS.TEXT_ALTERNATIVE}
+                          color={COLORS.UI1}
                           variant={TYPOGRAPHY.H5}
                           fontWeight={FONT_WEIGHT.NORMAL}
                         >
                           {t('somethingWentWrong')}
                         </Typography>
                         <Typography
-                          color={COLORS.TEXT_ALTERNATIVE}
+                          color={COLORS.UI1}
                           variant={TYPOGRAPHY.H7}
                           fontWeight={FONT_WEIGHT.NORMAL}
                         >
@@ -315,35 +285,47 @@ export default class Home extends PureComponent {
             : null
           ///: END:ONLY_INCLUDE_IN
         }
-        {newCollectibleAddedMessage === 'success' ? (
+        {newCollectibleAddedMessage ? (
           <ActionableMessage
-            type="success"
+            type={newCollectibleAddedMessage === 'success' ? 'info' : 'warning'}
             className="home__new-network-notification"
             message={
-              <Box display={DISPLAY.INLINE_FLEX}>
-                <i className="fa fa-check-circle home__new-nft-notification-icon" />
+              <div className="home__new-network-notification-message">
+                {newCollectibleAddedMessage === 'success' ? (
+                  <img
+                    src="./images/check_circle.svg"
+                    className="home__new-network-notification-message--image"
+                  />
+                ) : null}
                 <Typography
                   variant={TYPOGRAPHY.H7}
                   fontWeight={FONT_WEIGHT.NORMAL}
                 >
-                  {t('newCollectibleAddedMessage')}
+                  {newCollectibleAddedMessage === 'success'
+                    ? t('newCollectibleAddedMessage')
+                    : t('newCollectibleAddFailed', [
+                        newCollectibleAddedMessage,
+                      ])}
                 </Typography>
                 <button
-                  className="fas fa-times home__new-nft-notification-close"
+                  className="fas fa-times home__close"
                   title={t('close')}
                   onClick={() => setNewCollectibleAddedMessage('')}
                 />
-              </Box>
+              </div>
             }
           />
         ) : null}
         {newNetworkAdded ? (
           <ActionableMessage
-            type="success"
+            type="info"
             className="home__new-network-notification"
             message={
-              <Box display={DISPLAY.INLINE_FLEX}>
-                <i className="fa fa-check-circle home__new-network-notification-icon" />
+              <div className="home__new-network-notification-message">
+                <img
+                  src="./images/check_circle.svg"
+                  className="home__new-network-notification-message--image"
+                />
                 <Typography
                   variant={TYPOGRAPHY.H7}
                   fontWeight={FONT_WEIGHT.NORMAL}
@@ -351,43 +333,11 @@ export default class Home extends PureComponent {
                   {t('newNetworkAdded', [newNetworkAdded])}
                 </Typography>
                 <button
-                  className="fas fa-times home__new-network-notification-close"
+                  className="fas fa-times home__close"
                   title={t('close')}
                   onClick={() => setNewNetworkAdded('')}
                 />
-              </Box>
-            }
-          />
-        ) : null}
-        {newTokensImported ? (
-          <ActionableMessage
-            type="success"
-            className="home__new-tokens-imported-notification"
-            message={
-              <Box display={DISPLAY.INLINE_FLEX}>
-                <i className="fa fa-check-circle home__new-tokens-imported-notification-icon" />
-                <Box>
-                  <Typography
-                    className="home__new-tokens-imported-notification-title"
-                    variant={TYPOGRAPHY.H6}
-                    fontWeight={FONT_WEIGHT.BOLD}
-                  >
-                    {t('newTokensImportedTitle')}
-                  </Typography>
-                  <Typography
-                    className="home__new-tokens-imported-notification-message"
-                    variant={TYPOGRAPHY.H7}
-                    fontWeight={FONT_WEIGHT.NORMAL}
-                  >
-                    {t('newTokensImportedMessage', [newTokensImported])}
-                  </Typography>
-                </Box>
-                <button
-                  className="fas fa-times home__new-tokens-imported-notification-close"
-                  title={t('close')}
-                  onClick={() => setNewTokensImported('')}
-                />
-              </Box>
+              </div>
             }
           />
         ) : null}
@@ -474,53 +424,6 @@ export default class Home extends PureComponent {
             key="home-infuraBlockedNotification"
           />
         ) : null}
-        {Object.keys(newCustomNetworkAdded).length !== 0 && (
-          <Popover className="home__new-network-added">
-            <i className="fa fa-check-circle fa-2x home__new-network-added__check-circle" />
-            <Typography
-              variant={TYPOGRAPHY.H4}
-              margin={[5, 9, 0, 9]}
-              fontWeight={FONT_WEIGHT.BOLD}
-            >
-              {t('networkAddedSuccessfully')}
-            </Typography>
-            <Box margin={[8, 8, 5, 8]}>
-              <Button
-                type="primary"
-                className="home__new-network-added__switch-to-button"
-                onClick={() => {
-                  setRpcTarget(
-                    newCustomNetworkAdded.rpcUrl,
-                    newCustomNetworkAdded.chainId,
-                    newCustomNetworkAdded.ticker,
-                    newCustomNetworkAdded.chainName,
-                  );
-                  setNewCustomNetworkAdded();
-                }}
-              >
-                <Typography
-                  variant={TYPOGRAPHY.H6}
-                  fontWeight={FONT_WEIGHT.NORMAL}
-                  color={COLORS.PRIMARY_INVERSE}
-                >
-                  {t('switchToNetwork', [newCustomNetworkAdded.chainName])}
-                </Typography>
-              </Button>
-              <Button
-                type="secondary"
-                onClick={() => setNewCustomNetworkAdded()}
-              >
-                <Typography
-                  variant={TYPOGRAPHY.H6}
-                  fontWeight={FONT_WEIGHT.NORMAL}
-                  color={COLORS.PRIMARY_DEFAULT}
-                >
-                  {t('dismiss')}
-                </Typography>
-              </Button>
-            </Box>
-          </Popover>
-        )}
       </MultipleNotifications>
     );
   }
@@ -576,26 +479,21 @@ export default class Home extends PureComponent {
       history,
       connectedStatusPopoverHasBeenShown,
       isPopup,
-      announcementsToShow,
+      notificationsToShow,
       showWhatsNewPopup,
       hideWhatsNewPopup,
       seedPhraseBackedUp,
       showRecoveryPhraseReminder,
-      firstTimeFlowType,
-      completedOnboarding,
     } = this.props;
 
     if (forgottenPassword) {
       return <Redirect to={{ pathname: RESTORE_VAULT_ROUTE }} />;
-    } else if (this.state.notificationClosing || this.state.redirecting) {
+    } else if (this.state.closing || this.state.redirecting) {
       return null;
     }
 
-    const showWhatsNew =
-      ((completedOnboarding && firstTimeFlowType === 'import') ||
-        !completedOnboarding) &&
-      announcementsToShow &&
-      showWhatsNewPopup;
+    const showWhatsNew = notificationsToShow && showWhatsNewPopup;
+
     return (
       <div className="main-container">
         <Route path={CONNECTED_ROUTE} component={ConnectedSites} exact />
@@ -661,11 +559,12 @@ export default class Home extends PureComponent {
               </Tab>
             </Tabs>
             <div className="home__support">
-              {
-                ///: BEGIN:ONLY_INCLUDE_IN(main)
+              {isBeta() ? (
+                <BetaHomeFooter />
+              ) : (
                 t('needHelp', [
                   <a
-                    href={SUPPORT_LINK}
+                    href="https://support.metamask.io"
                     target="_blank"
                     rel="noopener noreferrer"
                     key="need-help-link"
@@ -673,18 +572,7 @@ export default class Home extends PureComponent {
                     {t('needHelpLinkText')}
                   </a>,
                 ])
-                ///: END:ONLY_INCLUDE_IN
-              }
-              {
-                ///: BEGIN:ONLY_INCLUDE_IN(beta)
-                <BetaHomeFooter />
-                ///: END:ONLY_INCLUDE_IN
-              }
-              {
-                ///: BEGIN:ONLY_INCLUDE_IN(flask)
-                <FlaskHomeFooter />
-                ///: END:ONLY_INCLUDE_IN
-              }
+              )}
             </div>
           </div>
 

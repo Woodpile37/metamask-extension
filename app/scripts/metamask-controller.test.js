@@ -1031,10 +1031,10 @@ describe('MetaMaskController', function () {
         cb();
       });
 
-      metamaskController.setupUntrustedCommunication(
-        streamTest,
-        phishingMessageSender,
-      );
+      metamaskController.setupUntrustedCommunication({
+        connectionStream: streamTest,
+        sender: phishingMessageSender,
+      });
       await promise;
       streamTest.end();
     });
@@ -1052,7 +1052,10 @@ describe('MetaMaskController', function () {
         cb();
       });
 
-      metamaskController.setupUntrustedCommunication(streamTest, messageSender);
+      metamaskController.setupUntrustedCommunication({
+        connectionStream: streamTest,
+        sender: messageSender,
+      });
 
       const message = {
         id: 1999133338649204,
@@ -1091,7 +1094,10 @@ describe('MetaMaskController', function () {
         cb();
       });
 
-      metamaskController.setupUntrustedCommunication(streamTest, messageSender);
+      metamaskController.setupUntrustedCommunication({
+        connectionStream: streamTest,
+        sender: messageSender,
+      });
 
       const message = {
         id: 1999133338649204,

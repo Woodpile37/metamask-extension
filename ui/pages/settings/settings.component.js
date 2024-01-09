@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import { Switch, Route, matchPath } from 'react-router-dom';
 import classnames from 'classnames';
 import TabBar from '../../components/app/tab-bar';
-import IconCaretLeft from '../../components/ui/icon/icon-caret-left';
-
 import {
   ALERTS_ROUTE,
   ADVANCED_ROUTE,
@@ -23,11 +21,7 @@ import {
   CONTACT_VIEW_ROUTE,
   EXPERIMENTAL_ROUTE,
   ADD_NETWORK_ROUTE,
-  ADD_POPULAR_CUSTOM_NETWORK,
 } from '../../helpers/constants/routes';
-
-import { getSettingsRoutes } from '../../helpers/utils/settings-search';
-import AddNetwork from '../../components/app/add-network/add-network';
 import SettingsTab from './settings-tab';
 import AlertsTab from './alerts-tab';
 import NetworksTab from './networks-tab';
@@ -40,8 +34,6 @@ import ExperimentalTab from './experimental-tab';
 import SnapListTab from './flask/snaps-list-tab';
 import ViewSnap from './flask/view-snap';
 ///: END:ONLY_INCLUDE_IN
-import SettingsSearch from './settings-search';
-import SettingsSearchList from './settings-search-list';
 
 class SettingsPage extends PureComponent {
   static propTypes = {
@@ -67,9 +59,6 @@ class SettingsPage extends PureComponent {
 
   state = {
     lastFetchedConversionDate: null,
-    searchResults: [],
-    isSearchList: false,
-    searchText: '',
   };
 
   componentDidMount() {
@@ -87,15 +76,6 @@ class SettingsPage extends PureComponent {
     }
   }
 
-  handleClickSetting(setting) {
-    const { history } = this.props;
-    history.push(setting.route);
-    this.setState({
-      searchResults: '',
-      isSearchList: '',
-    });
-  }
-
   render() {
     const {
       history,
@@ -105,9 +85,6 @@ class SettingsPage extends PureComponent {
       addNewNetwork,
       isSnapViewPage,
     } = this.props;
-
-    const { searchResults, isSearchList, searchText } = this.state;
-
     return (
       <div
         className={classnames('main-container settings-page', {
@@ -115,49 +92,24 @@ class SettingsPage extends PureComponent {
         })}
       >
         <div className="settings-page__header">
-          <div className="settings-page__header__title-container">
-            {currentPath !== SETTINGS_ROUTE && (
-              <IconCaretLeft
-                className="settings-page__back-button"
-                color="var(--color-icon-default)"
-                size={32}
-                onClick={() => history.push(backRoute)}
-              />
-            )}
-
-            {this.renderTitle()}
+          {currentPath !== SETTINGS_ROUTE && (
             <div
-              className="settings-page__header__title-container__close-button"
-              onClick={() => {
-                if (addNewNetwork) {
-                  history.push(NETWORKS_ROUTE);
-                } else {
-                  history.push(mostRecentOverviewPage);
-                }
-              }}
+              className="settings-page__back-button"
+              onClick={() => history.push(backRoute)}
             />
-          </div>
-
-          <div className="settings-page__header__search">
-            <SettingsSearch
-              onSearch={({ searchQuery = '', results = [] }) => {
-                this.setState({
-                  searchResults: results,
-                  isSearchList: searchQuery !== '',
-                  searchText: searchQuery,
-                });
-              }}
-              settingsRoutesList={getSettingsRoutes()}
-            />
-            {isSearchList && searchText.length >= 3 && (
-              <SettingsSearchList
-                results={searchResults}
-                onClickSetting={(setting) => this.handleClickSetting(setting)}
-              />
-            )}
-          </div>
+          )}
+          {this.renderTitle()}
+          <div
+            className="settings-page__close-button"
+            onClick={() => {
+              if (addNewNetwork) {
+                history.push(NETWORKS_ROUTE);
+              } else {
+                history.push(mostRecentOverviewPage);
+              }
+            }}
+          />
         </div>
-
         <div className="settings-page__content">
           <div className="settings-page__content__tabs">
             {this.renderTabs()}
@@ -190,11 +142,7 @@ class SettingsPage extends PureComponent {
       titleText = t('settings');
     }
 
-    return (
-      <div className="settings-page__header__title-container__title">
-        {titleText}
-      </div>
-    );
+    return <div className="settings-page__header__title">{titleText}</div>;
   }
 
   renderSubHeader() {
@@ -259,55 +207,50 @@ class SettingsPage extends PureComponent {
       <TabBar
         tabs={[
           {
-            icon: <i className="fa fa-cog" />,
             content: t('general'),
+            description: t('generalSettingsDescription'),
             key: GENERAL_ROUTE,
           },
           {
-            icon: <i className="fas fa-sliders-h" />,
             content: t('advanced'),
+            description: t('advancedSettingsDescription'),
             key: ADVANCED_ROUTE,
           },
           {
-            icon: <i className="fa fa-address-book" />,
             content: t('contacts'),
+            description: t('contactsSettingsDescription'),
             key: CONTACT_LIST_ROUTE,
           },
           ///: BEGIN:ONLY_INCLUDE_IN(flask)
           {
-            icon: (
-              <i
-                className="fa fa-flask"
-                title={t('snapsSettingsDescription')}
-              />
-            ),
             content: t('snaps'),
+            description: t('snapsSettingsDescription'),
             key: SNAPS_LIST_ROUTE,
           },
           ///: END:ONLY_INCLUDE_IN
           {
-            icon: <i className="fa fa-lock" />,
             content: t('securityAndPrivacy'),
+            description: t('securitySettingsDescription'),
             key: SECURITY_ROUTE,
           },
           {
-            icon: <i className="fa fa-bell" />,
             content: t('alerts'),
+            description: t('alertsSettingsDescription'),
             key: ALERTS_ROUTE,
           },
           {
-            icon: <i className="fa fa-plug" />,
             content: t('networks'),
+            description: t('networkSettingsDescription'),
             key: NETWORKS_ROUTE,
           },
           {
-            icon: <i className="fa fa-flask" />,
             content: t('experimental'),
+            description: t('experimentalSettingsDescription'),
             key: EXPERIMENTAL_ROUTE,
           },
           {
-            icon: <i className="fa fa-info-circle" />,
             content: t('about'),
+            description: t('aboutSettingsDescription'),
             key: ABOUT_US_ROUTE,
           },
         ]}
@@ -343,15 +286,7 @@ class SettingsPage extends PureComponent {
           path={ADD_NETWORK_ROUTE}
           render={() => <NetworksTab addNewNetwork />}
         />
-        <Route
-          exact
-          path={ADD_POPULAR_CUSTOM_NETWORK}
-          render={() => <AddNetwork />}
-        />
-        <Route
-          path={NETWORKS_ROUTE}
-          render={() => <NetworksTab addNewNetwork={false} />}
-        />
+        <Route path={NETWORKS_ROUTE} component={NetworksTab} />
         <Route exact path={SECURITY_ROUTE} component={SecurityTab} />
         <Route exact path={EXPERIMENTAL_ROUTE} component={ExperimentalTab} />
         <Route exact path={CONTACT_LIST_ROUTE} component={ContactListTab} />

@@ -6,7 +6,6 @@ import { RestrictedMethods } from './permissions';
  * notification - When the extension opens due to interaction with a Web3 enabled website
  * fullscreen - When the user clicks 'expand view' to open the extension in a new tab
  * background - The background process that powers the extension
- *
  * @typedef {'popup' | 'notification' | 'fullscreen' | 'background'} EnvironmentType
  */
 export const ENVIRONMENT_TYPE_POPUP = 'popup';
@@ -47,7 +46,6 @@ export const MESSAGE_TYPE = {
   WATCH_ASSET: 'wallet_watchAsset',
   WATCH_ASSET_LEGACY: 'metamask_watchAsset',
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  GET_PREFERRED_CURRENCY: RestrictedMethods.wallet_preferredCurrency,
   SNAP_CONFIRM: RestrictedMethods.snap_confirm,
   ///: END:ONLY_INCLUDE_IN
 };

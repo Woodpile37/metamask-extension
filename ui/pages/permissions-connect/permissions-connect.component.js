@@ -8,6 +8,9 @@ import { DEFAULT_ROUTE } from '../../helpers/constants/routes';
 import PermissionPageContainer from '../../components/app/permission-page-container';
 import ChooseAccount from './choose-account';
 import PermissionsRedirect from './redirect';
+///: BEGIN:ONLY_INCLUDE_IN(flask)
+import SnapInstall from './snap-install/snap-install';
+///: END:ONLY_INCLUDE_IN
 
 const APPROVE_TIMEOUT = MILLISECOND * 1200;
 
@@ -30,13 +33,18 @@ export default class PermissionConnect extends Component {
     history: PropTypes.object.isRequired,
     connectPath: PropTypes.string.isRequired,
     confirmPermissionPath: PropTypes.string.isRequired,
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
+    snapInstallPath: PropTypes.string.isRequired,
+    isSnap: PropTypes.bool.isRequired,
+    ///: END:ONLY_INCLUDE_IN
+    totalPages: PropTypes.string.isRequired,
     page: PropTypes.string.isRequired,
-    targetDomainMetadata: PropTypes.shape({
+    targetSubjectMetadata: PropTypes.shape({
       extensionId: PropTypes.string,
-      icon: PropTypes.string,
-      host: PropTypes.string.isRequired,
+      iconUrl: PropTypes.string,
       name: PropTypes.string.isRequired,
       origin: PropTypes.string.isRequired,
+      subjectType: PropTypes.string,
     }),
     isRequestingAccounts: PropTypes.bool.isRequired,
   };
@@ -57,7 +65,7 @@ export default class PermissionConnect extends Component {
     selectedAccountAddresses: new Set([this.props.currentAddress]),
     permissionsApproved: null,
     origin: this.props.origin,
-    targetDomainMetadata: this.props.targetDomainMetadata || {},
+    targetSubjectMetadata: this.props.targetSubjectMetadata || {},
   };
 
   beforeUnload = () => {
@@ -78,11 +86,15 @@ export default class PermissionConnect extends Component {
 
   componentDidMount() {
     const {
+      connectPath,
       confirmPermissionPath,
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      snapInstallPath,
+      isSnap,
+      ///: END:ONLY_INCLUDE_IN
       getCurrentWindowTab,
       getRequestAccountTabIds,
       permissionsRequest,
-      page,
       history,
       isRequestingAccounts,
     } = this.props;
@@ -99,20 +111,28 @@ export default class PermissionConnect extends Component {
       window.addEventListener('beforeunload', this.beforeUnload);
     }
 
-    if (page === '1' && !isRequestingAccounts) {
-      history.push(confirmPermissionPath);
+    if (history.location.pathname === connectPath && !isRequestingAccounts) {
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      if (isSnap) {
+        history.push(snapInstallPath);
+      } else {
+        ///: END:ONLY_INCLUDE_IN
+        history.push(confirmPermissionPath);
+        ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      }
+      ///: END:ONLY_INCLUDE_IN
     }
   }
 
   static getDerivedStateFromProps(props, state) {
-    const { permissionsRequest, targetDomainMetadata } = props;
-    const { targetDomainMetadata: savedMetadata } = state;
+    const { permissionsRequest, targetSubjectMetadata } = props;
+    const { targetSubjectMetadata: savedMetadata } = state;
 
     if (
       permissionsRequest &&
-      savedMetadata.origin !== targetDomainMetadata?.origin
+      savedMetadata.origin !== targetSubjectMetadata?.origin
     ) {
-      return { targetDomainMetadata };
+      return { targetSubjectMetadata };
     }
     return null;
   }
@@ -173,7 +193,7 @@ export default class PermissionConnect extends Component {
 
   renderTopBar() {
     const { redirecting } = this.state;
-    const { page, isRequestingAccounts } = this.props;
+    const { page, isRequestingAccounts, totalPages } = this.props;
     const { t } = this.context;
     return redirecting ? null : (
       <div className="permissions-connect__top-bar">
@@ -182,13 +202,13 @@ export default class PermissionConnect extends Component {
             className="permissions-connect__back"
             onClick={() => this.goBack()}
           >
-            <i className="fas fa-chevron-left" />
+            <i className="fas fa-chevron-left"></i>
             {t('back')}
           </div>
         ) : null}
         {isRequestingAccounts ? (
           <div className="permissions-connect__page-count">
-            {t('xOfY', [page, '2'])}
+            {t('xOfY', [page, totalPages])}
           </div>
         ) : null}
       </div>
@@ -207,19 +227,22 @@ export default class PermissionConnect extends Component {
       permissionsRequestId,
       connectPath,
       confirmPermissionPath,
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      snapInstallPath,
+      ///: END:ONLY_INCLUDE_IN
     } = this.props;
     const {
       selectedAccountAddresses,
       permissionsApproved,
       redirecting,
-      targetDomainMetadata,
+      targetSubjectMetadata,
     } = this.state;
 
     return (
       <div className="permissions-connect">
         {this.renderTopBar()}
         {redirecting && permissionsApproved ? (
-          <PermissionsRedirect domainMetadata={targetDomainMetadata} />
+          <PermissionsRedirect subjectMetadata={targetSubjectMetadata} />
         ) : (
           <Switch>
             <Route
@@ -243,7 +266,7 @@ export default class PermissionConnect extends Component {
                   }
                   permissionsRequestId={permissionsRequestId}
                   selectedAccountAddresses={selectedAccountAddresses}
-                  targetDomainMetadata={targetDomainMetadata}
+                  targetSubjectMetadata={targetSubjectMetadata}
                 />
               )}
             />
@@ -263,10 +286,33 @@ export default class PermissionConnect extends Component {
                   selectedIdentities={accounts.filter((account) =>
                     selectedAccountAddresses.has(account.address),
                   )}
-                  targetDomainMetadata={targetDomainMetadata}
+                  targetSubjectMetadata={targetSubjectMetadata}
                 />
               )}
             />
+            {
+              ///: BEGIN:ONLY_INCLUDE_IN(flask)
+            }
+            <Route
+              path={snapInstallPath}
+              exact
+              render={() => (
+                <SnapInstall
+                  request={permissionsRequest || {}}
+                  approveSnapInstall={(...args) => {
+                    approvePermissionsRequest(...args);
+                    this.redirect(true);
+                  }}
+                  rejectSnapInstall={(requestId) =>
+                    this.cancelPermissionsRequest(requestId)
+                  }
+                  targetSubjectMetadata={targetSubjectMetadata}
+                />
+              )}
+            />
+            {
+              ///: END:ONLY_INCLUDE_IN
+            }
           </Switch>
         )}
       </div>

@@ -8,8 +8,6 @@ import {
   TYPOGRAPHY,
   COLORS,
   FLEX_DIRECTION,
-  JUSTIFY_CONTENT,
-  ALIGN_ITEMS,
 } from '../../../../helpers/constants/design-system';
 import Box from '../../../../components/ui/box';
 import { SNAPS_VIEW_ROUTE } from '../../../../helpers/constants/routes';
@@ -45,7 +43,7 @@ const SnapListTab = () => {
             </Typography>
             <Typography
               variant={TYPOGRAPHY.H6}
-              color={COLORS.TEXT_ALTERNATIVE}
+              color={COLORS.UI4}
               marginBottom={2}
             >
               {t('manageSnaps')}
@@ -75,17 +73,11 @@ const SnapListTab = () => {
           </div>
         </div>
       ) : (
-        <Box
-          className="snap-list-tab__container--no-snaps"
-          width="full"
-          height="full"
-          justifyContent={JUSTIFY_CONTENT.CENTER}
-          alignItems={ALIGN_ITEMS.CENTER}
-        >
-          <Typography variant={TYPOGRAPHY.H4} color={COLORS.TEXT_ALTERNATIVE}>
-            <span>{t('noSnaps')}</span>
+        <div className="snap-list-tab__container--no-snaps">
+          <Typography variant={TYPOGRAPHY.H4} color={COLORS.UI4}>
+            {t('noSnaps')}
           </Typography>
-        </Box>
+        </div>
       )}
     </div>
   );

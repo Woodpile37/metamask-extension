@@ -10,22 +10,15 @@ import { useHistory } from 'react-router-dom';
 import { isEqual } from 'lodash';
 import { produce } from 'immer';
 import Box from '../../components/ui/box';
-import Chip from '../../components/ui/chip';
 import MetaMaskTemplateRenderer from '../../components/app/metamask-template-renderer';
-import SiteIcon from '../../components/ui/site-icon';
 import { DEFAULT_ROUTE } from '../../helpers/constants/routes';
-import {
-  COLORS,
-  FLEX_DIRECTION,
-  SIZES,
-} from '../../helpers/constants/design-system';
-import { stripHttpsScheme } from '../../helpers/utils/util';
 import { useI18nContext } from '../../hooks/useI18nContext';
 import { useOriginMetadata } from '../../hooks/useOriginMetadata';
 import { getUnapprovedTemplatedConfirmations } from '../../selectors';
 import NetworkDisplay from '../../components/app/network-display/network-display';
+import { COLORS, SIZES } from '../../helpers/constants/design-system';
 import Callout from '../../components/ui/callout';
-import { addCustomNetwork } from '../../store/actions';
+import SiteOrigin from '../../components/ui/site-origin';
 import ConfirmationFooter from './components/confirmation-footer';
 import { getTemplateValues, getTemplateAlerts } from './templates';
 
@@ -68,11 +61,10 @@ const alertStateReducer = produce((state, action) => {
  * confirmation page in a custom hook. This hook is not likely to be used
  * outside of this file, but it helps to reduce complexity of the primary
  * component.
- *
  * @param {Object} pendingConfirmation - a pending confirmation waiting for
- * user approval
- * @returns {[alertState: Object, dismissAlert: Function]} A tuple with
- * the current alert state and function to dismiss an alert by id
+ *  user approval
+ * @returns {[alertState: Object, dismissAlert: Function]} - tuple with
+ *  the current alert state and function to dismiss an alert by id
  */
 function useAlertState(pendingConfirmation) {
   const [alertState, dispatch] = useReducer(alertStateReducer, {});
@@ -89,7 +81,7 @@ function useAlertState(pendingConfirmation) {
     let isMounted = true;
     if (pendingConfirmation) {
       getTemplateAlerts(pendingConfirmation).then((alerts) => {
-        if (isMounted && alerts.length > 0) {
+        if (isMounted && alerts) {
           dispatch({
             type: 'set',
             confirmationId: pendingConfirmation.id,
@@ -173,7 +165,7 @@ export default function ConfirmationPage() {
                 setCurrentPendingConfirmation(currentPendingConfirmation - 1)
               }
             >
-              <i className="fas fa-chevron-left" />
+              <i className="fas fa-chevron-left"></i>
             </button>
           )}
           <button
@@ -185,7 +177,7 @@ export default function ConfirmationPage() {
               setCurrentPendingConfirmation(currentPendingConfirmation + 1)
             }
           >
-            <i className="fas fa-chevron-right" />
+            <i className="fas fa-chevron-right"></i>
           </button>
         </div>
       )}
@@ -193,29 +185,19 @@ export default function ConfirmationPage() {
         {templatedValues.networkDisplay ? (
           <Box justifyContent="center">
             <NetworkDisplay
+              colored={false}
               indicatorSize={SIZES.XS}
-              labelProps={{ color: COLORS.TEXT_DEFAULT }}
+              labelProps={{ color: COLORS.BLACK }}
             />
           </Box>
         ) : null}
-        {pendingConfirmation.origin === 'metamask' ? null : (
-          <Box
-            alignItems="center"
-            marginTop={1}
-            padding={[1, 4, 4]}
-            flexDirection={FLEX_DIRECTION.COLUMN}
-          >
-            <SiteIcon
-              icon={originMetadata.iconUrl}
-              name={originMetadata.hostname}
-              size={36}
-            />
-            <Chip
-              label={stripHttpsScheme(originMetadata.origin)}
-              borderColor={COLORS.BORDER_DEFAULT}
-            />
-          </Box>
-        )}
+        <Box justifyContent="center" padding={[4, 4, 4]}>
+          <SiteOrigin
+            siteOrigin={originMetadata.origin}
+            iconSrc={originMetadata.iconUrl}
+            iconName={originMetadata.hostname}
+          />
+        </Box>
         <MetaMaskTemplateRenderer sections={templatedValues.content} />
       </div>
       <ConfirmationFooter
@@ -236,10 +218,7 @@ export default function ConfirmationPage() {
               </Callout>
             ))
         }
-        onApprove={() => {
-          templatedValues.onApprove.apply();
-          dispatch(addCustomNetwork(pendingConfirmation.requestData));
-        }}
+        onApprove={templatedValues.onApprove}
         onCancel={templatedValues.onCancel}
         approveText={templatedValues.approvalText}
         cancelText={templatedValues.cancelText}

@@ -11,15 +11,8 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    border-top: 1px solid #d2d8dd;
     padding: 16px 24px;
-
-    & &-link-button {
-      @include H7;
-
-      padding: 0;
-      width: auto;
-      padding-inline-start: 24px;
-    }
   }
 
   &__subject-info {
@@ -31,12 +24,24 @@
     min-width: 0;
   }
 
-  &__subject-icon {
-    flex-shrink: 0;
-  }
-
   &__subject-name {
     max-width: 215px;
+    white-space: nowrap;
+    overflow: hidden;
+    direction: rtl;
+    text-overflow: ellipsis;
     margin-left: 6px;
+  }
+
+  &__disconnect {
+    @include H7;
+
+    cursor: pointer;
+    color: $primary-1;
+    padding-inline-start: 24px;
+  }
+
+  &__trash {
+    cursor: pointer;
   }
 }

@@ -1,11 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {
-  BackgroundColor,
-  SEVERITIES,
-  TextColor,
-  TypographyVariant,
-} from '../../../helpers/constants/design-system';
+import { SEVERITIES } from '../../../helpers/constants/design-system';
 import Card from '../card';
 import Typography from '../typography';
 import Box from '../box';
@@ -13,67 +8,35 @@ import Box from '../box';
 import README from './README.mdx';
 
 import Approve from './approve-icon.component';
+import BuyIcon from './overview-buy-icon.component';
+import CopyIcon from './copy-icon.component';
 import InfoIcon from './info-icon.component';
 import InfoIconInverted from './info-icon-inverted.component';
 import Interaction from './interaction-icon.component';
+import PaperAirplane from './paper-airplane-icon';
 import Preloader from './preloader';
 import ReceiveIcon from './receive-icon.component';
 import SendIcon from './send-icon.component';
 import Sign from './sign-icon.component';
 import SunCheck from './sun-check-icon.component';
 import Swap from './swap-icon-for-list.component';
-import IconEye from './icon-eye';
-import IconEyeSlash from './icon-eye-slash';
-import IconTokenSearch from './icon-token-search';
-import SearchIcon from './search-icon';
-
-const validColors = [
-  'var(--color-icon-default)',
-  'var(--color-icon-alternative)',
-  'var(--color-icon-muted)',
-  'var(--color-overlay-inverse)',
-  'var(--color-primary-default)',
-  'var(--color-warning-default)',
-  'var(--color-error-default)',
-  'var(--color-warning-default)',
-  'var(--color-success-default)',
-  'var(--color-info-default)',
-];
+import SwapIcon from './overview-send-icon.component';
+import SwapIconComponent from './swap-icon.component';
+import VerifiedIcon from './verified-icon';
 
 export default {
   title: 'Components/UI/Icon',
-
+  id: __filename,
   parameters: {
     docs: {
       page: README,
-    },
-  },
-  argTypes: {
-    size: {
-      control: 'select',
-      options: [16, 24, 32, 40],
-    },
-    color: {
-      control: 'select',
-      options: validColors,
-    },
-    ariaLabel: {
-      control: 'text',
-    },
-    className: {
-      control: 'text',
     },
   },
 };
 
 const IconItem = ({ Component }) => {
   return (
-    <Card
-      display="flex"
-      flexDirection="column"
-      textAlign="center"
-      backgroundColor={BackgroundColor.backgroundDefault}
-    >
+    <Card display="flex" flexDirection="column" textAlign="center">
       <Box marginBottom={2}>{Component}</Box>
       <code>{`${Component.type.__docgenInfo.displayName}`}</code>
     </Card>
@@ -86,39 +49,13 @@ IconItem.propTypes = {
 
 export const DefaultStory = (args) => (
   <div>
-    <Typography
-      variant={TypographyVariant.H2}
-      color={TextColor.errorDefault}
-      boxProps={{ marginBottom: 4 }}
-    >
-      DEPRECATED
-    </Typography>
-    <Typography variant={TypographyVariant.H2} boxProps={{ marginBottom: 4 }}>
+    <Typography variant="h2" boxProps={{ marginBottom: 4 }}>
       Icons
     </Typography>
-    <Typography
-      variant={TypographyVariant.paragraph}
-      boxProps={{ marginBottom: 4 }}
-    >
-      To ensure correct licensing we suggest you use an icon from the
-      @fortawesome/fontawesome-free: ^5.13.0 package. If there is no icon to
-      suit your needs and you need to create a new one. Ensure that it has the
-      correct licensing or has been created in house from scratch. Please use
-      the ./icon-caret-left.js as the template.
-    </Typography>
     <Box marginBottom={4}>
-      <div
-        style={{
-          display: 'grid',
-          gridGap: '16px',
-          gridTemplateColumns: 'repeat(auto-fill, 176px)',
-        }}
-      >
-        <IconItem Component={<IconTokenSearch {...args} />} />
-        <IconItem Component={<SearchIcon {...args} />} />
-      </div>
-    </Box>
-    <Box marginBottom={4}>
+      <Typography variant="h4" boxProps={{ marginBottom: 2 }}>
+        Circle Icons
+      </Typography>
       <div
         style={{
           display: 'grid',
@@ -132,13 +69,43 @@ export const DefaultStory = (args) => (
         <IconItem Component={<SendIcon {...args} />} />
         <IconItem Component={<ReceiveIcon {...args} />} />
         <IconItem Component={<Interaction {...args} />} />
+      </div>
+    </Box>
+    <Box marginBottom={4}>
+      <Typography variant="h4" boxProps={{ marginBottom: 2 }}>
+        Invertible Icons
+      </Typography>
+      <div
+        style={{
+          display: 'grid',
+          gridGap: '16px',
+          gridTemplateColumns: 'repeat(auto-fill, 176px)',
+        }}
+      >
         <IconItem Component={<InfoIcon {...args} />} />
         <IconItem Component={<InfoIconInverted {...args} />} />
         <IconItem Component={<SunCheck {...args} />} />
         <IconItem Component={<SunCheck {...args} reverseColors />} />
+      </div>
+    </Box>
+    <Box marginBottom={4}>
+      <Typography variant="h4" boxProps={{ marginBottom: 2 }}>
+        Other Icons
+      </Typography>
+      <div
+        style={{
+          display: 'grid',
+          gridGap: '16px',
+          gridTemplateColumns: 'repeat(auto-fill, 176px)',
+        }}
+      >
+        <IconItem Component={<BuyIcon {...args} />} />
+        <IconItem Component={<SwapIcon {...args} />} />
+        <IconItem Component={<SwapIconComponent {...args} />} />
+        <IconItem Component={<PaperAirplane {...args} />} />
+        <IconItem Component={<CopyIcon {...args} />} />
         <IconItem Component={<Preloader {...args} />} />
-        <IconItem Component={<IconEye {...args} />} />
-        <IconItem Component={<IconEyeSlash {...args} />} />
+        <IconItem Component={<VerifiedIcon {...args} />} />
       </div>
     </Box>
   </div>
@@ -147,78 +114,52 @@ export const DefaultStory = (args) => (
 DefaultStory.args = {
   width: '17',
   height: '21',
-  fill: 'var(--color-icon-default)',
+  fill: '#2F80ED',
   size: 40,
-  color: 'var(--color-icon-default)',
+  color: '#2F80ED',
   severity: 'info',
   reverseColors: false,
-};
-
-export const Size = (args) => (
-  <div>
-    <SunCheck size={16 || args.size} />
-    <SunCheck size={24 || args.size} />
-    <SunCheck size={32 || args.size} />
-  </div>
-);
-
-Size.args = {
-  size: null,
-};
-
-export const Color = (args) => (
-  <>
-    {Object.values(validColors).map((color) => (
-      <SunCheck {...args} color={args.color || color} key={color} />
-    ))}
-  </>
-);
-
-export const AriaLabel = (args) => <SunCheck {...args} />;
-
-AriaLabel.args = {
-  ariaLabel: 'back',
 };
 
 export const ApproveStory = (args) => <Approve {...args} />;
 ApproveStory.args = {
   size: 40,
-  color: 'var(--color-icon-default)',
+  color: '#2F80ED',
 };
 ApproveStory.storyName = 'Approve';
 
 export const SignStory = (args) => <Sign {...args} />;
 SignStory.args = {
   size: 40,
-  color: 'var(--color-icon-default)',
+  color: '#2F80ED',
 };
 SignStory.storyName = 'Sign';
 
 export const SwapStory = (args) => <Swap {...args} />;
 SwapStory.args = {
   size: 40,
-  color: 'var(--color-icon-default)',
+  color: '#2F80ED',
 };
 SwapStory.storyName = 'Swap';
 
 export const SendIconStory = (args) => <SendIcon {...args} />;
 SendIconStory.args = {
   size: 40,
-  color: 'var(--color-icon-default)',
+  color: '#2F80ED',
 };
 SendIconStory.storyName = 'SendIcon';
 
 export const ReceiveIconStory = (args) => <ReceiveIcon {...args} />;
 ReceiveIconStory.args = {
   size: 40,
-  color: 'var(--color-icon-default)',
+  color: '#2F80ED',
 };
 ReceiveIconStory.storyName = 'ReceiveIcon';
 
 export const InteractionStory = (args) => <Interaction {...args} />;
 InteractionStory.args = {
   size: 40,
-  color: 'var(--color-icon-default)',
+  color: '#2F80ED',
 };
 InteractionStory.storyName = 'Interaction';
 
@@ -256,6 +197,44 @@ SunCheckStory.argTypes = {
   },
 };
 SunCheckStory.storyName = 'SunCheck';
+
+export const BuyIconStory = (args) => <BuyIcon {...args} />;
+BuyIconStory.args = {
+  width: '17',
+  height: '21',
+  fill: '#2F80ED',
+};
+BuyIconStory.storyName = 'BuyIcon';
+
+export const SwapIconStory = (args) => <SwapIcon {...args} />;
+SwapIconStory.args = {
+  width: '17',
+  height: '21',
+  fill: '#2F80ED',
+};
+SwapIconStory.storyName = 'SwapIcon';
+
+export const SendSwapIconStory = (args) => <SwapIconComponent {...args} />;
+SendSwapIconStory.args = {
+  width: '17',
+  height: '17',
+  color: '#2F80ED',
+};
+SendSwapIconStory.storyName = 'Send/SwapIcon';
+
+export const PaperAirplaneStory = (args) => <PaperAirplane {...args} />;
+PaperAirplaneStory.args = {
+  size: 40,
+  color: '#2F80ED',
+};
+PaperAirplaneStory.storyName = 'PaperAirplane';
+
+export const CopyIconStory = (args) => <CopyIcon {...args} />;
+CopyIconStory.args = {
+  size: 40,
+  color: '#2F80ED',
+};
+CopyIconStory.storyName = 'CopyIcon';
 
 export const PreloaderStory = (args) => <Preloader {...args} />;
 PreloaderStory.args = {

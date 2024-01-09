@@ -1,10 +1,4 @@
-import { ApprovalType } from '@metamask/controller-utils';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { WALLET_SNAP_PERMISSION_KEY } from '@metamask/snaps-rpc-methods';
-///: END:ONLY_INCLUDE_IF
 import { CaveatTypes } from '../../shared/constants/permissions';
-import { getApprovalRequestsByType } from './approvals';
-import { createDeepEqualSelector } from './util';
 import {
   getMetaMaskAccountsOrdered,
   getOriginOfCurrentTab,
@@ -16,32 +10,10 @@ import {
 // selectors
 
 /**
- * Deep equal selector to get the permission subjects object.
+ * Get the permission subjects object.
  *
- * @param {object} state - The current state.
- * @returns {object} The permissions subjects object.
- */
-export const getPermissionSubjectsDeepEqual = createDeepEqualSelector(
-  (state) => state.metamask.subjects || {},
-  (subjects) => subjects,
-);
-
-/**
- * Deep equal selector to get the subject metadata object.
- *
- * @param {object} state - The current state.
- * @returns {object} The subject metadata object.
- */
-export const getSubjectMetadataDeepEqual = createDeepEqualSelector(
-  (state) => state.metamask.subjectMetadata,
-  (metadata) => metadata,
-);
-
-/**
- * Selector to get the permission subjects object.
- *
- * @param {object} state - The current state.
- * @returns {object} The permissions subjects object.
+ * @param {Object} state - The current state.
+ * @returns {Object} The permissions subjects object.
  */
 export function getPermissionSubjects(state) {
   return state.metamask.subjects || {};
@@ -51,7 +23,7 @@ export function getPermissionSubjects(state) {
  * Selects the permitted accounts from the eth_accounts permission given state
  * and an origin.
  *
- * @param {object} state - The current state.
+ * @param {Object} state - The current state.
  * @param {string} origin - The origin/subject to get the permitted accounts for.
  * @returns {Array<string>} An empty array or an array of accounts.
  */
@@ -65,7 +37,7 @@ export function getPermittedAccounts(state, origin) {
  * Selects the permitted accounts from the eth_accounts permission for the
  * origin of the current tab.
  *
- * @param {object} state - The current state.
+ * @param {Object} state - The current state.
  * @returns {Array<string>} An empty array or an array of accounts.
  */
 export function getPermittedAccountsForCurrentTab(state) {
@@ -75,8 +47,8 @@ export function getPermittedAccountsForCurrentTab(state) {
 /**
  * Returns a map of permitted accounts by origin for all origins.
  *
- * @param {object} state - The current state.
- * @returns {object} Permitted accounts by origin.
+ * @param {Object} state - The current state.
+ * @returns {Object} Permitted accounts by origin.
  */
 export function getPermittedAccountsByOrigin(state) {
   const subjects = getPermissionSubjects(state);
@@ -96,8 +68,8 @@ export function getPermittedAccountsByOrigin(state) {
  * - name
  * - icon
  *
- * @param {object} state - The current state.
- * @returns {Array<object>} An array of connected subject objects.
+ * @param {Object} state - The current state.
+ * @returns {Array<Object>} An array of connected subject objects.
  */
 export function getConnectedSubjectsForSelectedAddress(state) {
   const { selectedAddress } = state.metamask;
@@ -125,24 +97,6 @@ export function getConnectedSubjectsForSelectedAddress(state) {
   return connectedSubjects;
 }
 
-export function getConnectedSubjectsForAllAddresses(state) {
-  const subjects = getPermissionSubjects(state);
-  const subjectMetadata = getSubjectMetadata(state);
-
-  const accountsToConnections = {};
-  Object.entries(subjects).forEach(([subjectKey, subjectValue]) => {
-    const exposedAccounts = getAccountsFromSubject(subjectValue);
-    exposedAccounts.forEach((address) => {
-      if (!accountsToConnections[address]) {
-        accountsToConnections[address] = [];
-      }
-      accountsToConnections[address].push(subjectMetadata[subjectKey] || {});
-    });
-  });
-
-  return accountsToConnections;
-}
-
 export function getSubjectsWithPermission(state, permissionName) {
   const subjects = getPermissionSubjects(state);
 
@@ -164,36 +118,14 @@ export function getSubjectsWithPermission(state, permissionName) {
   return connectedSubjects;
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-export function getSubjectsWithSnapPermission(state, snapId) {
-  const subjects = getPermissionSubjects(state);
-
-  return Object.entries(subjects)
-    .filter(
-      ([_origin, { permissions }]) =>
-        permissions[WALLET_SNAP_PERMISSION_KEY]?.caveats[0].value[snapId],
-    )
-    .map(([origin, _subject]) => {
-      const { extensionId, name, iconUrl } =
-        getTargetSubjectMetadata(state, origin) || {};
-      return {
-        extensionId,
-        origin,
-        name,
-        iconUrl,
-      };
-    });
-}
-///: END:ONLY_INCLUDE_IF
-
 /**
  * Returns an object mapping addresses to objects mapping origins to connected
  * subject info. Subject info objects have the following properties:
  * - iconUrl
  * - name
  *
- * @param {object} state - The current state.
- * @returns {object} A mapping of addresses to a mapping of origins to
+ * @param {Object} state - The current state.
+ * @returns {Object} A mapping of addresses to a mapping of origins to
  * connected subject info.
  */
 export function getAddressConnectedSubjectMap(state) {
@@ -310,13 +242,13 @@ export function getPermissionsForActiveTab(state) {
   const { activeTab, metamask } = state;
   const { subjects = {} } = metamask;
 
-  const permissions = subjects[activeTab.origin]?.permissions ?? {};
-  return Object.keys(permissions).map((parentCapability) => {
-    return {
-      key: parentCapability,
-      value: permissions[parentCapability],
-    };
-  });
+  return Object.keys(subjects[activeTab.origin]?.permissions || {}).map(
+    (parentCapability) => {
+      return {
+        key: parentCapability,
+      };
+    },
+  );
 }
 
 export function activeTabHasPermissions(state) {
@@ -328,81 +260,26 @@ export function activeTabHasPermissions(state) {
   );
 }
 
-/**
- * Get the connected accounts history for all origins.
- *
- * @param {Record<string, unknown>} state - The MetaMask state.
- * @returns {Record<string, { accounts: Record<string, number> }>} An object
- * with account connection histories by origin.
- */
 export function getLastConnectedInfo(state) {
   const { permissionHistory = {} } = state.metamask;
-  return Object.keys(permissionHistory).reduce((lastConnectedInfo, origin) => {
-    if (permissionHistory[origin].eth_accounts) {
-      lastConnectedInfo[origin] = JSON.parse(
-        JSON.stringify(permissionHistory[origin].eth_accounts),
-      );
-    }
-
-    return lastConnectedInfo;
+  return Object.keys(permissionHistory).reduce((acc, origin) => {
+    const ethAccountsHistory = JSON.parse(
+      JSON.stringify(permissionHistory[origin].eth_accounts),
+    );
+    return {
+      ...acc,
+      [origin]: ethAccountsHistory,
+    };
   }, {});
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-export function getSnapInstallOrUpdateRequests(state) {
-  return Object.values(state.metamask.pendingApprovals)
-    .filter(
-      ({ type }) =>
-        type === 'wallet_installSnap' ||
-        type === 'wallet_updateSnap' ||
-        type === 'wallet_installSnapResult',
-    )
-    .map(({ requestData }) => requestData);
-}
-
-export function getFirstSnapInstallOrUpdateRequest(state) {
-  return getSnapInstallOrUpdateRequests(state)?.[0] ?? null;
-}
-///: END:ONLY_INCLUDE_IF
-
 export function getPermissionsRequests(state) {
-  return getApprovalRequestsByType(
-    state,
-    ApprovalType.WalletRequestPermissions,
-  )?.map(({ requestData }) => requestData);
-}
-
-export function getPermissionsDescriptions(state) {
-  return state.metamask.permissionsDescriptions || {};
-}
-
-export function getPermissionsRequestCount(state) {
-  const permissionsRequests = getPermissionsRequests(state);
-  return permissionsRequests.length;
-}
-
-export function getPermissionsDescriptions(state) {
-  return state.metamask.permissionsDescriptions || {};
-}
-
-export function getPermissionsRequestCount(state) {
-  const permissionsRequests = getPermissionsRequests(state);
-  return permissionsRequests.length;
+  return Object.values(state.metamask.pendingApprovals)
+    .filter(({ type }) => type === 'wallet_requestPermissions')
+    .map(({ requestData }) => requestData);
 }
 
 export function getFirstPermissionRequest(state) {
   const requests = getPermissionsRequests(state);
   return requests && requests[0] ? requests[0] : null;
-}
-
-export function getPermissions(state, origin) {
-  return getPermissionSubjects(state)[origin]?.permissions;
-}
-
-export function getRequestState(state, id) {
-  return state.metamask.pendingApprovals[id]?.requestState;
-}
-
-export function getRequestType(state, id) {
-  return state.metamask.pendingApprovals[id]?.type;
 }

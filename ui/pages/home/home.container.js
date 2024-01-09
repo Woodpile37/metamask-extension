@@ -13,17 +13,15 @@ import {
   unconfirmedTransactionsCountSelector,
   getInfuraBlocked,
   getShowWhatsNewPopup,
-  getSortedAnnouncementsToShow,
+  getSortedNotificationsToShow,
   getShowRecoveryPhraseReminder,
   getNewNetworkAdded,
   hasUnsignedQRHardwareTransaction,
   hasUnsignedQRHardwareMessage,
   getNewCollectibleAddedMessage,
-  getNewTokensImported,
 } from '../../selectors';
 
 import {
-  closeNotificationPopup,
   restoreFromThreeBox,
   turnThreeBoxSyncingOn,
   getThreeBoxLastUpdated,
@@ -36,17 +34,11 @@ import {
   setRecoveryPhraseReminderLastShown,
   setNewNetworkAdded,
   setNewCollectibleAddedMessage,
-  setNewTokensImported,
-  setRpcTarget,
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
   removeSnapError,
   ///: END:ONLY_INCLUDE_IN
 } from '../../store/actions';
-import {
-  setThreeBoxLastUpdated,
-  hideWhatsNewPopup,
-  setNewCustomNetworkAdded,
-} from '../../ducks/app/app';
+import { setThreeBoxLastUpdated, hideWhatsNewPopup } from '../../ducks/app/app';
 import { getWeb3ShimUsageAlertEnabledness } from '../../ducks/metamask/metamask';
 import { getSwapsFeatureIsLive } from '../../ducks/swaps/swaps';
 import { getEnvironmentType } from '../../../app/scripts/lib/util';
@@ -73,8 +65,6 @@ const mapStateToProps = (state) => {
     defaultHomeActiveTabName,
     swapsState,
     dismissSeedBackUpReminder,
-    firstTimeFlowType,
-    completedOnboarding,
   } = metamask;
   const accountBalance = getCurrentEthBalance(state);
   const { forgottenPassword, threeBoxLastUpdated } = appState;
@@ -121,8 +111,6 @@ const mapStateToProps = (state) => {
     totalUnapprovedCount,
     connectedStatusPopoverHasBeenShown,
     defaultHomeActiveTabName,
-    firstTimeFlowType,
-    completedOnboarding,
     haveSwapsQuotes: Boolean(Object.values(swapsState.quotes || {}).length),
     swapsFetchParams: swapsState.fetchParams,
     showAwaitingSwapScreen: swapsState.routeState === 'awaiting',
@@ -131,7 +119,7 @@ const mapStateToProps = (state) => {
     shouldShowWeb3ShimUsageNotification,
     pendingConfirmations,
     infuraBlocked: getInfuraBlocked(state),
-    notificationsToShow: getSortedAnnouncementsToShow(state).length > 0,
+    notificationsToShow: getSortedNotificationsToShow(state).length > 0,
     ///: BEGIN:ONLY_INCLUDE_IN(flask)
     errorsToShow: metamask.snapErrors,
     shouldShowErrors: Object.entries(metamask.snapErrors || []).length > 0,
@@ -142,13 +130,10 @@ const mapStateToProps = (state) => {
     newNetworkAdded: getNewNetworkAdded(state),
     isSigningQRHardwareTransaction,
     newCollectibleAddedMessage: getNewCollectibleAddedMessage(state),
-    newTokensImported: getNewTokensImported(state),
-    newCustomNetworkAdded: appState.newCustomNetworkAdded,
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  closeNotificationPopup: () => closeNotificationPopup(),
   turnThreeBoxSyncingOn: () => dispatch(turnThreeBoxSyncingOn()),
   setupThreeBox: () => {
     dispatch(getThreeBoxLastUpdated()).then((lastUpdated) => {
@@ -182,15 +167,6 @@ const mapDispatchToProps = (dispatch) => ({
   },
   setNewCollectibleAddedMessage: (message) => {
     dispatch(setNewCollectibleAddedMessage(message));
-  },
-  setNewTokensImported: (newTokens) => {
-    dispatch(setNewTokensImported(newTokens));
-  },
-  setNewCustomNetworkAdded: () => {
-    dispatch(setNewCustomNetworkAdded({}));
-  },
-  setRpcTarget: (rpcUrl, chainId, ticker, nickname) => {
-    dispatch(setRpcTarget(rpcUrl, chainId, ticker, nickname));
   },
 });
 

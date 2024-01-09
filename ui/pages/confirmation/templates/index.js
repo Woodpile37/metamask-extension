@@ -3,45 +3,41 @@ import { MESSAGE_TYPE } from '../../../../shared/constants/app';
 import {
   rejectPendingApproval,
   resolvePendingApproval,
-  upsertNetworkConfiguration,
 } from '../../../store/actions';
 import addEthereumChain from './add-ethereum-chain';
 import switchEthereumChain from './switch-ethereum-chain';
 ///: BEGIN:ONLY_INCLUDE_IN(flask)
-import snapAlert from './flask/snap-alert/snap-alert';
-import snapConfirmation from './flask/snap-confirmation/snap-confirmation';
-import snapPrompt from './flask/snap-prompt/snap-prompt';
+import snapConfirm from './flask/snap-confirm/snap-confirm';
 ///: END:ONLY_INCLUDE_IN
 
 const APPROVAL_TEMPLATES = {
   [MESSAGE_TYPE.ADD_ETHEREUM_CHAIN]: addEthereumChain,
   [MESSAGE_TYPE.SWITCH_ETHEREUM_CHAIN]: switchEthereumChain,
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  [MESSAGE_TYPE.SNAP_DIALOG_ALERT]: snapAlert,
-  [MESSAGE_TYPE.SNAP_DIALOG_CONFIRMATION]: snapConfirmation,
-  [MESSAGE_TYPE.SNAP_DIALOG_PROMPT]: snapPrompt,
+  [MESSAGE_TYPE.SNAP_CONFIRM]: snapConfirm,
   ///: END:ONLY_INCLUDE_IN
 };
 
-export const TEMPLATED_CONFIRMATION_MESSAGE_TYPES =
-  Object.keys(APPROVAL_TEMPLATES);
+export const TEMPLATED_CONFIRMATION_MESSAGE_TYPES = Object.keys(
+  APPROVAL_TEMPLATES,
+);
 
 const ALLOWED_TEMPLATE_KEYS = [
-  'cancelText',
   'content',
+  'approvalText',
+  'cancelText',
+  'onApprove',
   'onCancel',
-  'onSubmit',
   'networkDisplay',
-  'submitText',
 ];
 
 /**
- * @typedef {object} PendingApproval
+ * @typedef {Object} PendingApproval
  * @property {string} id - The randomly generated id of the approval
  * @property {string} origin - The origin of the site requesting this approval
  * @property {number} time - The time the approval was requested
  * @property {string} type - The type of approval being requested
- * @property {object} requestData - The data submitted with the request
+ * @property {Object} requestData - The data submitted with the request
  */
 
 /**
@@ -50,11 +46,11 @@ const ALLOWED_TEMPLATE_KEYS = [
  * page the alerts returned from the getAlerts method will be set into the
  * alertState state object.
  *
- * @param {object} pendingApproval - the object representing the confirmation
+ * @param {Object} pendingApproval - the object representing the confirmation
  */
 export async function getTemplateAlerts(pendingApproval) {
   const fn = APPROVAL_TEMPLATES[pendingApproval.type]?.getAlerts;
-  const results = fn ? await fn(pendingApproval) : [];
+  const results = fn ? await fn(pendingApproval) : undefined;
   if (!Array.isArray(results)) {
     throw new Error(`Template alerts must be an array, received: ${results}`);
   }
@@ -81,8 +77,7 @@ async function emptyState() {
  * page the object returned from the getState method will be set into the
  * confirmationState state object. Note, this state is not consumed by the page
  * itself.
- *
- * @param {object} pendingApproval - the object representing the confirmation
+ * @param {Object} pendingApproval - the object representing the confirmation
  */
 export async function getTemplateState(pendingApproval) {
   const fn = APPROVAL_TEMPLATES[pendingApproval.type]?.getState ?? emptyState;
@@ -101,7 +96,6 @@ export async function getTemplateState(pendingApproval) {
  * to be safe for templates to invoke. In the future we could put these behind
  * permission sets so that snaps that wish to manipulate state must ask for
  * explicit permission to do so.
- *
  * @param {Function} dispatch - Redux dispatch function
  */
 function getAttenuatedDispatch(dispatch) {
@@ -110,28 +104,16 @@ function getAttenuatedDispatch(dispatch) {
       dispatch(rejectPendingApproval(...args)),
     resolvePendingApproval: (...args) =>
       dispatch(resolvePendingApproval(...args)),
-    upsertNetworkConfiguration: (...args) =>
-      dispatch(upsertNetworkConfiguration(...args)),
   };
 }
 
 /**
  * Returns the templated values to be consumed in the confirmation page
- *
- * @param {object} pendingApproval - The pending confirmation object.
- * @param {Function} t - Translation function.
- * @param {Function} dispatch - Redux dispatch function.
- * @param {object} history - The application's history object.
- * @param {Function} setInputState - A function that can be used to record the
- * state of input fields in the templated component.
+ * @param {Object} pendingApproval - The pending confirmation object
+ * @param {Function} t - Translation function
+ * @param {Function} dispatch - Redux dispatch function
  */
-export function getTemplateValues(
-  pendingApproval,
-  t,
-  dispatch,
-  history,
-  setInputState,
-) {
+export function getTemplateValues(pendingApproval, t, dispatch) {
   const fn = APPROVAL_TEMPLATES[pendingApproval.type]?.getValues;
   if (!fn) {
     throw new Error(
@@ -140,7 +122,7 @@ export function getTemplateValues(
   }
 
   const safeActions = getAttenuatedDispatch(dispatch);
-  const values = fn(pendingApproval, t, safeActions, history, setInputState);
+  const values = fn(pendingApproval, t, safeActions);
   const extraneousKeys = omit(values, ALLOWED_TEMPLATE_KEYS);
   const safeValues = pick(values, ALLOWED_TEMPLATE_KEYS);
   if (extraneousKeys.length > 0) {

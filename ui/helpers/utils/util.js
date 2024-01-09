@@ -1,8 +1,11 @@
 import punycode from 'punycode/punycode';
 import abi from 'human-standard-token-abi';
 import BigNumber from 'bignumber.js';
-import { BN } from 'bn.js';
+import * as ethUtil from 'ethereumjs-util';
 import { DateTime } from 'luxon';
+import { util } from '@metamask/controllers';
+import slip44 from '@metamask/slip44';
+import { addHexPrefix } from '../../../app/scripts/lib/util';
 import {
   GOERLI_CHAIN_ID,
   KOVAN_CHAIN_ID,
@@ -11,11 +14,7 @@ import {
   RINKEBY_CHAIN_ID,
   ROPSTEN_CHAIN_ID,
 } from '../../../shared/constants/network';
-import {
-  toChecksumHexAddress,
-  stripHexPrefix,
-  addHexPrefix,
-} from '../../../shared/modules/hexstring-utils';
+import { toChecksumHexAddress } from '../../../shared/modules/hexstring-utils';
 import {
   TRUNCATED_ADDRESS_START_CHARS,
   TRUNCATED_NAME_CHAR_LIMIT,
@@ -90,7 +89,7 @@ export function addressSummary(
   }
   let checked = toChecksumHexAddress(address);
   if (!includeHex) {
-    checked = stripHexPrefix(checked);
+    checked = ethUtil.stripHexPrefix(checked);
   }
   return checked
     ? `${checked.slice(0, firstSegLength)}...${checked.slice(
@@ -122,10 +121,10 @@ export function isOriginContractAddress(to, sendTokenAddress) {
 // Takes wei Hex, returns wei BN, even if input is null
 export function numericBalance(balance) {
   if (!balance) {
-    return new BN(0, 16);
+    return new ethUtil.BN(0, 16);
   }
-  const stripped = stripHexPrefix(balance);
-  return new BN(stripped, 16);
+  const stripped = ethUtil.stripHexPrefix(balance);
+  return new ethUtil.BN(stripped, 16);
 }
 
 // Takes  hex, returns [beforeDecimal, afterDecimal]
@@ -262,6 +261,21 @@ export function stripHttpSchemes(urlString) {
  */
 export function stripHttpsScheme(urlString) {
   return urlString.replace(/^https:\/\//u, '');
+}
+
+/**
+ * Strips `https` schemes from URL strings, if the URL does not have a port.
+ * This is useful
+ *
+ * @param {string} urlString - The URL string to strip the scheme from.
+ * @returns {string} The URL string, without the scheme, if it was stripped.
+ */
+export function stripHttpsSchemeWithoutPort(urlString) {
+  if (getURL(urlString).port) {
+    return urlString;
+  }
+
+  return stripHttpsScheme(urlString);
 }
 
 /**
@@ -410,4 +424,153 @@ export function getURLHost(url) {
 
 export function getURLHostName(url) {
   return getURL(url)?.hostname || '';
+}
+
+// Once we reach this threshold, we switch to higher unit
+const MINUTE_CUTOFF = 90 * 60;
+const SECOND_CUTOFF = 90;
+
+export const toHumanReadableTime = (t, milliseconds) => {
+  if (milliseconds === undefined || milliseconds === null) return '';
+  const seconds = Math.ceil(milliseconds / 1000);
+  if (seconds <= SECOND_CUTOFF) {
+    return t('gasTimingSecondsShort', [seconds]);
+  }
+  if (seconds <= MINUTE_CUTOFF) {
+    return t('gasTimingMinutesShort', [Math.ceil(seconds / 60)]);
+  }
+  return t('gasTimingHoursShort', [Math.ceil(seconds / 3600)]);
+};
+
+export function clearClipboard() {
+  window.navigator.clipboard.writeText('');
+}
+
+const solidityTypes = () => {
+  const types = [
+    'bool',
+    'address',
+    'string',
+    'bytes',
+    'int',
+    'uint',
+    'fixed',
+    'ufixed',
+  ];
+
+  const ints = Array.from(new Array(32)).map(
+    (_, index) => `int${(index + 1) * 8}`,
+  );
+  const uints = Array.from(new Array(32)).map(
+    (_, index) => `uint${(index + 1) * 8}`,
+  );
+  const bytes = Array.from(new Array(32)).map(
+    (_, index) => `bytes${index + 1}`,
+  );
+
+  /**
+   * fixed and ufixed
+   * This value type also can be declared keywords such as ufixedMxN and fixedMxN.
+   * The M represents the amount of bits that the type takes,
+   * with N representing the number of decimal points that are available.
+   *  M has to be divisible by 8, and a number from 8 to 256.
+   * N has to be a value between 0 and 80, also being inclusive.
+   */
+  const fixedM = Array.from(new Array(32)).map(
+    (_, index) => `fixed${(index + 1) * 8}`,
+  );
+  const ufixedM = Array.from(new Array(32)).map(
+    (_, index) => `ufixed${(index + 1) * 8}`,
+  );
+  const fixed = Array.from(new Array(80)).map((_, index) =>
+    fixedM.map((aFixedM) => `${aFixedM}x${index + 1}`),
+  );
+  const ufixed = Array.from(new Array(80)).map((_, index) =>
+    ufixedM.map((auFixedM) => `${auFixedM}x${index + 1}`),
+  );
+
+  return [
+    ...types,
+    ...ints,
+    ...uints,
+    ...bytes,
+    ...fixed.flat(),
+    ...ufixed.flat(),
+  ];
+};
+
+export const sanitizeMessage = (msg, baseType, types) => {
+  if (!types) {
+    throw new Error(`Invalid types definition`);
+  }
+
+  const baseTypeDefinitions = types[baseType];
+  if (!baseTypeDefinitions) {
+    throw new Error(`Invalid primary type definition`);
+  }
+
+  const sanitizedMessage = {};
+  const msgKeys = Object.keys(msg);
+  msgKeys.forEach((msgKey) => {
+    const definedType = Object.values(baseTypeDefinitions).find(
+      (baseTypeDefinition) => baseTypeDefinition.name === msgKey,
+    );
+
+    if (!definedType) {
+      return;
+    }
+
+    // key has a type. check if the definedType is also a type
+    const nestedType = definedType.type.replace(/\[\]$/u, '');
+    const nestedTypeDefinition = types[nestedType];
+
+    if (nestedTypeDefinition) {
+      if (definedType.type.endsWith('[]') > 0) {
+        // nested array
+        sanitizedMessage[msgKey] = msg[msgKey].map((value) =>
+          sanitizeMessage(value, nestedType, types),
+        );
+      } else {
+        // nested object
+        sanitizedMessage[msgKey] = sanitizeMessage(
+          msg[msgKey],
+          definedType.type,
+          types,
+        );
+      }
+    } else {
+      // check if it's a valid solidity type
+      const isSolidityType = solidityTypes().includes(nestedType);
+      if (isSolidityType) {
+        sanitizedMessage[msgKey] = msg[msgKey];
+      }
+    }
+  });
+  return sanitizedMessage;
+};
+
+export function getAssetImageURL(image, ipfsGateway) {
+  if (!image || !ipfsGateway || typeof image !== 'string') {
+    return '';
+  }
+
+  if (image.startsWith('ipfs://')) {
+    return util.getFormattedIpfsUrl(ipfsGateway, image, true);
+  }
+  return image;
+}
+
+/**
+ * Gets the name of the SLIP-44 protocol corresponding to the specified
+ * `coin_type`.
+ *
+ * @param {string | number} coinType - The SLIP-44 `coin_type` value whose name
+ * to retrieve.
+ * @returns {string | undefined} The name of the protocol if found.
+ */
+export function coinTypeToProtocolName(coinType) {
+  if (String(coinType) === '1') {
+    return 'Test Networks';
+  }
+  return slip44[coinType]?.name || undefined;
 }

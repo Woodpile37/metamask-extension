@@ -1,11 +1,7 @@
 import {
   constructPermission,
   PermissionType,
-} from '@metamask/permission-controller';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications } from '@metamask/snaps-controllers';
-import { caveatSpecifications as snapsCaveatsSpecifications } from '@metamask/snaps-rpc-methods';
-///: END:ONLY_INCLUDE_IF
+} from '@metamask/snap-controllers';
 import {
   CaveatTypes,
   RestrictedMethods,
@@ -14,14 +10,14 @@ import {
 /**
  * This file contains the specifications of the permissions and caveats
  * that are recognized by our permission system. See the PermissionController
- * README in @metamask/controllers for details.
+ * README in @metamask/snap-controllers for details.
  */
 
 /**
  * The "keys" of all of permissions recognized by the PermissionController.
  * Permission keys and names have distinct meanings in the permission system.
  */
-const PermissionNames = Object.freeze({
+const PermissionKeys = Object.freeze({
   ...RestrictedMethods,
 });
 
@@ -36,14 +32,24 @@ const CaveatFactories = Object.freeze({
 });
 
 /**
+ * A PreferencesController identity object.
+ *
+ * @typedef {Object} Identity
+ * @property {string} address - The address of the identity.
+ * @property {string} name - The name of the identity.
+ * @property {number} [lastSelected] - Unix timestamp of when the identity was
+ * last selected in the UI.
+ */
+
+/**
  * Gets the specifications for all caveats that will be recognized by the
  * PermissionController.
  *
  * @param {{
- *   getInternalAccounts: () => Record<string, import('@metamask/keyring-api').InternalAccount>,
+ *   getIdentities: () => Record<string, Identity>,
  * }} options - Options bag.
  */
-export const getCaveatSpecifications = ({ getInternalAccounts }) => {
+export const getCaveatSpecifications = ({ getIdentities }) => {
   return {
     [CaveatTypes.restrictReturnedAccounts]: {
       type: CaveatTypes.restrictReturnedAccounts,
@@ -51,18 +57,15 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => {
       decorator: (method, caveat) => {
         return async (args) => {
           const result = await method(args);
-          return result.filter((account) => caveat.value.includes(account));
+          return result
+            .filter((account) => caveat.value.includes(account))
+            .slice(0, 1);
         };
       },
 
       validator: (caveat, _origin, _target) =>
-        validateCaveatAccounts(caveat.value, getInternalAccounts),
+        validateCaveatAccounts(caveat.value, getIdentities),
     },
-
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-    ...snapsCaveatsSpecifications,
-    ...snapsEndowmentCaveatSpecifications,
-    ///: END:ONLY_INCLUDE_IF
   };
 };
 
@@ -72,39 +75,35 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => {
  *
  * @param {{
  *   getAllAccounts: () => Promise<string[]>,
- *   getInternalAccounts: () => Record<string, import('@metamask/keyring-api').InternalAccount>,
+ *   getIdentities: () => Record<string, Identity>,
  * }} options - Options bag.
  * @param options.getAllAccounts - A function that returns all Ethereum accounts
  * in the current MetaMask instance.
- * @param options.getInternalAccounts - A function that returns the
- * `AccountsController` internalAccount objects for all accounts in the
- * @param options.captureKeyringTypesWithMissingIdentities - A function that
- * captures extra error information about the "Missing identity for address"
- * error.
+ * @param options.getIdentities - A function that returns the
+ * `PreferencesController` identity objects for all Ethereum accounts in the
  * current MetaMask instance.
  */
 export const getPermissionSpecifications = ({
   getAllAccounts,
-  getInternalAccounts,
-  captureKeyringTypesWithMissingIdentities,
+  getIdentities,
 }) => {
   return {
-    [PermissionNames.eth_accounts]: {
+    [PermissionKeys.eth_accounts]: {
       permissionType: PermissionType.RestrictedMethod,
-      targetName: PermissionNames.eth_accounts,
+      targetKey: PermissionKeys.eth_accounts,
       allowedCaveats: [CaveatTypes.restrictReturnedAccounts],
 
       factory: (permissionOptions, requestData) => {
         if (Array.isArray(permissionOptions.caveats)) {
           throw new Error(
-            `${PermissionNames.eth_accounts} error: Received unexpected caveats. Any permitted caveats will be added automatically.`,
+            `${PermissionKeys.eth_accounts} error: Received unexpected caveats. Any permitted caveats will be added automatically.`,
           );
         }
 
         // This value will be further validated as part of the caveat.
         if (!requestData.approvedAccounts) {
           throw new Error(
-            `${PermissionNames.eth_accounts} error: No approved accounts specified.`,
+            `${PermissionKeys.eth_accounts} error: No approved accounts specified.`,
           );
         }
 
@@ -120,49 +119,29 @@ export const getPermissionSpecifications = ({
 
       methodImplementation: async (_args) => {
         const accounts = await getAllAccounts();
-        const internalAccounts = getInternalAccounts();
+        const identities = getIdentities();
 
         return accounts.sort((firstAddress, secondAddress) => {
-          const firstAccount = internalAccounts.find(
-            (internalAccount) =>
-              internalAccount.address.toLowerCase() ===
-              firstAddress.toLowerCase(),
-          );
-
-          const secondAccount = internalAccounts.find(
-            (internalAccount) =>
-              internalAccount.address.toLowerCase() ===
-              secondAddress.toLowerCase(),
-          );
-
-          if (!firstAccount) {
-            captureKeyringTypesWithMissingIdentities(
-              internalAccounts,
-              accounts,
-            );
+          if (!identities[firstAddress]) {
             throw new Error(`Missing identity for address: "${firstAddress}".`);
-          } else if (!secondAccount) {
-            captureKeyringTypesWithMissingIdentities(
-              internalAccounts,
-              accounts,
-            );
+          } else if (!identities[secondAddress]) {
             throw new Error(
               `Missing identity for address: "${secondAddress}".`,
             );
           } else if (
-            firstAccount.metadata.lastSelected ===
-            secondAccount.metadata.lastSelected
+            identities[firstAddress].lastSelected ===
+            identities[secondAddress].lastSelected
           ) {
             return 0;
-          } else if (firstAccount.metadata.lastSelected === undefined) {
+          } else if (identities[firstAddress].lastSelected === undefined) {
             return 1;
-          } else if (secondAccount.metadata.lastSelected === undefined) {
+          } else if (identities[secondAddress].lastSelected === undefined) {
             return -1;
           }
 
           return (
-            secondAccount.metadata.lastSelected -
-            firstAccount.metadata.lastSelected
+            identities[secondAddress].lastSelected -
+            identities[firstAddress].lastSelected
           );
         });
       },
@@ -175,21 +154,11 @@ export const getPermissionSpecifications = ({
           caveats[0].type !== CaveatTypes.restrictReturnedAccounts
         ) {
           throw new Error(
-            `${PermissionNames.eth_accounts} error: Invalid caveats. There must be a single caveat of type "${CaveatTypes.restrictReturnedAccounts}".`,
+            `${PermissionKeys.eth_accounts} error: Invalid caveats. There must be a single caveat of type "${CaveatTypes.restrictReturnedAccounts}".`,
           );
         }
       },
     },
-    ///: BEGIN:ONLY_INCLUDE_IN(flask)
-    'endowment:wasm': {
-      permissionType: PermissionType.Endowment,
-      targetKey: 'endowment:wasm',
-      allowedCaveats: null,
-      endowmentGetter: () => {
-        return ['WebAssembly'];
-      },
-    },
-    ///: END:ONLY_INCLUDE_IN
   };
 };
 
@@ -199,32 +168,27 @@ export const getPermissionSpecifications = ({
  * corresponds to a PreferencesController identity.
  *
  * @param {string[]} accounts - The accounts associated with the caveat.
- * @param {() => Record<string, import('@metamask/keyring-api').InternalAccount>} getInternalAccounts -
- * Gets all AccountsController InternalAccounts.
+ * @param {() => Record<string, Identity>} getIdentities - Gets all
+ * PreferencesController identities.
  */
-function validateCaveatAccounts(accounts, getInternalAccounts) {
+function validateCaveatAccounts(accounts, getIdentities) {
   if (!Array.isArray(accounts) || accounts.length === 0) {
     throw new Error(
-      `${PermissionNames.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
+      `${PermissionKeys.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
     );
   }
 
-  const internalAccounts = getInternalAccounts();
+  const identities = getIdentities();
   accounts.forEach((address) => {
     if (!address || typeof address !== 'string') {
       throw new Error(
-        `${PermissionNames.eth_accounts} error: Expected an array of Ethereum addresses. Received: "${address}".`,
+        `${PermissionKeys.eth_accounts} error: Expected an array of Ethereum addresses. Received: "${address}".`,
       );
     }
 
-    if (
-      !internalAccounts.some(
-        (internalAccount) =>
-          internalAccount.address.toLowerCase() === address.toLowerCase(),
-      )
-    ) {
+    if (!identities[address]) {
       throw new Error(
-        `${PermissionNames.eth_accounts} error: Received unrecognized address: "${address}".`,
+        `${PermissionKeys.eth_accounts} error: Received unrecognized address: "${address}".`,
       );
     }
   });

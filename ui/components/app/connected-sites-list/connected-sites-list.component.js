@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import Button from '../../ui/button';
-import { AvatarFavicon } from '../../component-library';
+import SiteIcon from '../../ui/site-icon';
 import { stripHttpsSchemeWithoutPort } from '../../../helpers/utils/util';
-import SiteOrigin from '../../ui/site-origin';
-import { Size } from '../../../helpers/constants/design-system';
 
 export default class ConnectedSitesList extends Component {
   static contextTypes = {
@@ -34,25 +31,20 @@ export default class ConnectedSitesList extends Component {
             className="connected-sites-list__content-row"
           >
             <div className="connected-sites-list__subject-info">
-              <AvatarFavicon
-                className="connected-sites-list__subject-icon"
-                name={subject.name}
-                size={Size.MD}
-                src={subject.iconUrl}
-              />
-              <SiteOrigin
+              <SiteIcon icon={subject.iconUrl} name={subject.name} size={32} />
+              <span
                 className="connected-sites-list__subject-name"
                 title={subject.extensionId || subject.origin}
-                siteOrigin={this.getSubjectDisplayName(subject)}
-              />
+              >
+                {this.getSubjectDisplayName(subject)}
+              </span>
             </div>
-            <Button
-              className="connected-sites-list__content-row-link-button"
+            <div
+              className="connected-sites-list__disconnect"
               onClick={() => onDisconnect(subject.origin)}
-              type="link"
             >
               {t('disconnect')}
-            </Button>
+            </div>
           </div>
         ))}
       </main>

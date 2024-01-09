@@ -7,8 +7,6 @@ import { useI18nContext } from '../../../../hooks/useI18nContext';
 import {
   TYPOGRAPHY,
   COLORS,
-  TEXT_ALIGN,
-  FRACTIONS,
 } from '../../../../helpers/constants/design-system';
 import SnapsAuthorshipPill from '../../../../components/app/flask/snaps-authorship-pill';
 import Box from '../../../../components/ui/box';
@@ -45,7 +43,6 @@ function ViewSnap() {
     }
   }, [history, snap]);
 
-  const authorshipPillUrl = `https://npmjs.com/package/${snap?.manifest.source.location.npm.packageName}`;
   const connectedSubjects = useSelector((state) =>
     getSubjectsWithPermission(state, snap?.permissionName),
   );
@@ -75,7 +72,7 @@ function ViewSnap() {
           <Typography
             className="view-snap__title"
             variant={TYPOGRAPHY.H3}
-            boxProps={{ textAlign: TEXT_ALIGN.CENTER }}
+            boxProps={{ textAlign: 'center' }}
           >
             {snap.manifest.proposedName}
           </Typography>
@@ -83,28 +80,28 @@ function ViewSnap() {
             <Box className="view-snap__pill-container" paddingLeft={2}>
               <SnapsAuthorshipPill
                 packageName={snap.id}
-                url={authorshipPillUrl}
+                url={snap.manifest.repository?.url}
               />
             </Box>
-            <Box paddingLeft={4} className="view-snap__toggle-container">
+            <Box
+              paddingLeft={4}
+              className="snap-settings-card__toggle-container view-snap__toggle-container"
+            >
               <Tooltip interactive position="bottom" html={t('snapsToggle')}>
                 <ToggleButton
                   value={snap.enabled}
                   onToggle={onToggle}
-                  className="view-snap__toggle-button"
+                  className="snap-settings-card__toggle-container__toggle-button"
                 />
               </Tooltip>
             </Box>
           </Box>
         </div>
-        <Box
-          className="view-snap__content-container"
-          width={FRACTIONS.SEVEN_TWELFTHS}
-        >
+        <Box className="view-snap__content-container" width="7/12">
           <div className="view-snap__section">
             <Typography
               variant={TYPOGRAPHY.H6}
-              color={COLORS.TEXT_ALTERNATIVE}
+              color={COLORS.UI4}
               boxProps={{ marginTop: 5 }}
             >
               {snap.manifest.description}
@@ -112,10 +109,10 @@ function ViewSnap() {
           </div>
           <div className="view-snap__section view-snap__permission-list">
             <Typography variant={TYPOGRAPHY.H4}>{t('permissions')}</Typography>
-            <Typography variant={TYPOGRAPHY.H6} color={COLORS.TEXT_ALTERNATIVE}>
+            <Typography variant={TYPOGRAPHY.H6} color={COLORS.UI4}>
               {t('snapAccess', [snap.manifest.proposedName])}
             </Typography>
-            <Box width={FRACTIONS.TEN_TWELFTHS}>
+            <Box width="10/12">
               <PermissionsConnectPermissionList
                 permissions={snap.manifest.initialPermissions}
               />
@@ -126,10 +123,7 @@ function ViewSnap() {
               <Typography variant={TYPOGRAPHY.H4}>
                 {t('connectedSites')}
               </Typography>
-              <Typography
-                variant={TYPOGRAPHY.H6}
-                color={COLORS.TEXT_ALTERNATIVE}
-              >
+              <Typography variant={TYPOGRAPHY.H6} color={COLORS.UI4}>
                 {t('connectedSnapSites', [snap.manifest.proposedName])}
               </Typography>
               <ConnectedSitesList
@@ -144,19 +138,19 @@ function ViewSnap() {
             <Typography variant={TYPOGRAPHY.H4}>{t('removeSnap')}</Typography>
             <Typography
               variant={TYPOGRAPHY.H6}
-              color={COLORS.TEXT_ALTERNATIVE}
+              color={COLORS.UI4}
               boxProps={{ paddingBottom: 3 }}
             >
               {t('removeSnapDescription')}
             </Typography>
             <Button
-              className="view-snap__remove-button"
+              className="view-snap__remove__button"
               type="danger"
               css={{
                 maxWidth: '175px',
               }}
-              onClick={() => {
-                dispatch(removeSnap(snap));
+              onClick={async () => {
+                await dispatch(removeSnap(snap));
               }}
             >
               {t('removeSnap')}

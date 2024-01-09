@@ -12,7 +12,7 @@
 @import 'qr-scanner/index';
 @import 'transaction-confirmed/index';
 @import 'customize-nonce/index';
-@import 'transaction-error-details-modal/index';
+@import 'snap-install-warning/index';
 
 .modal {
   z-index: 1050;
@@ -24,7 +24,7 @@
 
   &__content {
     margin: 0;
-    background-color: var(--white);
+    background-color: white;
     animation-fill-mode: forwards;
   }
 
@@ -44,4 +44,3 @@
     outline: none !important;
   }
 }
-

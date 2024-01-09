@@ -1,84 +1,65 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import classnames from 'classnames';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { SubjectType } from '@metamask/permission-controller';
-///: END:ONLY_INCLUDE_IF
 import SiteOrigin from '../../ui/site-origin';
-import Box from '../../ui/box';
-import {
-  FLEX_DIRECTION,
-  JustifyContent,
-} from '../../../helpers/constants/design-system';
+///: BEGIN:ONLY_INCLUDE_IN(flask)
+import SnapsAuthorshipPill from '../flask/snaps-authorship-pill';
+///: END:ONLY_INCLUDE_IN
 
 export default class PermissionsConnectHeader extends Component {
   static propTypes = {
-    className: PropTypes.string,
     iconUrl: PropTypes.string,
     iconName: PropTypes.string.isRequired,
     siteOrigin: PropTypes.string.isRequired,
     headerTitle: PropTypes.node,
-    boxProps: PropTypes.shape({ ...Box.propTypes }),
     headerText: PropTypes.string,
-    leftIcon: PropTypes.node,
-    rightIcon: PropTypes.node,
-    subjectType: PropTypes.string,
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
+    npmPackageName: PropTypes.string,
+    ///: END:ONLY_INCLUDE_IN
   };
 
   static defaultProps = {
     iconUrl: null,
     headerTitle: '',
     headerText: '',
-    boxProps: {},
   };
 
   renderHeaderIcon() {
-    const {
-      iconUrl,
-      iconName,
-      siteOrigin,
-      leftIcon,
-      rightIcon,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      subjectType,
-      ///: END:ONLY_INCLUDE_IF
-    } = this.props;
-
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-
-    if (subjectType === SubjectType.Snap) {
-      return null;
-    }
-    ///: END:ONLY_INCLUDE_IF
+    const { iconUrl, iconName, siteOrigin } = this.props;
 
     return (
       <div className="permissions-connect-header__icon">
-        <SiteOrigin
-          chip
-          siteOrigin={siteOrigin}
-          title={siteOrigin}
-          iconSrc={iconUrl}
-          name={iconName}
-          leftIcon={leftIcon}
-          rightIcon={rightIcon}
-        />
+        <SiteOrigin siteOrigin={siteOrigin} iconSrc={iconUrl} name={iconName} />
       </div>
     );
   }
 
   render() {
-    const { boxProps, className, headerTitle, headerText } = this.props;
+    const {
+      headerTitle,
+      headerText,
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      npmPackageName,
+      ///: END:ONLY_INCLUDE_IN
+    } = this.props;
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
+    const npmPackageUrl = `https://www.npmjs.com/package/${npmPackageName}`;
+    ///: END:ONLY_INCLUDE_IN
     return (
-      <Box
-        className={classnames('permissions-connect-header', className)}
-        flexDirection={FLEX_DIRECTION.COLUMN}
-        justifyContent={JustifyContent.center}
-        {...boxProps}
-      >
+      <div className="permissions-connect-header">
         {this.renderHeaderIcon()}
         <div className="permissions-connect-header__title">{headerTitle}</div>
+        {
+          ///: BEGIN:ONLY_INCLUDE_IN(flask)
+          npmPackageName ? (
+            <SnapsAuthorshipPill
+              packageName={npmPackageName}
+              url={npmPackageUrl}
+            />
+          ) : null
+          ///: END:ONLY_INCLUDE_IN
+        }
         <div className="permissions-connect-header__subtitle">{headerText}</div>
-      </Box>
+      </div>
     );
   }
 }
