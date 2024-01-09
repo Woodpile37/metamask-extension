@@ -9,13 +9,13 @@ import TransactionActivityLog from '../transaction-activity-log';
 import TransactionBreakdown from '../transaction-breakdown';
 import Button from '../../ui/button';
 import Tooltip from '../../ui/tooltip';
+import Copy from '../../ui/icon/copy-icon.component';
 import CancelButton from '../cancel-button';
 import Popover from '../../ui/popover';
 import { SECOND } from '../../../../shared/constants/time';
 import { TRANSACTION_TYPES } from '../../../../shared/constants/transaction';
 import { getURLHostName } from '../../../helpers/utils/util';
 import TransactionDecoding from '../transaction-decoding';
-
 export default class TransactionListItemDetails extends PureComponent {
   static contextTypes = {
     t: PropTypes.func,
@@ -45,7 +45,7 @@ export default class TransactionListItemDetails extends PureComponent {
     tryReverseResolveAddress: PropTypes.func.isRequired,
     senderNickname: PropTypes.string.isRequired,
     recipientNickname: PropTypes.string,
-    transactionStatus: PropTypes.func,
+    transactionStatus: PropTypes.node,
   };
 
   state = {
@@ -126,6 +126,7 @@ export default class TransactionListItemDetails extends PureComponent {
       showRetry,
       recipientEns,
       recipientAddress,
+      rpcPrefs: { blockExplorerUrl } = {},
       senderAddress,
       isEarliestNonce,
       senderNickname,
@@ -211,8 +212,8 @@ export default class TransactionListItemDetails extends PureComponent {
           </div>
           <div className="transaction-list-item-details__body">
             <div className="transaction-list-item-details__sender-to-recipient-header">
-              <div>{t('from')}</div>
-              <div>{t('to')}</div>
+              <div>From</div>
+              <div>To</div>
             </div>
             <div className="transaction-list-item-details__sender-to-recipient-container">
               <SenderToRecipient
@@ -261,17 +262,13 @@ export default class TransactionListItemDetails extends PureComponent {
                   isEarliestNonce={isEarliestNonce}
                 />
               </Disclosure>
-              {transactionGroup.initialTransaction?.txParams?.data ? (
-                <Disclosure title="Transaction data" size="small">
-                  <TransactionDecoding
-                    title={t('transactionData')}
-                    to={transactionGroup.initialTransaction.txParams?.to}
-                    inputData={
-                      transactionGroup.initialTransaction.txParams?.data
-                    }
-                  />
-                </Disclosure>
-              ) : null}
+              <Disclosure title="Transaction data" size="small">
+                <TransactionDecoding
+                  title="Transaction data"
+                  to={transactionGroup.initialTransaction.txParams?.to}
+                  inputData={transactionGroup.initialTransaction.txParams?.data}
+                />
+              </Disclosure>
             </div>
           </div>
         </div>
