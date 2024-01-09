@@ -1,1 +1,1 @@
-export { default } from './gas-display';
+export { default } from './gas-display.component';

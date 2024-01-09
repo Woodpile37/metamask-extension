@@ -5,22 +5,42 @@ import {
   getIsEthGasPriceFetched,
   getNoGasPriceFetched,
   checkNetworkOrAccountNotSupports1559,
+  getPreferences,
+  getIsBuyableChain,
+  transactionFeeSelector,
+  getUseNonceField,
 } from '../../../selectors';
 import {
-  getIsAssetSendable,
   getIsBalanceInsufficient,
   getSendTo,
   getSendAsset,
+  getAssetError,
 } from '../../../ducks/send';
 
-import * as actions from '../../../store/actions';
+import { showModal } from '../../../store/actions';
+
 import SendContent from './send-content.component';
 
 function mapStateToProps(state) {
   const ownedAccounts = accountsWithSendEtherInfoSelector(state);
   const to = getSendTo(state);
+  const isBuyableChain = getIsBuyableChain(state);
+
+  const { currentCurrency, nativeCurrency, provider } = state.metamask;
+  const { draftTransaction } = state.send;
+
+  const { chainId } = provider;
+
+  const {
+    hexTransactionAmount,
+    hexMinimumTransactionFee,
+    hexMaximumTransactionFee,
+    hexTransactionTotal,
+  } = transactionFeeSelector(state, draftTransaction);
+
+  const { useNativeCurrencyAsPrimaryCurrency } = getPreferences(state);
+
   return {
-    isAssetSendable: getIsAssetSendable(state),
     isOwnedAccount: Boolean(
       ownedAccounts.find(
         ({ address }) => address.toLowerCase() === to.toLowerCase(),
@@ -35,33 +55,26 @@ function mapStateToProps(state) {
     ),
     getIsBalanceInsufficient: getIsBalanceInsufficient(state),
     asset: getSendAsset(state),
+    assetError: getAssetError(state),
+    useNonceField: getUseNonceField(state),
+    draftTransaction,
+    hexMaximumTransactionFee,
+    hexMinimumTransactionFee,
+    hexTransactionTotal,
+    hexTransactionAmount,
+    currentCurrency,
+    nativeCurrency,
+    useNativeCurrencyAsPrimaryCurrency,
+    isBuyableChain,
+    chainId,
   };
 }
 
-function mapDispatchToProps(dispatch) {
+const mapDispatchToProps = (dispatch) => {
   return {
-    updateAccountNicknameModal: (address) =>
-      dispatch(
-        actions.showModal({
-          name: 'ADD_UPDATE_NICKNAME_MODAL',
-          address,
-        }),
-      ),
+    showBuyModal: () => dispatch(showModal({ name: 'DEPOSIT_ETHER' })),
+    showAccountDetails: () => dispatch(showModal({ name: 'ACCOUNT_DETAILS' })),
   };
-}
+};
 
-function mergeProps(stateProps, dispatchProps, ownProps) {
-  const { to, ...restStateProps } = stateProps;
-  return {
-    ...ownProps,
-    ...restStateProps,
-    updateAccountNicknameModal: () =>
-      dispatchProps.updateAccountNicknameModal(to),
-  };
-}
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-)(SendContent);
+export default connect(mapStateToProps, mapDispatchToProps)(SendContent);
