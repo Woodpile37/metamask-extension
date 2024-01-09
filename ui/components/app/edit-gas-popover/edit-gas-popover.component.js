@@ -9,7 +9,6 @@ import { EDIT_GAS_MODES, GAS_LIMITS } from '../../../../shared/constants/gas';
 import {
   decGWEIToHexWEI,
   decimalToHex,
-  hexToDecimal,
 } from '../../../helpers/utils/conversions.util';
 
 import Popover from '../../ui/popover';
@@ -28,6 +27,7 @@ import {
 } from '../../../store/actions';
 import LoadingHeartBeat from '../../ui/loading-heartbeat';
 import { checkNetworkAndAccountSupports1559 } from '../../../selectors';
+import { resetCustomData } from '../../../ducks/gas/gas.duck';
 
 export default function EditGasPopover({
   popoverTitle = '',
@@ -58,8 +58,6 @@ export default function EditGasPopover({
     dappSuggestedGasFeeAcknowledged,
     setDappSuggestedGasFeeAcknowledged,
   ] = useState(false);
-
-  const minimumGasLimitDec = hexToDecimal(minimumGasLimit);
 
   const {
     maxPriorityFeePerGas,
@@ -97,6 +95,7 @@ export default function EditGasPopover({
    * the modal in testing
    */
   const closePopover = useCallback(() => {
+    dispatch(resetCustomData());
     if (onClose) {
       onClose();
     } else if (showSidebar) {
@@ -241,7 +240,7 @@ export default function EditGasPopover({
               transaction={transaction}
               gasErrors={gasErrors}
               onManualChange={onManualChange}
-              minimumGasLimit={minimumGasLimitDec}
+              minimumGasLimitHex={minimumGasLimit}
               balanceError={balanceError}
               {...editGasDisplayProps}
             />

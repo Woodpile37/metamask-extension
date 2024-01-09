@@ -8,10 +8,6 @@
   display: flex;
   flex-direction: column;
 
-  &--with-top-border {
-    border-top: 1px solid var(--color-border-muted);
-  }
-
   &__error-container {
     padding: 0 16px 16px 16px;
   }
@@ -23,19 +19,17 @@
 
   &__data {
     padding: 16px;
-    color: var(--color-icon-default);
-
-    & > .disclosure {
-      margin-top: 0;
-    }
+    color: $oslo-gray;
   }
 
   &__data-box {
     @include H7;
 
-    background-color: var(--color-background-alternative);
+    background-color: #f9fafa;
     padding: 12px;
+    margin-bottom: 16px;
     word-wrap: break-word;
+    max-height: 200px;
     overflow-y: auto;
 
     &-label {
@@ -61,7 +55,7 @@
   }
 
   &__gas-fee {
-    border-bottom: 1px solid var(--color-border-muted);
+    border-bottom: 1px solid $geyser;
 
     .advanced-gas-inputs__gas-edit-rows {
       margin-bottom: 16px;
@@ -73,20 +67,20 @@
 
     font-weight: 500;
     text-transform: capitalize;
-    color: var(--color-text-default);
+    color: $black;
     padding-left: 5px;
   }
 
   &__tab {
     @include H7;
 
-    color: var(--color-icon-default);
+    color: #8c8e94;
     text-transform: uppercase;
     margin: 0 8px;
 
     & button {
       font-size: unset;
-      color: var(--color-icon-default);
+      color: #8c8e94;
       text-transform: uppercase;
     }
   }
@@ -95,17 +89,16 @@
     margin-top: auto;
   }
 
-  &__currency-container,
-  &__total-amount,
-  &__total-value {
+  &__currency-container {
     position: relative;
   }
 
-  &__link {
-    background: transparent;
-    border: 0 transparent;
-    display: inline;
-    padding: 0;
-    font-size: $font-size-h7;
+  &__small-fee-label {
+    font-weight: bold;
+    margin-right: 2px;
+  }
+
+  &__sub-text-container {
+    display: flex;
   }
 }
