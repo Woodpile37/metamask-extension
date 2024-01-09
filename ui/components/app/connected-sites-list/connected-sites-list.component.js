@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import SiteIcon from '../../ui/site-icon';
 import { stripHttpsSchemeWithoutPort } from '../../../helpers/utils/util';
+import SiteOrigin from '../../ui/site-origin';
 
 export default class ConnectedSitesList extends Component {
   static contextTypes = {
@@ -32,12 +33,11 @@ export default class ConnectedSitesList extends Component {
           >
             <div className="connected-sites-list__subject-info">
               <SiteIcon icon={subject.iconUrl} name={subject.name} size={32} />
-              <span
+              <SiteOrigin
                 className="connected-sites-list__subject-name"
                 title={subject.extensionId || subject.origin}
-              >
-                {this.getSubjectDisplayName(subject)}
-              </span>
+                siteOrigin={this.getSubjectDisplayName(subject)}
+              />
             </div>
             <div
               className="connected-sites-list__disconnect"

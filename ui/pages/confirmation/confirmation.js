@@ -11,12 +11,18 @@ import { isEqual } from 'lodash';
 import { produce } from 'immer';
 import Box from '../../components/ui/box';
 import MetaMaskTemplateRenderer from '../../components/app/metamask-template-renderer';
+import SiteIcon from '../../components/ui/site-icon';
 import { DEFAULT_ROUTE } from '../../helpers/constants/routes';
+import {
+  COLORS,
+  FLEX_DIRECTION,
+  SIZES,
+} from '../../helpers/constants/design-system';
+import { stripHttpsScheme } from '../../helpers/utils/util';
 import { useI18nContext } from '../../hooks/useI18nContext';
 import { useOriginMetadata } from '../../hooks/useOriginMetadata';
 import { getUnapprovedTemplatedConfirmations } from '../../selectors';
 import NetworkDisplay from '../../components/app/network-display/network-display';
-import { COLORS, SIZES } from '../../helpers/constants/design-system';
 import Callout from '../../components/ui/callout';
 import SiteOrigin from '../../components/ui/site-origin';
 import ConfirmationFooter from './components/confirmation-footer';
@@ -61,10 +67,11 @@ const alertStateReducer = produce((state, action) => {
  * confirmation page in a custom hook. This hook is not likely to be used
  * outside of this file, but it helps to reduce complexity of the primary
  * component.
+ *
  * @param {Object} pendingConfirmation - a pending confirmation waiting for
- *  user approval
- * @returns {[alertState: Object, dismissAlert: Function]} - tuple with
- *  the current alert state and function to dismiss an alert by id
+ * user approval
+ * @returns {[alertState: Object, dismissAlert: Function]} A tuple with
+ * the current alert state and function to dismiss an alert by id
  */
 function useAlertState(pendingConfirmation) {
   const [alertState, dispatch] = useReducer(alertStateReducer, {});
@@ -81,7 +88,7 @@ function useAlertState(pendingConfirmation) {
     let isMounted = true;
     if (pendingConfirmation) {
       getTemplateAlerts(pendingConfirmation).then((alerts) => {
-        if (isMounted && alerts) {
+        if (isMounted && alerts.length > 0) {
           dispatch({
             type: 'set',
             confirmationId: pendingConfirmation.id,
@@ -165,7 +172,7 @@ export default function ConfirmationPage() {
                 setCurrentPendingConfirmation(currentPendingConfirmation - 1)
               }
             >
-              <i className="fas fa-chevron-left"></i>
+              <i className="fas fa-chevron-left" />
             </button>
           )}
           <button
@@ -177,7 +184,7 @@ export default function ConfirmationPage() {
               setCurrentPendingConfirmation(currentPendingConfirmation + 1)
             }
           >
-            <i className="fas fa-chevron-right"></i>
+            <i className="fas fa-chevron-right" />
           </button>
         </div>
       )}
@@ -185,17 +192,26 @@ export default function ConfirmationPage() {
         {templatedValues.networkDisplay ? (
           <Box justifyContent="center">
             <NetworkDisplay
-              colored={false}
               indicatorSize={SIZES.XS}
-              labelProps={{ color: COLORS.BLACK }}
+              labelProps={{ color: COLORS.TEXT_DEFAULT }}
             />
           </Box>
         ) : null}
-        <Box justifyContent="center" padding={[4, 4, 4]}>
+        <Box
+          alignItems="center"
+          marginTop={1}
+          padding={[1, 4, 4]}
+          flexDirection={FLEX_DIRECTION.COLUMN}
+        >
+          <SiteIcon
+            icon={originMetadata.iconUrl}
+            name={originMetadata.hostname}
+            size={36}
+          />
           <SiteOrigin
-            siteOrigin={originMetadata.origin}
-            iconSrc={originMetadata.iconUrl}
-            iconName={originMetadata.hostname}
+            chip
+            siteOrigin={stripHttpsScheme(originMetadata.origin)}
+            title={stripHttpsScheme(originMetadata.origin)}
           />
         </Box>
         <MetaMaskTemplateRenderer sections={templatedValues.content} />
