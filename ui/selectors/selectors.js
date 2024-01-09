@@ -1,7 +1,4 @@
 import { createSelector } from 'reselect';
-///: BEGIN:ONLY_INCLUDE_IN(flask)
-import { memoize } from 'lodash';
-///: END:ONLY_INCLUDE_IN
 import { addHexPrefix } from '../../app/scripts/lib/util';
 import {
   MAINNET_CHAIN_ID,
@@ -19,18 +16,11 @@ import {
 } from '../../shared/constants/hardware-wallets';
 
 import {
-  MESSAGE_TYPE,
-  ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  SUBJECT_TYPES,
-  ///: END:ONLY_INCLUDE_IN
-} from '../../shared/constants/app';
-
-import { TRUNCATED_NAME_CHAR_LIMIT } from '../../shared/constants/labels';
-
-import {
   SWAPS_CHAINID_DEFAULT_TOKEN_MAP,
   ALLOWED_SWAPS_CHAIN_IDS,
 } from '../../shared/constants/swaps';
+
+import { TRUNCATED_NAME_CHAR_LIMIT } from '../../shared/constants/labels';
 
 import {
   shortenAddress,
@@ -92,48 +82,6 @@ export function getCurrentChainId(state) {
   return chainId;
 }
 
-export function getCurrentQRHardwareState(state) {
-  const { qrHardware } = state.metamask;
-  return qrHardware || {};
-}
-
-export function hasUnsignedQRHardwareTransaction(state) {
-  const { txParams } = state.confirmTransaction.txData;
-  if (!txParams) return false;
-  const { from } = txParams;
-  const { keyrings } = state.metamask;
-  const qrKeyring = keyrings.find((kr) => kr.type === KEYRING_TYPES.QR);
-  if (!qrKeyring) return false;
-  return Boolean(
-    qrKeyring.accounts.find(
-      (account) => account.toLowerCase() === from.toLowerCase(),
-    ),
-  );
-}
-
-export function hasUnsignedQRHardwareMessage(state) {
-  const { type, msgParams } = state.confirmTransaction.txData;
-  if (!type || !msgParams) {
-    return false;
-  }
-  const { from } = msgParams;
-  const { keyrings } = state.metamask;
-  const qrKeyring = keyrings.find((kr) => kr.type === KEYRING_TYPES.QR);
-  if (!qrKeyring) return false;
-  switch (type) {
-    case MESSAGE_TYPE.ETH_SIGN_TYPED_DATA:
-    case MESSAGE_TYPE.ETH_SIGN:
-    case MESSAGE_TYPE.PERSONAL_SIGN:
-      return Boolean(
-        qrKeyring.accounts.find(
-          (account) => account.toLowerCase() === from.toLowerCase(),
-        ),
-      );
-    default:
-      return false;
-  }
-}
-
 export function getCurrentKeyring(state) {
   const identity = getSelectedIdentity(state);
 
@@ -150,8 +98,10 @@ export function getParticipateInMetaMetrics(state) {
   return Boolean(state.metamask.participateInMetaMetrics);
 }
 
-export function isEIP1559Account() {
-  return true;
+export function isEIP1559Account(state) {
+  // Trezor does not support 1559 at this time
+  const currentKeyring = getCurrentKeyring(state);
+  return currentKeyring && currentKeyring.type !== KEYRING_TYPES.TREZOR;
 }
 
 /**
@@ -512,33 +462,8 @@ export function getCustomNonceValue(state) {
   return String(state.metamask.customNonceValue);
 }
 
-export function getSubjectMetadata(state) {
-  return state.metamask.subjectMetadata;
-}
-
-///: BEGIN:ONLY_INCLUDE_IN(flask)
-/**
- * @param {string} svgString - The raw SVG string to make embeddable.
- * @returns {string} The embeddable SVG string.
- */
-const getEmbeddableSvg = memoize(
-  (svgString) => `data:image/svg+xml;utf8,${encodeURIComponent(svgString)}`,
-);
-///: END:ONLY_INCLUDE_IN
-
-export function getTargetSubjectMetadata(state, origin) {
-  const metadata = getSubjectMetadata(state)[origin];
-
-  ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  if (metadata?.subjectType === SUBJECT_TYPES.SNAP) {
-    const { svgIcon, ...remainingMetadata } = metadata;
-    return {
-      ...remainingMetadata,
-      iconUrl: svgIcon ? getEmbeddableSvg(svgIcon) : null,
-    };
-  }
-  ///: END:ONLY_INCLUDE_IN
-  return metadata;
+export function getDomainMetadata(state) {
+  return state.metamask.domainMetadata;
 }
 
 export function getRpcPrefsForCurrentProvider(state) {
@@ -655,12 +580,6 @@ export function getShowWhatsNewPopup(state) {
   return state.appState.showWhatsNewPopup;
 }
 
-///: BEGIN:ONLY_INCLUDE_IN(flask)
-export function getSnaps(state) {
-  return state.metamask.snaps;
-}
-///: END:ONLY_INCLUDE_IN
-
 /**
  * Get an object of notification IDs and if they are allowed or not.
  * @param {Object} state
@@ -682,7 +601,6 @@ function getAllowedNotificationIds(state) {
     6: false,
     7: false,
     8: supportsWebHid && currentKeyringIsLedger && currentlyUsingLedgerLive,
-    9: getIsMainnet(state),
   };
 }
 
@@ -739,24 +657,6 @@ export function getUseTokenDetection(state) {
 }
 
 /**
- * To get the useCollectibleDetection flag which determines whether we autodetect NFTs
- * @param {*} state
- * @returns Boolean
- */
-export function getUseCollectibleDetection(state) {
-  return Boolean(state.metamask.useCollectibleDetection);
-}
-
-/**
- * To get the openSeaEnabled flag which determines whether we use OpenSea's API
- * @param {*} state
- * @returns Boolean
- */
-export function getOpenSeaEnabled(state) {
-  return Boolean(state.metamask.openSeaEnabled);
-}
-
-/**
  * To retrieve the tokenList produced by TokenListcontroller
  * @param {*} state
  * @returns {Object}
@@ -781,10 +681,6 @@ export function doesAddressRequireLedgerHidConnection(state, address) {
     transportTypePreferenceIsWebHID &&
     (webHidIsNotConnected || transportIsNotSuccessfullyCreated)
   );
-}
-
-export function getNewCollectibleAddedMessage(state) {
-  return state.appState.newCollectibleAddedMessage;
 }
 
 /**
@@ -821,24 +717,4 @@ export function getNetworkSupportsSettingGasPrice(state) {
 
 export function getIsMultiLayerFeeNetwork(state) {
   return getIsOptimism(state);
-}
-/**
- *  To retrieve the maxBaseFee and priotitFee teh user has set as default
- *  @param {*} state
- *  @returns Boolean
- */
-export function getAdvancedGasFeeValues(state) {
-  return state.metamask.advancedGasFee;
-}
-
-/**
- *  To check if the user has set advanced gas fee settings as default with a non empty  maxBaseFee and priotityFee.
- *  @param {*} state
- *  @returns Boolean
- */
-export function getIsAdvancedGasFeeDefault(state) {
-  const { advancedGasFee } = state.metamask;
-  return (
-    Boolean(advancedGasFee?.maxBaseFee) && Boolean(advancedGasFee?.priorityFee)
-  );
 }

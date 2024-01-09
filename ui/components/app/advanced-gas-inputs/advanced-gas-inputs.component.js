@@ -2,9 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { debounce } from 'lodash';
-import Tooltip from '../../ui/tooltip';
-import { Icon, IconName } from '../../component-library';
-import { IconColor } from '../../../helpers/constants/design-system';
+import Tooltip from '../../../ui/tooltip';
 
 export default class AdvancedGasInputs extends Component {
   static contextTypes = {
@@ -142,11 +140,7 @@ export default class AdvancedGasInputs extends Component {
         <div className="advanced-gas-inputs__gas-edit-row__label">
           {label}
           <Tooltip title={tooltipTitle} position="top" arrow>
-            <Icon
-              name={IconName.Info}
-              color={IconColor.iconAlternative}
-              className="info-circle"
-            />
+            <i className="fa fa-info-circle" />
           </Tooltip>
         </div>
         <div className="advanced-gas-inputs__gas-edit-row__input-wrapper">
@@ -172,8 +166,7 @@ export default class AdvancedGasInputs extends Component {
                   errorType === 'error',
                 'advanced-gas-inputs__gas-edit-row__input--warning':
                   errorType === 'warning',
-                'advanced-gas-inputs__gas-edit-row__input-arrows--hidden':
-                  disabled,
+                'advanced-gas-inputs__gas-edit-row__input-arrows--hidden': disabled,
               },
             )}
           >
@@ -213,14 +206,16 @@ export default class AdvancedGasInputs extends Component {
     } = this.props;
     const { gasPrice, gasLimit } = this.state;
 
-    const { errorText: gasPriceErrorText, errorType: gasPriceErrorType } =
-      this.gasPriceError({
-        insufficientBalance,
-        customPriceIsSafe,
-        isSpeedUp,
-        gasPrice,
-        customPriceIsExcessive,
-      });
+    const {
+      errorText: gasPriceErrorText,
+      errorType: gasPriceErrorType,
+    } = this.gasPriceError({
+      insufficientBalance,
+      customPriceIsSafe,
+      isSpeedUp,
+      gasPrice,
+      customPriceIsExcessive,
+    });
     const gasPriceErrorComponent = gasPriceErrorType ? (
       <div
         className={`advanced-gas-inputs__gas-edit-row__${gasPriceErrorType}-text`}
@@ -229,8 +224,10 @@ export default class AdvancedGasInputs extends Component {
       </div>
     ) : null;
 
-    const { errorText: gasLimitErrorText, errorType: gasLimitErrorType } =
-      this.gasLimitError({ insufficientBalance, gasLimit, minimumGasLimit });
+    const {
+      errorText: gasLimitErrorText,
+      errorType: gasLimitErrorType,
+    } = this.gasLimitError({ insufficientBalance, gasLimit, minimumGasLimit });
     const gasLimitErrorComponent = gasLimitErrorType ? (
       <div
         className={`advanced-gas-inputs__gas-edit-row__${gasLimitErrorType}-text`}
@@ -247,16 +244,16 @@ export default class AdvancedGasInputs extends Component {
 
     return (
       <div className="advanced-gas-inputs__gas-edit-rows">
-        {networkSupportsSettingGasPrice &&
-          this.renderGasInput({
-            label: this.context.t('gasPrice'),
-            testId: 'gas-price',
-            tooltipTitle: this.context.t('gasPriceInfoTooltipContent'),
-            value: this.state.gasPrice,
-            onChange: this.onChangeGasPrice,
-            errorComponent: gasPriceErrorComponent,
-            errorType: gasPriceErrorType,
-          })}
+        {this.renderGasInput({
+          label: this.context.t('gasPrice'),
+          testId: 'gas-price',
+          tooltipTitle: this.context.t('gasPriceInfoTooltipContent'),
+          value: this.state.gasPrice,
+          onChange: this.onChangeGasPrice,
+          errorComponent: gasPriceErrorComponent,
+          errorType: gasPriceErrorType,
+          disabled: !networkSupportsSettingGasPrice,
+        })}
         {this.renderGasInput({
           label: this.context.t('gasLimit'),
           testId: 'gas-limit',

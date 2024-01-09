@@ -22,8 +22,8 @@
  */
 
 import BigNumber from 'bignumber.js';
-import { BN } from 'bn.js';
-import { stripHexPrefix } from './hexstring-utils';
+
+import { stripHexPrefix, BN } from 'ethereumjs-util';
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -268,7 +268,7 @@ const toNegative = (n, options = {}) => {
   return multiplyCurrencies(n, -1, options);
 };
 
-export function decGWEIToHexWEI(decGWEI) {
+function decGWEIToHexWEI(decGWEI) {
   return conversionUtil(decGWEI, {
     fromNumericBase: 'dec',
     toNumericBase: 'hex',
@@ -288,4 +288,7 @@ export {
   conversionMax,
   toNegative,
   subtractCurrencies,
+  decGWEIToHexWEI,
+  toBigNumber,
+  toNormalizedDenomination,
 };
