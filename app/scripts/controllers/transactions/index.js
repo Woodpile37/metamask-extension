@@ -1,5 +1,6 @@
 import EventEmitter from 'safe-event-emitter';
 import { ObservableStore } from '@metamask/obs-store';
+import { bufferToHex, keccak, toBuffer, isHexString } from 'ethereumjs-util';
 import EthQuery from 'ethjs-query';
 import { ethErrors } from 'eth-rpc-errors';
 import abi from 'human-standard-token-abi';
@@ -10,7 +11,14 @@ import NonceTracker from 'nonce-tracker';
 import log from 'loglevel';
 import BigNumber from 'bignumber.js';
 import cleanErrorStack from '../../lib/cleanErrorStack';
-import { BnMultiplyByFraction, getChainType } from '../../lib/util';
+import {
+  hexToBn,
+  bnToHex,
+  BnMultiplyByFraction,
+  addHexPrefix,
+  getChainType,
+  hashObject,
+} from '../../lib/util';
 import { TRANSACTION_NO_CONTRACT_ERROR_KEY } from '../../../../ui/helpers/constants/error-keys';
 import { getSwapsTokensReceivedFromTxMeta } from '../../../../ui/pages/swaps/swaps.util';
 import { hexWEIToDecGWEI } from '../../../../ui/helpers/utils/conversions.util';
@@ -19,13 +27,10 @@ import {
   TRANSACTION_TYPES,
   TRANSACTION_ENVELOPE_TYPES,
 } from '../../../../shared/constants/transaction';
-import { TRANSACTION_ENVELOPE_TYPE_NAMES } from '../../../../ui/helpers/constants/transactions';
 import { METAMASK_CONTROLLER_EVENTS } from '../../metamask-controller';
 import {
   GAS_LIMITS,
   GAS_ESTIMATE_TYPES,
-  GAS_RECOMMENDATIONS,
-  CUSTOM_GAS_ESTIMATE,
 } from '../../../../shared/constants/gas';
 import { decGWEIToHexWEI } from '../../../../shared/modules/conversion.utils';
 import {
@@ -34,17 +39,7 @@ import {
   NETWORK_TYPE_RPC,
   CHAIN_ID_TO_GAS_LIMIT_BUFFER_MAP,
 } from '../../../../shared/constants/network';
-import {
-  hexToBn,
-  bnToHex,
-  bufferToHex,
-  toBuffer,
-  addHexPrefix,
-  keccak,
-  isHexString,
-} from '../../../../shared/modules/hexstring-utils';
 import { isEIP1559Transaction } from '../../../../shared/modules/transaction.utils';
-import { readAddressAsContract } from '../../../../shared/modules/contract-utils';
 import TransactionStateManager from './tx-state-manager';
 import TxGasUtil from './tx-gas-utils';
 import PendingTransactionTracker from './pending-tx-tracker';
@@ -142,6 +137,8 @@ export default class TransactionController extends EventEmitter {
       getConfirmedTransactions: this.txStateManager.getConfirmedTransactions.bind(
         this.txStateManager,
       ),
+      getExternalPendingTransactions: opts.getExternalPendingTransactions,
+      getExternalConfirmedTransactions: opts.getExternalConfirmedTransactions,
     });
 
     this.pendingTxTracker = new PendingTransactionTracker({
@@ -411,9 +408,8 @@ export default class TransactionController extends EventEmitter {
    * @returns {Promise<object>} resolves with txMeta
    */
   async addTxGasDefaults(txMeta, getCodeResponse) {
-    const eip1559Compatibility =
-      txMeta.txParams.type !== TRANSACTION_ENVELOPE_TYPES.LEGACY &&
-      (await this.getEIP1559Compatibility());
+    const eip1559Compatibility = await this.getEIP1559Compatibility();
+
     const {
       gasPrice: defaultGasPrice,
       maxFeePerGas: defaultMaxFeePerGas,
@@ -440,7 +436,7 @@ export default class TransactionController extends EventEmitter {
       ) {
         txMeta.txParams.maxFeePerGas = txMeta.txParams.gasPrice;
         txMeta.txParams.maxPriorityFeePerGas = txMeta.txParams.gasPrice;
-        txMeta.userFeeLevel = CUSTOM_GAS_ESTIMATE;
+        txMeta.userFeeLevel = 'custom';
       } else {
         if (
           (defaultMaxFeePerGas &&
@@ -449,9 +445,9 @@ export default class TransactionController extends EventEmitter {
             !txMeta.txParams.maxPriorityFeePerGas) ||
           txMeta.origin === 'metamask'
         ) {
-          txMeta.userFeeLevel = GAS_RECOMMENDATIONS.MEDIUM;
+          txMeta.userFeeLevel = 'medium';
         } else {
-          txMeta.userFeeLevel = CUSTOM_GAS_ESTIMATE;
+          txMeta.userFeeLevel = 'custom';
         }
 
         if (defaultMaxFeePerGas && !txMeta.txParams.maxFeePerGas) {
@@ -652,14 +648,6 @@ export default class TransactionController extends EventEmitter {
     const newGasParams = {};
     if (customGasSettings.gasLimit) {
       newGasParams.gas = customGasSettings?.gas ?? GAS_LIMITS.SIMPLE;
-    }
-
-    if (customGasSettings.estimateSuggested) {
-      newGasParams.estimateSuggested = customGasSettings.estimateSuggested;
-    }
-
-    if (customGasSettings.estimateUsed) {
-      newGasParams.estimateUsed = customGasSettings.estimateUsed;
     }
 
     if (isEIP1559Transaction(originalTxMeta)) {
@@ -888,6 +876,95 @@ export default class TransactionController extends EventEmitter {
     } finally {
       this.inProcessOfSigning.delete(txId);
     }
+  }
+
+  async approveExternalTransaction(txParams) {
+    // This is hacky, need to review with other engineers and decide on best alternative.
+    const uniqueHashOfParams = hashObject(txParams);
+    if (this.inProcessOfSigning.has(uniqueHashOfParams)) {
+      return '';
+    }
+    this.inProcessOfSigning.add(uniqueHashOfParams);
+    let rawTx;
+    let nonceLock;
+    try {
+      const fromAddress = txParams.from;
+      nonceLock = await this.nonceTracker.getNonceLock(fromAddress);
+      const nonce = nonceLock.nextNonce;
+
+      txParams.nonce = addHexPrefix(nonce.toString(16));
+
+      rawTx = await this.signExternalTransactionTransaction(txParams);
+      nonceLock.releaseLock();
+    } catch (err) {
+      log.error(err);
+      // must set transaction to submitted/failed before releasing lock
+      if (nonceLock) {
+        nonceLock.releaseLock();
+      }
+      // continue with error chain
+      throw err;
+    } finally {
+      this.inProcessOfSigning.delete(uniqueHashOfParams);
+    }
+    return rawTx;
+  }
+
+  async approveTransactionsWithSameNonce(listOfTxParams) {
+    // This is hacky, need to review with other engineers and decide on best alternative.
+    const uniqueHashOfParams = hashObject(listOfTxParams);
+    if (this.inProcessOfSigning.has(uniqueHashOfParams)) {
+      return '';
+    }
+    let rawTxes;
+    this.inProcessOfSigning.add(uniqueHashOfParams);
+    let nonceLock;
+    try {
+      // TODO: we should add a check to verify that all transactions have the same from address
+      const fromAddress = listOfTxParams[0].from;
+      nonceLock = await this.nonceTracker.getNonceLock(fromAddress);
+      const nonce = nonceLock.nextNonce;
+
+      rawTxes = await Promise.all(
+        listOfTxParams.map((txParams) => {
+          txParams.nonce = addHexPrefix(nonce.toString(16));
+          return this.signExternalTransactionTransaction(txParams);
+        }),
+      );
+      nonceLock.releaseLock();
+    } catch (err) {
+      log.error(err);
+      // must set transaction to submitted/failed before releasing lock
+      if (nonceLock) {
+        nonceLock.releaseLock();
+      }
+      // continue with error chain
+      throw err;
+    } finally {
+      this.inProcessOfSigning.delete(uniqueHashOfParams);
+    }
+    return rawTxes;
+  }
+
+  async signExternalTransaction(_txParams) {
+    // add network/chain id
+    const chainId = this.getChainId();
+    const type = isEIP1559Transaction({ txParams: _txParams })
+      ? TRANSACTION_ENVELOPE_TYPES.FEE_MARKET
+      : TRANSACTION_ENVELOPE_TYPES.LEGACY;
+    const txParams = {
+      ..._txParams,
+      type,
+      chainId,
+    };
+    // sign tx
+    const fromAddress = txParams.from;
+    const common = await this.getCommonConfiguration(fromAddress);
+    const unsignedEthTx = TransactionFactory.fromTxData(txParams, { common });
+    const signedEthTx = await this.signEthTx(unsignedEthTx, fromAddress);
+
+    const rawTx = bufferToHex(signedEthTx.serialize());
+    return rawTx;
   }
 
   /**
@@ -1248,21 +1325,23 @@ export default class TransactionController extends EventEmitter {
       result = TRANSACTION_TYPES.DEPLOY_CONTRACT;
     }
 
-    let contractCode;
-
+    let code;
     if (!result) {
-      const {
-        contractCode: resultCode,
-        isContractAddress,
-      } = await readAddressAsContract(this.query, to);
+      try {
+        code = await this.query.getCode(to);
+      } catch (e) {
+        code = null;
+        log.warn(e);
+      }
 
-      contractCode = resultCode;
-      result = isContractAddress
-        ? TRANSACTION_TYPES.CONTRACT_INTERACTION
-        : TRANSACTION_TYPES.SIMPLE_SEND;
+      const codeIsEmpty = !code || code === '0x' || code === '0x0';
+
+      result = codeIsEmpty
+        ? TRANSACTION_TYPES.SIMPLE_SEND
+        : TRANSACTION_TYPES.CONTRACT_INTERACTION;
     }
 
-    return { type: result, getCodeResponse: contractCode };
+    return { type: result, getCodeResponse: code };
   }
 
   /**
@@ -1406,14 +1485,7 @@ export default class TransactionController extends EventEmitter {
       status,
       chainId,
       origin: referrer,
-      txParams: {
-        gasPrice,
-        gas: gasLimit,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        estimateSuggested,
-        estimateUsed,
-      },
+      txParams: { gasPrice, gas: gasLimit, maxFeePerGas, maxPriorityFeePerGas },
       metamaskNetworkId: network,
     } = txMeta;
     const source = referrer === 'metamask' ? 'user' : 'dapp';
@@ -1425,14 +1497,6 @@ export default class TransactionController extends EventEmitter {
       gasParams.max_priority_fee_per_gas = maxPriorityFeePerGas;
     } else {
       gasParams.gas_price = gasPrice;
-    }
-
-    if (estimateSuggested) {
-      gasParams.estimate_suggested = estimateSuggested;
-    }
-
-    if (estimateUsed) {
-      gasParams.estimate_used = estimateUsed;
     }
 
     const gasParamsInGwei = this._getGasValuesInGWEI(gasParams);
@@ -1450,8 +1514,8 @@ export default class TransactionController extends EventEmitter {
       sensitiveProperties: {
         status,
         transaction_envelope_type: isEIP1559Transaction(txMeta)
-          ? TRANSACTION_ENVELOPE_TYPE_NAMES.FEE_MARKET
-          : TRANSACTION_ENVELOPE_TYPE_NAMES.LEGACY,
+          ? 'fee-market'
+          : 'legacy',
         first_seen: time,
         gas_limit: gasLimit,
         ...gasParamsInGwei,
@@ -1469,8 +1533,6 @@ export default class TransactionController extends EventEmitter {
     for (const param in gasParams) {
       if (isHexString(gasParams[param])) {
         gasValuesInGwei[param] = hexWEIToDecGWEI(gasParams[param]);
-      } else {
-        gasValuesInGwei[param] = gasParams[param];
       }
     }
     return gasValuesInGwei;

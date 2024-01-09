@@ -1,4 +1,5 @@
 import extension from 'extensionizer';
+import { stripHexPrefix, bufferToHex, keccak } from 'ethereumjs-util';
 import BN from 'bn.js';
 import { memoize } from 'lodash';
 import {
@@ -55,21 +56,33 @@ const getEnvironmentType = (url = window.location.href) =>
  * @returns {string} the platform ENUM
  *
  */
-const getPlatform = () => {
-  const { navigator } = window;
-  const { userAgent } = navigator;
-
-  if (userAgent.includes('Firefox')) {
-    return PLATFORM_FIREFOX;
-  } else if ('brave' in navigator) {
-    return PLATFORM_BRAVE;
-  } else if (userAgent.includes('Edg/')) {
-    return PLATFORM_EDGE;
-  } else if (userAgent.includes('OPR')) {
-    return PLATFORM_OPERA;
+const getPlatform = (_) => {
+  const ua = window.navigator.userAgent;
+  if (ua.search('Firefox') === -1) {
+    if (window && window.chrome && window.chrome.ipcRenderer) {
+      return PLATFORM_BRAVE;
+    }
+    if (ua.search('Edge') !== -1) {
+      return PLATFORM_EDGE;
+    }
+    if (ua.search('OPR') !== -1) {
+      return PLATFORM_OPERA;
+    }
+    return PLATFORM_CHROME;
   }
-  return PLATFORM_CHROME;
+  return PLATFORM_FIREFOX;
 };
+
+/**
+ * Converts a hex string to a BN object
+ *
+ * @param {string} inputHex - A number represented as a hex string
+ * @returns {Object} A BN object
+ *
+ */
+function hexToBn(inputHex) {
+  return new BN(stripHexPrefix(inputHex), 16);
+}
 
 /**
  * Used to multiply a BN by a fraction
@@ -104,6 +117,39 @@ function checkForError() {
   return new Error(lastError.message);
 }
 
+/**
+ * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
+ *
+ * @param {string} str - The string to prefix.
+ * @returns {string} The prefixed string.
+ */
+const addHexPrefix = (str) => {
+  if (typeof str !== 'string' || str.match(/^-?0x/u)) {
+    return str;
+  }
+
+  if (str.match(/^-?0X/u)) {
+    return str.replace('0X', '0x');
+  }
+
+  if (str.startsWith('-')) {
+    return str.replace('-', '-0x');
+  }
+
+  return `0x${str}`;
+};
+
+/**
+ * Converts a BN object to a hex string with a '0x' prefix
+ *
+ * @param {BN} inputBn - The BN to convert to a hex string
+ * @returns {string} - A '0x' prefixed hex string
+ *
+ */
+function bnToHex(inputBn) {
+  return addHexPrefix(inputBn.toString(16));
+}
+
 function getChainType(chainId) {
   if (chainId === MAINNET_CHAIN_ID) {
     return 'mainnet';
@@ -113,10 +159,18 @@ function getChainType(chainId) {
   return 'custom';
 }
 
+function hashObject(_object) {
+  return bufferToHex(keccak(Buffer.from(JSON.stringify(_object))));
+}
+
 export {
   getPlatform,
   getEnvironmentType,
+  hexToBn,
   BnMultiplyByFraction,
   checkForError,
+  addHexPrefix,
+  bnToHex,
   getChainType,
+  hashObject,
 };
