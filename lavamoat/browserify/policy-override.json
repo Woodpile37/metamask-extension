@@ -17,7 +17,8 @@
     },
     "lodash": {
       "globals": {
-        "setTimeout": true
+        "setTimeout": true,
+        "clearTimeout": true
       }
     },
     "@ethersproject/random": {
@@ -33,6 +34,21 @@
     "randombytes": {
       "globals": {
         "crypto.getRandomValues": true
+      }
+    },
+    "extensionizer": {
+      "globals": {
+        "console": true
+      }
+    },
+    "web3": {
+      "globals": {
+        "XMLHttpRequest": true
+      }
+    },
+    "storage": {
+      "globals": {
+        "localStorage": true
       }
     }
   }
