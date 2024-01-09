@@ -1,6 +1,5 @@
 //styling for ui components
 @import './components/ui/copy-raw-data/index';
-@import './components/ui/accreditation/index';
 
 //styling for decoding components
 @import './components/decoding/address/index';
@@ -28,19 +27,17 @@
       font-size: 14px;
       position: relative;
       margin: 12px 0 4px;
-      padding-inline-start: 22px;
+      padding-left: 22px;
       cursor: pointer;
 
       & + .tx-insight-content {
-        padding-inline-start: 14px;
+        padding-left: 14px;
         padding-top: 5px;
       }
     }
   }
 
-  &-error {
-    cursor: auto;
-  }
+
 
   .tx-insight-content {
     &__tree-component {
@@ -53,7 +50,7 @@
       .eth-tx-params {
         padding: 8px;
         width: 343px;
-        background: var(--white);
+        background: white;
         text-align: left;
         display: flex;
         flex-direction: column;

@@ -32,27 +32,22 @@ import {
   getUseTokenDetection,
   getTokenList,
   getIsMultiLayerFeeNetwork,
-  getFailedTransactionsToDisplay,
 } from '../../selectors';
 import { getMostRecentOverviewPage } from '../../ducks/history/history';
+import {
+  isAddressLedger,
+  updateTransactionGasFees,
+  getIsGasEstimatesLoading,
+  getNativeCurrency,
+} from '../../ducks/metamask/metamask';
+
 import {
   transactionMatchesNetwork,
   txParamsAreDappSuggested,
 } from '../../../shared/modules/transaction.utils';
-
-import {
-  addTxToFailedTxesToDisplay,
-  removeTxFromFailedTxesToDisplay,
-  getGasLoadingAnimationIsShowing,
-} from '../../ducks/app/app';
 import { toChecksumHexAddress } from '../../../shared/modules/hexstring-utils';
-import {
-  updateTransactionGasFees,
-  getIsGasEstimatesLoading,
-  getNativeCurrency,
-  isAddressLedger,
-} from '../../ducks/metamask/metamask';
 
+import { getGasLoadingAnimationIsShowing } from '../../ducks/app/app';
 import { isLegacyTransaction } from '../../helpers/utils/transactions.util';
 import { CUSTOM_GAS_ESTIMATE } from '../../../shared/constants/gas';
 import ConfirmTransactionBase from './confirm-transaction-base.component';
@@ -89,20 +84,12 @@ const mapStateToProps = (state, ownProps) => {
     nextNonce,
     provider: { chainId },
   } = metamask;
-
-  const transactionsToDisplayOnFailure = getFailedTransactionsToDisplay(state);
-
   const { tokenData, txData, tokenProps, nonce } = confirmTransaction;
   const { txParams = {}, id: transactionId, type } = txData;
   const transaction =
     Object.values(unapprovedTxs).find(
       ({ id }) => id === (transactionId || Number(paramsTransactionId)),
-    ) ||
-    Object.values(transactionsToDisplayOnFailure).find(
-      ({ id }) => id === (transactionId || Number(paramsTransactionId)),
-    ) ||
-    {};
-
+    ) || {};
   const {
     from: fromAddress,
     to: txParamsToAddress,
@@ -133,7 +120,10 @@ const mapStateToProps = (state, ownProps) => {
     shortenAddress(toChecksumHexAddress(toAddress));
 
   const checksummedAddress = toChecksumHexAddress(toAddress);
-  const addressBookObject = addressBook[checksummedAddress];
+  const addressBookObject =
+    addressBook &&
+    addressBook[chainId] &&
+    addressBook[chainId][checksummedAddress];
   const toEns = ensResolutionsByAddress[checksummedAddress] || '';
   const toNickname = addressBookObject ? addressBookObject.name : '';
   const transactionStatus = transaction ? transaction.status : '';
@@ -193,8 +183,6 @@ const mapStateToProps = (state, ownProps) => {
     fromAddress,
   );
 
-  const isFailedTransaction = fullTxData.status === 'failed';
-
   const isMultiLayerFeeNetwork = getIsMultiLayerFeeNetwork(state);
 
   return {
@@ -246,7 +234,7 @@ const mapStateToProps = (state, ownProps) => {
     nativeCurrency,
     hardwareWalletRequiresConnection,
     isMultiLayerFeeNetwork,
-    isFailedTransaction,
+    chainId,
   };
 };
 
@@ -281,10 +269,6 @@ export const mapDispatchToProps = (dispatch) => {
     updateTransactionGasFees: (gasFees) => {
       dispatch(updateTransactionGasFees({ ...gasFees, expectHexWei: true }));
     },
-    addTxToFailedTxesToDisplay: (id) =>
-      dispatch(addTxToFailedTxesToDisplay(id)),
-    removeTxFromFailedTxesToDisplay: (id) =>
-      dispatch(removeTxFromFailedTxesToDisplay(id)),
   };
 };
 
