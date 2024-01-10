@@ -482,9 +482,9 @@
       },
       "packages": {
         "@ngraveio/bc-ur": true,
+        "@swc/helpers>tslib": true,
         "browserify>buffer": true,
-        "ethereumjs-util>ethereum-cryptography>bs58check": true,
-        "mockttp>graphql-tag>tslib": true
+        "ethereumjs-util>ethereum-cryptography>bs58check": true
       }
     },
     "@keystonehq/metamask-airgapped-keyring": {
@@ -2342,7 +2342,7 @@
         "setTimeout": true
       },
       "packages": {
-        "mockttp>graphql-tag>tslib": true
+        "@swc/helpers>tslib": true
       }
     },
     "@metamask/utils": {
@@ -2592,6 +2592,12 @@
         "string.prototype.matchall>side-channel": true
       }
     },
+    "@swc/helpers>tslib": {
+      "globals": {
+        "SuppressedError": true,
+        "define": true
+      }
+    },
     "@trezor/connect-web": {
       "globals": {
         "__TREZOR_CONNECT_SRC": true,
@@ -2614,9 +2620,9 @@
         "setTimeout": true
       },
       "packages": {
+        "@swc/helpers>tslib": true,
         "@trezor/connect-web>@trezor/connect": true,
         "@trezor/connect-web>@trezor/utils": true,
-        "mockttp>graphql-tag>tslib": true,
         "webpack>events": true
       }
     },
@@ -3250,7 +3256,7 @@
         "setTimeout": true
       },
       "packages": {
-        "mockttp>graphql-tag>tslib": true
+        "@swc/helpers>tslib": true
       }
     },
     "eth-json-rpc-filters>eth-query": {
@@ -3951,12 +3957,6 @@
         "Intl": true
       }
     },
-    "mockttp>graphql-tag>tslib": {
-      "globals": {
-        "SuppressedError": true,
-        "define": true
-      }
-    },
     "nanoid": {
       "globals": {
         "crypto": true,
@@ -4210,7 +4210,7 @@
         "setTimeout": true
       },
       "packages": {
-        "mockttp>graphql-tag>tslib": true
+        "@swc/helpers>tslib": true
       }
     },
     "react-focus-lock>react-clientside-effect": {
@@ -4229,7 +4229,7 @@
         "console.error": true
       },
       "packages": {
-        "mockttp>graphql-tag>tslib": true,
+        "@swc/helpers>tslib": true,
         "react": true,
         "react-focus-lock>use-sidecar>detect-node-es": true
       }
