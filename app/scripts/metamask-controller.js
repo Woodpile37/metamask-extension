@@ -4149,8 +4149,8 @@ export default class MetamaskController extends EventEmitter {
           {
             from: txParams.from,
             to: txParams.to,
-            value: txParams?.value,
-            data: txParams?.data,
+            value: txParams.value,
+            data: txParams.data,
           },
         ],
       };
@@ -4161,7 +4161,7 @@ export default class MetamaskController extends EventEmitter {
         },
       );
     } catch (e) {
-      log.debug(e);
+      log.error(e);
     }
     ///: END:ONLY_INCLUDE_IF
 
