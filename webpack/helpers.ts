@@ -17,6 +17,8 @@ export type ManifestV3 = chrome.runtime.ManifestV3;
 export const Browsers = ['brave', 'chrome', 'firefox', 'opera'] as const;
 export type Browser = (typeof Browsers)[number];
 
+export const NODE_MODULES_RE = /^.*\/node_modules\/.*$/u;
+
 /**
  *
  * @returns Returns the current version of MetaMask as specified in package.json
@@ -51,9 +53,11 @@ export const mergeEnv = (userEnv: NodeJS.ProcessEnv): NodeJS.ProcessEnv => {
   }
 
   env.METAMASK_VERSION = getMetaMaskVersion();
-  env.BLOCKAID_FILE_CDN = 'static.metafi.codefi.network/api/v1/confirmations/ppom';
-  env.BLOCKAID_PUBLIC_KEY = '066ad3e8af5583385e312c156d238055215d5f25247c1e91055afa756cb98a88';
-  env.SUPPORT_LINK = "https://support.metamask.io";
+  env.BLOCKAID_FILE_CDN =
+    'static.metafi.codefi.network/api/v1/confirmations/ppom';
+  env.BLOCKAID_PUBLIC_KEY =
+    '066ad3e8af5583385e312c156d238055215d5f25247c1e91055afa756cb98a88';
+  env.SUPPORT_LINK = 'https://support.metamask.io';
   env.METAMASK_DEBUG;
 
   // TODO: these should be dynamic somehow
@@ -104,14 +108,10 @@ export const generateManifest = (
 ): ManifestTypeForVersion<typeof baseManifest> => {
   const { version, name, description, browser } = options;
 
-  const browserManifestOverrides: Partial<Manifest> = JSON.parse(
-    readFileSync(
-      join(
-        __dirname,
-        `../app/manifest/v${baseManifest.manifest_version}/${browser}.json`,
-      ),
-    ).toString('utf-8'),
-  );
+  const browserManifestOverrides: Partial<Manifest> = require(join(
+    __dirname,
+    `../app/manifest/v${baseManifest.manifest_version}/${browser}.json`,
+  ));
 
   const overrides = {
     version,
@@ -136,16 +136,20 @@ export const generateManifest = (
  * @returns an `entry` object containing html and JS entry points for use with
  * webpack, and an array, `manifestScripts`, list of filepaths of all scripts that were added to it.
  */
-export function combineEntriesFromManifestAndDir(manifest: Manifest, dir: string) {
+export function combineEntriesFromManifestAndDir(
+  manifest: Manifest,
+  dir: string,
+) {
   const entry: EntryObject = {};
-  const scripts: Set<string> = new Set([
-    // Snow is a special snowflake that shouldn't be modified by webpack
-    "snow.prod"
+  const selfContainedScripts: Set<string> = new Set([
+    // Snow shouldn't be chunked
+    'snow.prod',
+    'use-snow'
   ]);
 
   function addManifestScript(filename: string | undefined) {
     if (filename) {
-      scripts.add(filename);
+      selfContainedScripts.add(filename);
       entry[filename] = {
         chunkLoading: false,
         filename, // output filename
@@ -182,7 +186,7 @@ export function combineEntriesFromManifestAndDir(manifest: Manifest, dir: string
       addHtml(file);
     }
   }
-  return { entry, scripts };
+  return { entry, selfContainedScripts };
 }
 
 function assertValidEntryFileName(file: string, dir: string) {
@@ -292,11 +296,12 @@ export function getLastCommitDateTimeUtc(
 }
 
 export function getMinimizers() {
-  // use SWC to minify (about 7x faster than Terser)
   const TerserPlugin: typeof TerserPluginType = require('terser-webpack-plugin');
   return [
     new TerserPlugin({
-      minify: TerserPlugin.terserMinify,
+      // use SWC to minify (about 7x faster than Terser)
+      minify: TerserPlugin.swcMinify,
+      exclude: /snow\.prod/u,
     }),
   ];
 }

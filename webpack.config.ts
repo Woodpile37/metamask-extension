@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 import webpack, {
   type Configuration,
   type WebpackPluginInstance,
+  type Chunk,
   ProvidePlugin,
 } from 'webpack';
 import CopyPlugin from 'copy-webpack-plugin';
@@ -20,6 +21,7 @@ import {
   combineEntriesFromManifestAndDir,
   getLastCommitDateTimeUtc,
   getMinimizers,
+  NODE_MODULES_RE
 } from './webpack/helpers';
 import { parseArgv } from './webpack/cli';
 import { type CodeFenceLoaderOptions } from './webpack/loaders/codeFenceLoader';
@@ -53,7 +55,8 @@ const dir = join(__dirname, 'app');
 const MANIFEST_VERSION = config.manifest_version;
 const manifestPath = join(dir, `manifest/v${MANIFEST_VERSION}/_base.json`);
 const manifest: Manifest = JSON.parse(readFileSync(manifestPath).toString());
-const { entry, scripts } = combineEntriesFromManifestAndDir(manifest, dir);
+const { entry, selfContainedScripts } = combineEntriesFromManifestAndDir(manifest, dir);
+
 /**
  * Ignore scripts that were found in the manifest, as these are only loaded by
  * the browser extension platform itself.
@@ -62,8 +65,8 @@ const { entry, scripts } = combineEntriesFromManifestAndDir(manifest, dir);
  * @param chunk.name
  * @returns
  */
-function canIncludeInChunk({ name }: { name?: string }): boolean {
-  return !name || !scripts.has(name);
+function canBeChunked({ name }: Chunk): boolean {
+  return !name || !selfContainedScripts.has(name);
 }
 
 // removes fenced code blocks from the source
@@ -145,6 +148,38 @@ const envsStringified = Object.entries(ENV).reduce(
     PPOM_URI: `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`,
   },
 );
+// // this is code to set some of the gulp-build system's ENV variables
+// // it takes an extra 400ms, even after an experiement to make it to read
+// // files synchronously. It is commented out because it is just too slow for
+// // this build process. It needs to be rewritten. It should probably take
+// // about 5ms, including the `require` calls.
+// const { getConfig } = require("./development/build/config");
+// const c = getConfig(config.type, config.env)
+// const { variables, activeBuild } = c;
+
+// const { getVersion } = require("./development/lib/get-version");
+// const { setEnvironmentVariables } = require("./development/build/scripts");
+// setEnvironmentVariables({
+//   buildTarget: config.env === "production" ? "prod" : "dev",
+//   buildType: config.type,
+//   activeBuild: activeBuild,
+//   variables,
+//   version: getVersion(config.type, 0),
+// } as any); // the types are wrong lol
+
+// const ENV = [...c.variables.definitions()].reduce((obj, [key, value]) => {
+//   if (value != null) {
+//     obj[key] = value.toString();
+//   }
+//   return obj;
+// }, {});
+// const envsStringified = Object.entries(ENV).reduce(
+//   (acc: any, [key, val]) => {
+//     acc[`${key}`] = JSON.stringify(val);
+//     return acc;
+//   }
+// ) as any;
+// envsStringified.PPOM_URI = ENV.PPOM_URI = `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`;
 
 const plugins: WebpackPluginInstance[] = [
   new HtmlBundlerPlugin({
@@ -218,14 +253,22 @@ const webpackOptions = {
   entry,
   name: `MetaMask Webpack—${config.env}`,
   mode: config.env,
-  watch: config.watch,
 
-  // eventually we should avoid any code that uses node globals.
+  watch: config.watch,
+  watchOptions: {
+    // ignore node_modules, to avoid `fs.inotify.max_user_watches` issues
+    ignored: NODE_MODULES_RE,
+    aggregateTimeout: 5
+  },
+
   node: {
+    // eventually we should avoid any code that uses node globals `__dirname`,
+    // `__filename`, and `global`. But for now, just warn about their use.
     __dirname: 'warn-mock',
     __filename: 'warn-mock',
-    // in the future we don't want to polyfill node `global`, as a browser
-    // version, `globalThis`, already exists. We should use it instead.
+    // Hopefully in the the future we won't need to polyfill node `global`, as a
+    // browser version, `globalThis`, already exists and we should use it
+    // instead.
     global: true,
   },
 
@@ -246,55 +289,46 @@ const webpackOptions = {
     // browser. The browser will first attempt to load these modules, if it
     // fails it will load the fallback.
     fallback: {
-      // #region node polyfills
-      stream: require.resolve('stream-browserify'),
-      path: require.resolve('path-browserify'),
-      vm: require.resolve('vm-browserify'),
-      os: require.resolve('os-browserify/browser'),
-      crypto: require.resolve('crypto-browserify'),
-      // #endregion node polyfills
-    },
-
-    // use `alias` when we want to replace a module with something different,
-    // or when we just don't want to have to use the actual path to the module.
-    // (please don't abuse alias, just use relative paths as God intended)
-    alias: {
-      fs$: false,
-
-      // #region micro-ftch
-      // micro-ftch can't be bundled without these aliases, as webpack will
-      // attempt to load them but micro-ftch doesn't define `browser` compatible
-      // fields.
-      http$: require.resolve('stream-http'),
-      https$: require.resolve('https-browserify'),
-      zlib$: false,
-      // #endregion micro-ftch
-      // #region remove developer tooling in production builds
-      // remove react-devtools in production builds
-      'react-devtools$': config.env === 'production' ? false : require.resolve('react-devtools'),
+      // #region conditionally remove developer tooling
+      'react-devtools':
+        config.env === 'production' ? false : require.resolve('react-devtools'),
       // remove remote-redux-devtools unless METAMASK_DEBUG is enabled
-      'remote-redux-devtools$': ENV.METAMASK_DEBUG
+      'remote-redux-devtools': ENV.METAMASK_DEBUG
         ? require.resolve('remote-redux-devtools')
         : false,
-      // #endregion remove developer tooling in production builds
+      // #endregion conditionally remove developer tooling
+
+      // #region node polyfills
+      crypto: require.resolve('crypto-browserify'),
+      fs: false,
+      http: require.resolve('stream-http'),
+      https: require.resolve('https-browserify'),
+      path: require.resolve('path-browserify'),
+      stream: require.resolve('stream-browserify'),
+      vm: false,
+      zlib: false,
+      // #endregion node polyfills
     },
   },
 
-  cache: {
-    // TODO: cache.name (and version, actually) could be used create separate
-    // caches for different build types. Should we use these?
-    // name: ???,
-    version: process.argv.join(' '),
+  cache: config.cache
+    ? {
+      version: process.argv.join('-'),
 
-    allowCollectingMemory: true,
-    type: 'filesystem',
-    name: 'MetaMask',
-    buildDependencies: {
-      // Invalidates the build cache when the listed files change
-      // `__filename` makes all dependencies of *this* file - build dependencies
-      config: [__filename],
-    },
-  },
+      // Disable allowCollectingMemory because it can slow the build by 10%!
+      allowCollectingMemory: false,
+
+      buildDependencies: {
+        defaultConfig: [__filename],
+        // Invalidates the build cache when the listed files change. `__filename`
+        // makes all `require`d dependencies of *this* file's `buildDependencies`
+        config: [__filename, './.metamaskrc', './builds.yml'],
+      },
+
+      type: 'filesystem',
+      name: `MetaMask-${config.env}`,
+    }
+    : { type: 'memory' },
 
   output: {
     wasmLoading: 'fetch',
@@ -325,17 +359,10 @@ const webpackOptions = {
   },
 
   module: {
-    noParse: /@lavamoat\/snow/u,
     // an important note: loaders in a `use` array are applied in *reverse*
     // order, i.e., bottom to top, (or right to left depending on the current
     // formatting of the file)
     rules: [
-      {
-        // don't modify anything coming from the @lavamoat/snow package
-        test: /!@lavamoat\/snow\.*$/u,
-        include: /node_modules/u,
-        type: 'asset/source',
-      },
       // html: use the Squirrelly template engine for html files
       {
         test: /\.html?$/u,
@@ -350,7 +377,7 @@ const webpackOptions = {
       // own typescript, and own typescript with jsx
       {
         test: /\.(ts|mts|tsx)$/u,
-        exclude: /node_modules/u,
+        exclude: NODE_MODULES_RE,
         use: [
           getSwcLoader('typescript', true, config, envsStringified),
           codeFenceLoader,
@@ -359,7 +386,7 @@ const webpackOptions = {
       // own javascript, and own javascript with jsx
       {
         test: /\.(js|mjs|jsx)$/u,
-        exclude: /node_modules/u,
+        exclude: NODE_MODULES_RE,
         use: [
           getSwcLoader('ecmascript', true, config, envsStringified),
           codeFenceLoader,
@@ -368,7 +395,9 @@ const webpackOptions = {
       // vendor javascript
       {
         test: /\.(js|mjs)$/u,
-        include: /node_modules/u,
+        include: NODE_MODULES_RE,
+        // never process `@lavamoat/snow/**.*`
+        exclude: /^.*\/node_modules\/@lavamoat\/snow\/.*$/u,
         resolve: {
           // ESM is the worst thing to happen to JavaScript since JavaScript.
           fullySpecified: false,
@@ -394,6 +423,8 @@ const webpackOptions = {
             loader: 'sass-loader',
             options: {
               sassOptions: {
+                api: 'modern',
+
                 // We don't need to specify the charset because the HTML already
                 // does and browsers use the HTML's charset for CSS.
                 // Additionally, webpack + sass can cause problems with the
@@ -401,10 +432,17 @@ const webpackOptions = {
                 // https://github.com/webpack-contrib/css-loader/issues/1212
                 charset: false,
 
-                // Use the "legacy" api, as the "modern" one doesn't work in
-                // sass-loader
-                // see: https://github.com/webpack-contrib/sass-loader/issues/774#issuecomment-1847869983
-                api: 'legacy',
+                // Use 'sass-embedded', as it is usually faster than 'sass'
+                implementation: 'sass-embedded',
+
+                // The order of includePaths is important; prefer our own
+                // folders over `node_modules`
+                includePaths: [
+                  // enables aliases to `@use design - system`, `@use utilities`,
+                  // etc.
+                  './ui/css',
+                  './node_modules',
+                ],
 
                 // Disable the webpackImporter, as we:
                 //  a) don't want to rely on it in case we want to switch in the future
@@ -413,23 +451,6 @@ const webpackOptions = {
                 //     webpackImporter, but we switch to "modern" before it is
                 //     supported it'd be nice to not have to finagle things.
                 webpackImporter: false,
-
-                // Explicitly set the implementation to `sass` to prevent
-                // accidentally using the `node-sass` package (it's outdated),
-                // which is possible if `sass` is uninstalled, as `sass-loader`
-                // will use `node-sass` if `sass` isn't found.
-                // Once https://github.com/sass/sass/issues/3296 is implemented
-                // we should see an improvement by switching to sass-embedded.
-                implementation: 'sass',
-
-                // The order of includePaths is important; prefer our own
-                // folders over `node_modules`
-                includePaths: [
-                  // enables aliases to `@use design-system`, `@use utilities`,
-                  // etc.
-                  './ui/css',
-                  './node_modules',
-                ],
               },
             },
           },
@@ -451,13 +472,9 @@ const webpackOptions = {
     ],
   },
 
-  stats: {
-    colors: false,
-  },
-
   optimization: {
-    // only enable sideEffects, providedExports, and removeAvailableModules for
-    // production, as these options slow down the build
+    // only enable sideEffects, providedExports, removeAvailableModules, and
+    // usedExports for production, as these options slow down the build
     sideEffects: config.env === 'production',
     providedExports: config.env === 'production',
     removeAvailableModules: config.env === 'production',
@@ -466,12 +483,21 @@ const webpackOptions = {
     // 'deterministic' results in faster recompilations in cases where a child
     // chunk changes, but the parent chunk does not.
     moduleIds: 'deterministic',
+    chunkIds: 'deterministic',
     minimize: config.minify,
     minimizer: config.minify ? getMinimizers() : [],
 
-    // TODO: create one runtime bundle for all chunks, but not for
-    // scripts/contentscript.js, scripts/inpage.js, etc.
-    // runtimeChunk: 'single',
+    // Make most chunks share a single runtime file, which contains the webpack
+    // "runtime". The exception is @lavamoat/snow and all scripts found in the
+    // extension manifest; these scripts must be self-contained and cannot share
+    // code with other scripts - as the browser extension platform is
+    // responsible for loading them and splitting these files would require
+    // updating the manifest to include the other chunks.
+    runtimeChunk: {
+      name(entry: Chunk) {
+        return canBeChunked(entry) ? `runtime` : false;
+      }
+    },
     splitChunks: {
       // Impose a 4MB JS file size limit due to Firefox limitations
       // https://github.com/mozilla/addons-linter/issues/4942
@@ -484,13 +510,13 @@ const webpackOptions = {
           // only our own ts/js files
           test: /(?!.*\/node_modules\/).+\.[jt]sx?$/u,
           name: 'js',
-          chunks: canIncludeInChunk,
+          chunks: canBeChunked,
         },
         vendor: {
           // ts/js files in node modules or subdirectories of node_modules
           test: /[\\/]node_modules[\\/].*?\.[jt]sx?$/u,
           name: 'vendor',
-          chunks: canIncludeInChunk,
+          chunks: canBeChunked,
         },
       },
     },
@@ -526,7 +552,7 @@ if (HMR_READY && config.watch) {
   const server = new WebpackDevServer(options, webpack(webpackOptions));
   server.start();
 } else {
-  console.log('🦊 Running build…');
+  console.log(`🦊 Running ${config.env} build…`);
   webpack(webpackOptions, (err, stats) => {
     err && console.error(err);
     stats && console.log(stats.toString({ colors: true }));

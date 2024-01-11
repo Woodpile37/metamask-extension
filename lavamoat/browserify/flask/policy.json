@@ -37,7 +37,7 @@
     "@ensdomains/content-hash>cids>multicodec": {
       "packages": {
         "@ensdomains/content-hash>cids>uint8arrays": true,
-        "@ensdomains/content-hash>multicodec>varint": true
+        "sass-embedded>varint": true
       }
     },
     "@ensdomains/content-hash>cids>multihashes": {
@@ -72,7 +72,7 @@
     "@ensdomains/content-hash>multicodec": {
       "packages": {
         "@ensdomains/content-hash>multicodec>uint8arrays": true,
-        "@ensdomains/content-hash>multicodec>varint": true
+        "sass-embedded>varint": true
       }
     },
     "@ensdomains/content-hash>multicodec>uint8arrays": {
@@ -104,7 +104,7 @@
     },
     "@ensdomains/content-hash>multihashes>multibase>base-x": {
       "packages": {
-        "browserify-aes>safe-buffer": true
+        "koa>content-disposition>safe-buffer": true
       }
     },
     "@ensdomains/content-hash>multihashes>web-encoding": {
@@ -1290,12 +1290,12 @@
     },
     "@metamask/eth-trezor-keyring>hdkey": {
       "packages": {
-        "browserify-aes>create-hash>ripemd160": true,
-        "browserify-aes>safe-buffer": true,
         "browserify>assert": true,
         "crypto-browserify": true,
+        "ethereumjs-util>create-hash>ripemd160": true,
         "ethereumjs-util>ethereum-cryptography>bs58check": true,
-        "ethereumjs-util>ethereum-cryptography>secp256k1": true
+        "ethereumjs-util>ethereum-cryptography>secp256k1": true,
+        "koa>content-disposition>safe-buffer": true
       }
     },
     "@metamask/etherscan-link": {
@@ -1425,7 +1425,6 @@
     },
     "@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography": {
       "packages": {
-        "browserify-aes>safe-buffer": true,
         "browserify>assert": true,
         "browserify>buffer": true,
         "crypto-browserify>create-hmac": true,
@@ -1433,17 +1432,18 @@
         "ethereumjs-util>ethereum-cryptography>bs58check": true,
         "ethereumjs-util>ethereum-cryptography>hash.js": true,
         "ethereumjs-util>ethereum-cryptography>keccak": true,
-        "ethereumjs-util>ethereum-cryptography>secp256k1": true
+        "ethereumjs-util>ethereum-cryptography>secp256k1": true,
+        "koa>content-disposition>safe-buffer": true
       }
     },
     "@metamask/keyring-controller>ethereumjs-wallet>ethereumjs-util": {
       "packages": {
         "@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography": true,
         "bn.js": true,
-        "browserify-aes>create-hash": true,
         "browserify>assert": true,
         "browserify>buffer": true,
         "browserify>insert-module-globals>is-buffer": true,
+        "ethereumjs-util>create-hash": true,
         "ethereumjs-util>rlp": true
       }
     },
@@ -2764,7 +2764,7 @@
     },
     "addons-linter>sha.js": {
       "packages": {
-        "browserify-aes>safe-buffer": true,
+        "koa>content-disposition>safe-buffer": true,
         "pumpify>inherits": true
       }
     },
@@ -2810,81 +2810,6 @@
       },
       "packages": {
         "browserify>browser-resolve": true
-      }
-    },
-    "browserify-aes": {
-      "packages": {
-        "browserify-aes>buffer-xor": true,
-        "browserify-aes>cipher-base": true,
-        "browserify-aes>evp_bytestokey": true,
-        "browserify-aes>safe-buffer": true,
-        "browserify>buffer": true,
-        "pumpify>inherits": true
-      }
-    },
-    "browserify-aes>buffer-xor": {
-      "packages": {
-        "browserify>buffer": true
-      }
-    },
-    "browserify-aes>cipher-base": {
-      "packages": {
-        "browserify-aes>safe-buffer": true,
-        "browserify>string_decoder": true,
-        "pumpify>inherits": true,
-        "stream-browserify": true
-      }
-    },
-    "browserify-aes>create-hash": {
-      "packages": {
-        "addons-linter>sha.js": true,
-        "browserify-aes>cipher-base": true,
-        "browserify-aes>create-hash>md5.js": true,
-        "browserify-aes>create-hash>ripemd160": true,
-        "pumpify>inherits": true
-      }
-    },
-    "browserify-aes>create-hash>md5.js": {
-      "packages": {
-        "browserify-aes>create-hash>md5.js>hash-base": true,
-        "browserify-aes>safe-buffer": true,
-        "pumpify>inherits": true
-      }
-    },
-    "browserify-aes>create-hash>md5.js>hash-base": {
-      "packages": {
-        "browserify-aes>create-hash>md5.js>hash-base>readable-stream": true,
-        "browserify-aes>safe-buffer": true,
-        "pumpify>inherits": true
-      }
-    },
-    "browserify-aes>create-hash>md5.js>hash-base>readable-stream": {
-      "packages": {
-        "browserify>browser-resolve": true,
-        "browserify>buffer": true,
-        "browserify>string_decoder": true,
-        "process": true,
-        "pumpify>inherits": true,
-        "readable-stream>util-deprecate": true,
-        "webpack>events": true
-      }
-    },
-    "browserify-aes>create-hash>ripemd160": {
-      "packages": {
-        "browserify-aes>create-hash>md5.js>hash-base": true,
-        "browserify>buffer": true,
-        "pumpify>inherits": true
-      }
-    },
-    "browserify-aes>evp_bytestokey": {
-      "packages": {
-        "browserify-aes>create-hash>md5.js": true,
-        "browserify-aes>safe-buffer": true
-      }
-    },
-    "browserify-aes>safe-buffer": {
-      "packages": {
-        "browserify>buffer": true
       }
     },
     "browserify>assert": {
@@ -2950,7 +2875,7 @@
     },
     "browserify>string_decoder": {
       "packages": {
-        "browserify-aes>safe-buffer": true
+        "koa>content-disposition>safe-buffer": true
       }
     },
     "browserify>timers-browserify": {
@@ -3015,6 +2940,13 @@
         "string.prototype.matchall>es-abstract>gopd": true
       }
     },
+    "browserify>vm-browserify": {
+      "globals": {
+        "document.body.appendChild": true,
+        "document.body.removeChild": true,
+        "document.createElement": true
+      }
+    },
     "buffer": {
       "globals": {
         "console": true
@@ -3072,7 +3004,6 @@
     },
     "crypto-browserify": {
       "packages": {
-        "browserify-aes>create-hash": true,
         "crypto-browserify>browserify-cipher": true,
         "crypto-browserify>browserify-sign": true,
         "crypto-browserify>create-ecdh": true,
@@ -3081,21 +3012,22 @@
         "crypto-browserify>pbkdf2": true,
         "crypto-browserify>public-encrypt": true,
         "crypto-browserify>randombytes": true,
-        "crypto-browserify>randomfill": true
+        "crypto-browserify>randomfill": true,
+        "ethereumjs-util>create-hash": true
       }
     },
     "crypto-browserify>browserify-cipher": {
       "packages": {
-        "browserify-aes": true,
-        "browserify-aes>evp_bytestokey": true,
-        "crypto-browserify>browserify-cipher>browserify-des": true
+        "crypto-browserify>browserify-cipher>browserify-des": true,
+        "crypto-browserify>browserify-cipher>evp_bytestokey": true,
+        "ethereumjs-util>ethereum-cryptography>browserify-aes": true
       }
     },
     "crypto-browserify>browserify-cipher>browserify-des": {
       "packages": {
-        "browserify-aes>cipher-base": true,
         "browserify>buffer": true,
         "crypto-browserify>browserify-cipher>browserify-des>des.js": true,
+        "ethereumjs-util>create-hash>cipher-base": true,
         "pumpify>inherits": true
       }
     },
@@ -3105,15 +3037,21 @@
         "pumpify>inherits": true
       }
     },
+    "crypto-browserify>browserify-cipher>evp_bytestokey": {
+      "packages": {
+        "ethereumjs-util>create-hash>md5.js": true,
+        "koa>content-disposition>safe-buffer": true
+      }
+    },
     "crypto-browserify>browserify-sign": {
       "packages": {
         "@metamask/ppom-validator>elliptic": true,
         "bn.js": true,
-        "browserify-aes>create-hash": true,
         "browserify>buffer": true,
         "crypto-browserify>create-hmac": true,
         "crypto-browserify>public-encrypt>browserify-rsa": true,
         "crypto-browserify>public-encrypt>parse-asn1": true,
+        "ethereumjs-util>create-hash": true,
         "pumpify>inherits": true,
         "stream-browserify": true
       }
@@ -3128,10 +3066,10 @@
     "crypto-browserify>create-hmac": {
       "packages": {
         "addons-linter>sha.js": true,
-        "browserify-aes>cipher-base": true,
-        "browserify-aes>create-hash": true,
-        "browserify-aes>create-hash>ripemd160": true,
-        "browserify-aes>safe-buffer": true,
+        "ethereumjs-util>create-hash": true,
+        "ethereumjs-util>create-hash>cipher-base": true,
+        "ethereumjs-util>create-hash>ripemd160": true,
+        "koa>content-disposition>safe-buffer": true,
         "pumpify>inherits": true
       }
     },
@@ -3159,20 +3097,20 @@
       },
       "packages": {
         "addons-linter>sha.js": true,
-        "browserify-aes>create-hash": true,
-        "browserify-aes>create-hash>ripemd160": true,
-        "browserify-aes>safe-buffer": true,
+        "ethereumjs-util>create-hash": true,
+        "ethereumjs-util>create-hash>ripemd160": true,
+        "koa>content-disposition>safe-buffer": true,
         "process": true
       }
     },
     "crypto-browserify>public-encrypt": {
       "packages": {
         "bn.js": true,
-        "browserify-aes>create-hash": true,
         "browserify>buffer": true,
         "crypto-browserify>public-encrypt>browserify-rsa": true,
         "crypto-browserify>public-encrypt>parse-asn1": true,
-        "crypto-browserify>randombytes": true
+        "crypto-browserify>randombytes": true,
+        "ethereumjs-util>create-hash": true
       }
     },
     "crypto-browserify>public-encrypt>browserify-rsa": {
@@ -3184,11 +3122,11 @@
     },
     "crypto-browserify>public-encrypt>parse-asn1": {
       "packages": {
-        "browserify-aes": true,
-        "browserify-aes>evp_bytestokey": true,
         "browserify>buffer": true,
+        "crypto-browserify>browserify-cipher>evp_bytestokey": true,
         "crypto-browserify>pbkdf2": true,
-        "crypto-browserify>public-encrypt>parse-asn1>asn1.js": true
+        "crypto-browserify>public-encrypt>parse-asn1>asn1.js": true,
+        "ethereumjs-util>ethereum-cryptography>browserify-aes": true
       }
     },
     "crypto-browserify>public-encrypt>parse-asn1>asn1.js": {
@@ -3196,8 +3134,8 @@
         "@metamask/ppom-validator>elliptic>minimalistic-assert": true,
         "bn.js": true,
         "browserify>buffer": true,
-        "pumpify>inherits": true,
-        "vm-browserify": true
+        "browserify>vm-browserify": true,
+        "pumpify>inherits": true
       }
     },
     "crypto-browserify>randombytes": {
@@ -3206,7 +3144,7 @@
         "msCrypto": true
       },
       "packages": {
-        "browserify-aes>safe-buffer": true,
+        "koa>content-disposition>safe-buffer": true,
         "process": true
       }
     },
@@ -3216,8 +3154,8 @@
         "msCrypto": true
       },
       "packages": {
-        "browserify-aes>safe-buffer": true,
         "crypto-browserify>randombytes": true,
+        "koa>content-disposition>safe-buffer": true,
         "process": true
       }
     },
@@ -3608,13 +3546,13 @@
       "packages": {
         "@metamask/ppom-validator>elliptic": true,
         "bn.js": true,
-        "browserify-aes>create-hash": true,
-        "browserify-aes>safe-buffer": true,
         "browserify>assert": true,
         "browserify>buffer": true,
         "eth-sig-util>ethereumjs-util>ethereum-cryptography": true,
         "eth-sig-util>ethereumjs-util>ethjs-util": true,
-        "ethereumjs-util>rlp": true
+        "ethereumjs-util>create-hash": true,
+        "ethereumjs-util>rlp": true,
+        "koa>content-disposition>safe-buffer": true
       }
     },
     "eth-sig-util>ethereumjs-util>ethereum-cryptography": {
@@ -3662,11 +3600,11 @@
       "packages": {
         "@metamask/ppom-validator>elliptic": true,
         "bn.js": true,
-        "browserify-aes>create-hash": true,
         "browserify>assert": true,
         "browserify>buffer": true,
         "ethereumjs-abi>ethereumjs-util>ethereum-cryptography": true,
         "ethereumjs-abi>ethereumjs-util>ethjs-util": true,
+        "ethereumjs-util>create-hash": true,
         "ethereumjs-util>rlp": true
       }
     },
@@ -3688,12 +3626,61 @@
     "ethereumjs-util": {
       "packages": {
         "bn.js": true,
-        "browserify-aes>create-hash": true,
         "browserify>assert": true,
         "browserify>buffer": true,
         "browserify>insert-module-globals>is-buffer": true,
+        "ethereumjs-util>create-hash": true,
         "ethereumjs-util>ethereum-cryptography": true,
         "ethereumjs-util>rlp": true
+      }
+    },
+    "ethereumjs-util>create-hash": {
+      "packages": {
+        "addons-linter>sha.js": true,
+        "ethereumjs-util>create-hash>cipher-base": true,
+        "ethereumjs-util>create-hash>md5.js": true,
+        "ethereumjs-util>create-hash>ripemd160": true,
+        "pumpify>inherits": true
+      }
+    },
+    "ethereumjs-util>create-hash>cipher-base": {
+      "packages": {
+        "browserify>string_decoder": true,
+        "koa>content-disposition>safe-buffer": true,
+        "pumpify>inherits": true,
+        "stream-browserify": true
+      }
+    },
+    "ethereumjs-util>create-hash>md5.js": {
+      "packages": {
+        "ethereumjs-util>create-hash>md5.js>hash-base": true,
+        "koa>content-disposition>safe-buffer": true,
+        "pumpify>inherits": true
+      }
+    },
+    "ethereumjs-util>create-hash>md5.js>hash-base": {
+      "packages": {
+        "ethereumjs-util>create-hash>md5.js>hash-base>readable-stream": true,
+        "koa>content-disposition>safe-buffer": true,
+        "pumpify>inherits": true
+      }
+    },
+    "ethereumjs-util>create-hash>md5.js>hash-base>readable-stream": {
+      "packages": {
+        "browserify>browser-resolve": true,
+        "browserify>buffer": true,
+        "browserify>string_decoder": true,
+        "process": true,
+        "pumpify>inherits": true,
+        "readable-stream>util-deprecate": true,
+        "webpack>events": true
+      }
+    },
+    "ethereumjs-util>create-hash>ripemd160": {
+      "packages": {
+        "browserify>buffer": true,
+        "ethereumjs-util>create-hash>md5.js>hash-base": true,
+        "pumpify>inherits": true
       }
     },
     "ethereumjs-util>ethereum-cryptography": {
@@ -3704,11 +3691,26 @@
         "ethereumjs-util>ethereum-cryptography>secp256k1": true
       }
     },
+    "ethereumjs-util>ethereum-cryptography>browserify-aes": {
+      "packages": {
+        "browserify>buffer": true,
+        "crypto-browserify>browserify-cipher>evp_bytestokey": true,
+        "ethereumjs-util>create-hash>cipher-base": true,
+        "ethereumjs-util>ethereum-cryptography>browserify-aes>buffer-xor": true,
+        "koa>content-disposition>safe-buffer": true,
+        "pumpify>inherits": true
+      }
+    },
+    "ethereumjs-util>ethereum-cryptography>browserify-aes>buffer-xor": {
+      "packages": {
+        "browserify>buffer": true
+      }
+    },
     "ethereumjs-util>ethereum-cryptography>bs58check": {
       "packages": {
-        "browserify-aes>create-hash": true,
-        "browserify-aes>safe-buffer": true,
-        "ethereumjs-util>ethereum-cryptography>bs58check>bs58": true
+        "ethereumjs-util>create-hash": true,
+        "ethereumjs-util>ethereum-cryptography>bs58check>bs58": true,
+        "koa>content-disposition>safe-buffer": true
       }
     },
     "ethereumjs-util>ethereum-cryptography>bs58check>bs58": {
@@ -3972,6 +3974,11 @@
         "pumpify>inherits": true,
         "readable-stream>util-deprecate": true,
         "webpack>events": true
+      }
+    },
+    "koa>content-disposition>safe-buffer": {
+      "packages": {
+        "browserify>buffer": true
       }
     },
     "koa>is-generator-function": {
@@ -4903,13 +4910,6 @@
     "vinyl>replace-ext": {
       "packages": {
         "browserify>path-browserify": true
-      }
-    },
-    "vm-browserify": {
-      "globals": {
-        "document.body.appendChild": true,
-        "document.body.removeChild": true,
-        "document.createElement": true
       }
     },
     "web3": {

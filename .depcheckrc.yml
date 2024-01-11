@@ -63,18 +63,15 @@ ignores:
   # webpack
   - '@pmmmwh/react-refresh-webpack-plugin'
   - '@swc/helpers'
-  - 'browserify-aes'
   - 'buffer'
   - 'crypto-browserify'
   - 'html-bundler-webpack-plugin'
   - 'json-schema-to-ts'
-  - 'os-browserify'
   - 'postcss-loader'
   - 'process'
   - 'stream-http'
-  - 'vm-browserify'
-  - 'webpack-cli'
   - 'webpack-dev-server'
+  - 'sass-embedded'
 
 # files depcheck should not parse
 ignorePatterns:

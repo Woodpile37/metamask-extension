@@ -1655,11 +1655,6 @@
         "watchify>xtend": true
       }
     },
-    "browserify-aes>safe-buffer": {
-      "builtin": {
-        "buffer": true
-      }
-    },
     "browserify>JSONStream": {
       "globals": {
         "Buffer": true
@@ -1687,9 +1682,9 @@
       "packages": {
         "@lavamoat/lavapack>combine-source-map": true,
         "@lavamoat/lavapack>umd": true,
-        "browserify-aes>safe-buffer": true,
         "browserify>JSONStream": true,
         "browserify>browser-pack>through2": true,
+        "koa>content-disposition>safe-buffer": true,
         "watchify>defined": true
       }
     },
@@ -1903,7 +1898,7 @@
     },
     "browserify>string_decoder": {
       "packages": {
-        "browserify-aes>safe-buffer": true
+        "koa>content-disposition>safe-buffer": true
       }
     },
     "browserify>syntax-error": {
@@ -5340,9 +5335,9 @@
     },
     "gulp>vinyl-fs>remove-bom-stream": {
       "packages": {
-        "browserify-aes>safe-buffer": true,
         "gulp>vinyl-fs>remove-bom-buffer": true,
-        "gulp>vinyl-fs>remove-bom-stream>through2": true
+        "gulp>vinyl-fs>remove-bom-stream>through2": true,
+        "koa>content-disposition>safe-buffer": true
       }
     },
     "gulp>vinyl-fs>remove-bom-stream>through2": {
@@ -5446,6 +5441,11 @@
       "globals": {
         "console": true,
         "define": true
+      }
+    },
+    "koa>content-disposition>safe-buffer": {
+      "builtin": {
+        "buffer": true
       }
     },
     "labeled-stream-splicer": {
@@ -5630,14 +5630,19 @@
       "packages": {
         "@babel/register>clone-deep>is-plain-object": true,
         "lavamoat>lavamoat-core>merge-deep>clone-deep>for-own": true,
+        "lavamoat>lavamoat-core>merge-deep>clone-deep>kind-of": true,
         "lavamoat>lavamoat-core>merge-deep>clone-deep>lazy-cache": true,
-        "lavamoat>lavamoat-core>merge-deep>clone-deep>shallow-clone": true,
-        "lavamoat>lavamoat-core>merge-deep>kind-of": true
+        "lavamoat>lavamoat-core>merge-deep>clone-deep>shallow-clone": true
       }
     },
     "lavamoat>lavamoat-core>merge-deep>clone-deep>for-own": {
       "packages": {
         "gulp>undertaker>object.reduce>for-own>for-in": true
+      }
+    },
+    "lavamoat>lavamoat-core>merge-deep>clone-deep>kind-of": {
+      "packages": {
+        "browserify>insert-module-globals>is-buffer": true
       }
     },
     "lavamoat>lavamoat-core>merge-deep>clone-deep>lazy-cache": {
@@ -7235,7 +7240,7 @@
         "util.inherits": true
       },
       "packages": {
-        "browserify-aes>safe-buffer": true,
+        "koa>content-disposition>safe-buffer": true,
         "readable-stream": true
       }
     },
@@ -7361,7 +7366,7 @@
         "process.version": true
       },
       "packages": {
-        "browserify-aes>safe-buffer": true,
+        "koa>content-disposition>safe-buffer": true,
         "webpack-dev-server>sockjs>websocket-driver>http-parser-js": true,
         "webpack-dev-server>sockjs>websocket-driver>websocket-extensions": true
       }

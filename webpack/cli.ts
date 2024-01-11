@@ -131,7 +131,7 @@ export function generateCli<
       '$0 completion',
       `Generates a bash completion script for the \`${name}\` command`,
     )
-    .options(options)
+    .options(options);
   // TODO should we add an option that shows what features will be included? Something like a "--dry-run"?
   return cli;
 }

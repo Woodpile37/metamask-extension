@@ -6,26 +6,27 @@ import { removeFencedCode, type FeatureLabels } from '@metamask/build-utils';
 const schema: JSONSchema7 = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
-  required: ["features"],
+  required: ['features'],
   properties: {
     features: {
       type: 'object',
-      description: "Configuration for code fence removal, specifying active and all possible features.",
-      required: ["active", "all"],
+      description:
+        'Configuration for code fence removal, specifying active and all possible features.',
+      required: ['active', 'all'],
       properties: {
         active: {
-          description: "Features that should be included in the output.",
-          type: "object",
+          description: 'Features that should be included in the output.',
+          type: 'object',
         },
         all: {
-          description: "All features that can be toggled.",
-          type: "object",
-        }
+          description: 'All features that can be toggled.',
+          type: 'object',
+        },
       },
       additionalProperties: false,
     },
   },
-  additionalProperties: false
+  additionalProperties: false,
 };
 
 const configuration = {
@@ -33,14 +34,20 @@ const configuration = {
 };
 
 export type CodeFenceLoaderOptions = {
-  features: FeatureLabels,
+  features: FeatureLabels;
 };
 
+type CodeFenceLoader = LoaderContext<CodeFenceLoaderOptions>;
 export default function codeFenceLoader(
-  this: LoaderContext<CodeFenceLoaderOptions>,
+  this: CodeFenceLoader,
   source: string,
+  inputSourceMap: string,
 ) {
   const options = this.getOptions();
   validate(schema, options, configuration);
-  return removeFencedCode(this.resourcePath, source, options.features)[0];
+  this.callback(
+    null,
+    removeFencedCode(this.resourcePath, source, options.features)[0],
+    inputSourceMap,
+  );
 }

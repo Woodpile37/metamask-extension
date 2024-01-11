@@ -24,8 +24,8 @@ const schema = {
       type: 'object',
       properties: {
         externalHelpers: {
-          type: "boolean",
-          default: false
+          type: 'boolean',
+          default: false,
         },
         transform: {
           type: 'object',
@@ -34,32 +34,34 @@ const schema = {
               type: 'object',
               properties: {
                 globals: {
-                  description: "",
+                  description: '',
                   type: 'object',
                   properties: {
                     envs: {
-                      description: "Replaces environment variables (`if (process.env.DEBUG) `) with specified values/expressions at compile time.",
+                      description:
+                        'Replaces environment variables (`if (process.env.DEBUG) `) with specified values/expressions at compile time.',
                       anyOf: [
                         {
-                          type: "array",
+                          type: 'array',
                           items: {
-                            type: "string"
-                          }
+                            type: 'string',
+                          },
                         },
                         {
-                          type: "object",
+                          type: 'object',
                           additionalProperties: {
-                            type: "string"
-                          }
-                        }
+                            type: 'string',
+                          },
+                        },
                       ],
                     },
                     vars: {
-                      description: "Replaces variables `if(__DEBUG__){}` with specified values/expressions at compile time.",
-                      type: "object",
+                      description:
+                        'Replaces variables `if(__DEBUG__){}` with specified values/expressions at compile time.',
+                      type: 'object',
                       additionalProperties: {
-                        type: "string"
-                      }
+                        type: 'string',
+                      },
                     },
                   },
                   additionalProperties: false,
@@ -132,7 +134,10 @@ const schema = {
   additionalProperties: false,
 } as const satisfies JSONSchema7;
 
-export type SwcLoaderOptions = FromSchema<typeof schema, { keepDefaultedPropertiesOptional: true }>;
+export type SwcLoaderOptions = FromSchema<
+  typeof schema,
+  { keepDefaultedPropertiesOptional: true }
+>;
 
 const configuration = {
   name: swcLoader.name,
