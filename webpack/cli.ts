@@ -1,6 +1,6 @@
 import type { Options } from 'yargs';
 import yargs from 'yargs/yargs';
-import { Browsers, type Browser, type Manifest } from './helpers';
+import { Browsers, type Manifest } from './helpers';
 
 type Optionses = { [key: string]: Options };
 type OptionsKeys = keyof Omit<
@@ -32,23 +32,6 @@ const { loadBuildTypesConfig } = require('../development/lib/build-type') as {
     buildTypes: { [x: string]: { features: string[] } };
   };
 };
-
-/**
- * Yargs doesn't support comma-separated arrays, e.g.,
- * `program --multi one,two,three --multi four`, this function gives us the
- * ability to "coerce" the CSV string into an array, so the result will now be:
- * `{ multi: ['one', 'two', 'three', 'four'] }`.
- *
- * Note: CSV parsing is a naive string-split-on-comma approach, this isn't a
- * full CSV parser.
- *
- * @param array
- */
-function parseArrayOptionAsCsv<T extends string = string>(
-  array: string[],
-): T[] {
-  return array.flatMap<T>((value) => value.split(',') as T[]);
-}
 
 /**
  * Parses the given args from `argv` and returns whether or not the build is
@@ -149,6 +132,7 @@ export function generateCli<
       `Generates a bash completion script for the \`${name}\` command`,
     )
     .options(options)
+  // TODO should we add an option that shows what features will be included? Something like a "--dry-run"?
   return cli;
 }
 
@@ -216,8 +200,7 @@ function getOptions(
       alias: 'b',
       array: true,
       choices: ['all', ...Browsers],
-      coerce: (array: string[]) => {
-        const browsers = parseArrayOptionAsCsv<Browser | 'all'>(array);
+      coerce: (browsers: string[]) => {
         const set = new Set(browsers);
         return set.has('all') ? [...Browsers] : [...set];
       },
@@ -248,7 +231,6 @@ function getOptions(
       alias: 'a',
       array: true,
       choices: allFeatures,
-      coerce: parseArrayOptionAsCsv,
       default: [] as typeof allFeatures,
       description: 'Add features not be included in the selected build `type`',
       group: 'Build options:',
@@ -258,7 +240,6 @@ function getOptions(
       alias: 'o',
       array: true,
       choices: allFeatures,
-      coerce: parseArrayOptionAsCsv,
       default: [] as typeof allFeatures,
       description: 'Omit features included in the selected build `type`',
       group: 'Build options:',

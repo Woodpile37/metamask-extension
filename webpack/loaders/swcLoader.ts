@@ -3,7 +3,6 @@ import type { JSONSchema7 } from 'schema-utils/declarations/validate';
 import type { FromSchema } from 'json-schema-to-ts';
 import { validate } from 'schema-utils';
 import { transform, type Options } from '@swc/core';
-import { satisfies } from 'semver';
 
 // the schema here is limited to only the options we actually use
 // there are loads more options available to SWC we could add.

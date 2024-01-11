@@ -4847,18 +4847,18 @@ __metadata:
   linkType: hard
 
 "@metamask/phishing-warning@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/phishing-warning@npm:3.0.0"
+  version: 3.0.2
+  resolution: "@metamask/phishing-warning@npm:3.0.2"
   dependencies:
     "@metamask/design-tokens": "npm:^1.12.0"
     "@metamask/object-multiplex": "npm:^2.0.0"
     "@metamask/post-message-stream": "npm:^7.0.0"
     eth-phishing-detect: "npm:^1.2.0"
     globalthis: "npm:1.0.1"
-    punycode: "npm:^2.3.0"
+    punycode: "npm:^2.3.1"
     readable-stream: "npm:^3.6.2"
     ses: "npm:^0.18.8"
-  checksum: 86aeb3c46fb1f47d59017d8de60545d11cf16d3784c9cb3adcfe4b9c8f775c06889ced2ed816c75a87581bbe5919db11b2f3176b095f46b62d3bb31560ecd008
+  checksum: c9cafc7bb85867c469651b9dd55081b62e7b3709e564112f5ad61b29e3ae88ef0de924d0e2002478975c5f15b971cb913ec9dfa7a778c00896a6d3c5946bdc2a
   languageName: node
   linkType: hard
 
@@ -5723,13 +5723,13 @@ __metadata:
   linkType: hard
 
 "@playwright/test@npm:^1.39.0":
-  version: 1.39.0
-  resolution: "@playwright/test@npm:1.39.0"
+  version: 1.40.1
+  resolution: "@playwright/test@npm:1.40.1"
   dependencies:
-    playwright: "npm:1.39.0"
+    playwright: "npm:1.40.1"
   bin:
     playwright: cli.js
-  checksum: 5d039234609395f3eab46b5954b259bdd80dacf79efe531369c1633647dcafce25a78d497e61e671d661274bf66076426a1bd46be585c44addf23bb5bfaa15a2
+  checksum: 77bfc3d4a101fd996309de3a67256117f671952764404727e520a4d512ba2e528d8f9e0b28ef9b2851664a651a5d002a0b05993e313077a2fa640bb430f38b25
   languageName: node
   linkType: hard
 
@@ -28384,15 +28384,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.39.0":
-  version: 1.39.0
-  resolution: "playwright-core@npm:1.39.0"
-  bin:
-    playwright-core: cli.js
-  checksum: e4e01ddea024c7564bbfacdba5f545b004a4017b466af08ae90e5184da4f5bc61e74c96e37cc5e30b7d4f97341c0883cfb2038c8cfbfab65316d714f65b82d83
-  languageName: node
-  linkType: hard
-
 "playwright-core@npm:1.40.1, playwright-core@npm:>=1.2.0":
   version: 1.40.1
   resolution: "playwright-core@npm:1.40.1"
@@ -28402,22 +28393,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright@npm:1.39.0":
-  version: 1.39.0
-  resolution: "playwright@npm:1.39.0"
-  dependencies:
-    fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.39.0"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    playwright: cli.js
-  checksum: 6f6b2f4381fccfbc560c4cd25e164f5093fec4e2046990587282e18618151d723b299b56c16741ce08e44a759c22e38c3e705b716d31238320e08e6ffcfa7319
-  languageName: node
-  linkType: hard
-
-"playwright@npm:^1.14.0, playwright@npm:^1.29.2":
+"playwright@npm:1.40.1, playwright@npm:^1.14.0, playwright@npm:^1.29.2":
   version: 1.40.1
   resolution: "playwright@npm:1.40.1"
   dependencies:
@@ -29276,7 +29252,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:^2.1.0, punycode@npm:^2.1.1, punycode@npm:^2.3.0":
+"punycode@npm:^2.1.0, punycode@npm:^2.1.1, punycode@npm:^2.3.1":
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: febdc4362bead22f9e2608ff0171713230b57aff9dddc1c273aa2a651fbd366f94b7d6a71d78342a7c0819906750351ca7f2edd26ea41b626d87d6a13d1bd059

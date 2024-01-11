@@ -7,7 +7,10 @@
     {{@if(it.isMMI)}}
     <title>MetaMask Institutional</title>
     {{/if}}
-    <link rel="stylesheet" href="../ui/css/index.scss">
+    {{ @if (it.isSnowing) }}
+      <script src="@lavamoat/snow/snow.prod.js" defer></script>
+      <script src="./scripts/use-snow.js" defer></script>
+    {{/if}}
   </head>
   <body>
     <div id="app-content">

@@ -1,7 +1,7 @@
 import type { LoaderContext } from 'webpack';
 import type { JSONSchema7 } from 'schema-utils/declarations/validate';
 import { validate } from 'schema-utils';
-import { removeFencedCode, Features } from '../../development/build/transforms/remove-fenced-code';
+import { removeFencedCode, type FeatureLabels } from '@metamask/build-utils';
 
 const schema: JSONSchema7 = {
   $schema: 'http://json-schema.org/draft-07/schema#',
@@ -33,7 +33,7 @@ const configuration = {
 };
 
 export type CodeFenceLoaderOptions = {
-  features: Features,
+  features: FeatureLabels,
 };
 
 export default function codeFenceLoader(
@@ -42,5 +42,5 @@ export default function codeFenceLoader(
 ) {
   const options = this.getOptions();
   validate(schema, options, configuration);
-  return removeFencedCode(this.resourcePath, options.features, source)[0];
+  return removeFencedCode(this.resourcePath, source, options.features)[0];
 }

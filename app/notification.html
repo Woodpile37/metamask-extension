@@ -11,6 +11,10 @@
     {{ #else }}
     <title>MetaMask</title>
     {{/if}}
+    {{ @if (it.isSnowing) }}
+      <script src="@lavamoat/snow/snow.prod.js" defer></script>
+      <script src="./scripts/use-snow.js" defer></script>
+    {{/if}}
 
     <style>
       #app-content {

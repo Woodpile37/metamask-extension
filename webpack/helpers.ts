@@ -138,11 +138,14 @@ export const generateManifest = (
  */
 export function combineEntriesFromManifestAndDir(manifest: Manifest, dir: string) {
   const entry: EntryObject = {};
-  const scripts: string[] = [];
+  const scripts: Set<string> = new Set([
+    // Snow is a special snowflake that shouldn't be modified by webpack
+    "snow.prod"
+  ]);
 
   function addManifestScript(filename: string | undefined) {
     if (filename) {
-      scripts.push(filename);
+      scripts.add(filename);
       entry[filename] = {
         chunkLoading: false,
         filename, // output filename

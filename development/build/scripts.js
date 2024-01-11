@@ -1330,6 +1330,8 @@ function renderHtmlFile({
     .replace("<script src=\"./load-background.js\"></script>", "<script src=\"./load-background.js\"></script>\n    <script src=\"./chromereload.js\"></script>")
     .replace("./scripts/load-ui.ts", "./load-app.js")
     .replace("../ui/css/index.scss", "./index.css")
+    .replace("@lavamoat/snow/snow.prod.js", "./snow.js")
+    .replace("./scripts/use-snow.js", "./use-snow.js")
   browserPlatforms.forEach((platform) => {
     const dest = `./dist/${platform}/${htmlName}.html`;
     // we dont have a way of creating async events atm

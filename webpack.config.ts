@@ -32,10 +32,8 @@ const HMR_READY = false;
 
 const { config, features } = parseArgv(process.argv.slice(2));
 
-if (config.snow || config.lavamoat) {
-  throw new Error(
-    "The webpack build doesn't support LavaMoat or Snow yet. So sorry.",
-  );
+if (config.lavamoat) {
+  throw new Error("The webpack build doesn't support LavaMoat yet. So sorry.");
 }
 
 if (config.browser.length > 1) {
@@ -53,10 +51,20 @@ if (config.manifest_version === 3) {
 const dir = join(__dirname, 'app');
 
 const MANIFEST_VERSION = config.manifest_version;
-const baseManifest: Manifest = JSON.parse(
-  readFileSync(join(dir, `manifest/v${MANIFEST_VERSION}/_base.json`)).toString("utf-8"),
-);
-const { entry, scripts } = combineEntriesFromManifestAndDir(baseManifest, dir);
+const manifestPath = join(dir, `manifest/v${MANIFEST_VERSION}/_base.json`);
+const manifest: Manifest = JSON.parse(readFileSync(manifestPath).toString());
+const { entry, scripts } = combineEntriesFromManifestAndDir(manifest, dir);
+/**
+ * Ignore scripts that were found in the manifest, as these are only loaded by
+ * the browser extension platform itself.
+ *
+ * @param chunk
+ * @param chunk.name
+ * @returns
+ */
+function canIncludeInChunk({ name }: { name?: string }): boolean {
+  return !name || !scripts.has(name);
+}
 
 // removes fenced code blocks from the source
 const codeFenceLoader: webpack.RuleSetRule & {
@@ -74,6 +82,7 @@ const codeFenceLoader: webpack.RuleSetRule & {
  * @param syntax
  * @param enableJsx
  * @param config
+ * @param envs
  * @returns
  */
 function getSwcLoader(
@@ -83,7 +92,7 @@ function getSwcLoader(
   envs: Record<string, string> = {},
 ) {
   return {
-    loader: require.resolve('webpack/loaders/swcLoader'),
+    loader: require.resolve('./webpack/loaders/swcLoader'),
     options: {
       env: {
         targets: readFileSync('./.browserslistrc', 'utf-8'),
@@ -97,9 +106,9 @@ function getSwcLoader(
           },
           optimizer: {
             globals: {
-              envs
-            }
-          }
+              envs,
+            },
+          },
         },
         parser:
           syntax === 'typescript'
@@ -126,23 +135,32 @@ const DESCRIPTION = `MetaMask ${BROWSER} Extension`;
 // TODO: figure out what build.yml's env vars are doing and them do the merge
 // stuff. Also, fix all this crappy ENV code.
 const ENV = mergeEnv({});
-const envsStringified = Object.entries(ENV).reduce((acc: Record<string, string>, [key, val]) => {
-  acc[`${key}`] = JSON.stringify(val);
-  return acc;
-  // PPOM_URI is only here because the gulp build process doesn't understand `import.meta.url`
-}, { "PPOM_URI": `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)` })
+const envsStringified = Object.entries(ENV).reduce(
+  (acc: Record<string, string>, [key, val]) => {
+    acc[`${key}`] = JSON.stringify(val);
+    return acc;
+  },
+  {
+    // PPOM_URI is only here because the gulp build process doesn't understand `import.meta.url`
+    PPOM_URI: `new URL('@blockaid/ppom_release/ppom_bg.wasm', import.meta.url)`,
+  },
+);
 
 const plugins: WebpackPluginInstance[] = [
   new HtmlBundlerPlugin({
     // Disable the HTML preprocessor as we currently use Squirrley in an
     // html-loader instead.
     preprocessor: false,
+    minify: config.minify,
+    integrity: 'auto',
   }),
+  // use ProvidePlugin to polyfill *global* node variables that aren't in the
+  // browser
   new ProvidePlugin({
-    // Make a global `process` variable that points to the `process` package.
-    process: 'process/browser',
     // Make a global `Buffer` variable that points to the `buffer` package.
     Buffer: ['buffer', 'Buffer'],
+    // Make a global `process` variable that points to the `process` package.
+    process: 'process/browser',
   }),
   new CopyPlugin({
     patterns: [
@@ -166,7 +184,7 @@ const plugins: WebpackPluginInstance[] = [
         },
       },
     ],
-  })
+  }),
 ];
 
 // enable React Refresh in 'development' mode when `watch` is enabled
@@ -206,8 +224,8 @@ const webpackOptions = {
   node: {
     __dirname: 'warn-mock',
     __filename: 'warn-mock',
-    // in the future we don't want to polyfill a node globals, when a browser
-    // version `globalThis` already exists.
+    // in the future we don't want to polyfill node `global`, as a browser
+    // version, `globalThis`, already exists. We should use it instead.
     global: true,
   },
 
@@ -216,16 +234,15 @@ const webpackOptions = {
   target: 'browserslist',
 
   resolve: {
-    // Disable symlinks for performance (saves about 0.5 seconds form full
-    // build)
+    // Disable symlinks for performance; saves about 0.5 seconds from full build
     symlinks: false,
 
     // Extensions added to the request when trying to find the file. Most common
-    // extensions should be list first to increase resolution performance.
-    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    // extensions should be listed first to improve resolution performance.
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
 
     // use `fallback` to redirect module requests when normal resolving fails,
-    // good for polyfilling built-in node modules that aren't available in the
+    // good for polyfill-ing built-in node modules that aren't available in the
     // browser. The browser will first attempt to load these modules, if it
     // fails it will load the fallback.
     fallback: {
@@ -242,25 +259,24 @@ const webpackOptions = {
     // or when we just don't want to have to use the actual path to the module.
     // (please don't abuse alias, just use relative paths as God intended)
     alias: {
-      buffer$: require.resolve('buffer/'),
       fs$: false,
 
       // #region micro-ftch
-      // micro-ftch can't be webpacked without these aliases, as webpack will
+      // micro-ftch can't be bundled without these aliases, as webpack will
       // attempt to load them but micro-ftch doesn't define `browser` compatible
       // fields.
       http$: require.resolve('stream-http'),
       https$: require.resolve('https-browserify'),
       zlib$: false,
       // #endregion micro-ftch
-      // remove react-devtools in production builds
-      'react-devtools$':
-        config.env === 'production' ? false : 'react-devtools',
-      // remove remote-redux-devtools unless METAMASK_DEBUG is enabled
-      'remote-redux-devtools$': !ENV.METAMASK_DEBUG
-        ? false
-        : 'remote-redux-devtools',
       // #region remove developer tooling in production builds
+      // remove react-devtools in production builds
+      'react-devtools$': config.env === 'production' ? false : require.resolve('react-devtools'),
+      // remove remote-redux-devtools unless METAMASK_DEBUG is enabled
+      'remote-redux-devtools$': ENV.METAMASK_DEBUG
+        ? require.resolve('remote-redux-devtools')
+        : false,
+      // #endregion remove developer tooling in production builds
     },
   },
 
@@ -281,15 +297,17 @@ const webpackOptions = {
   },
 
   output: {
+    wasmLoading: 'fetch',
+    // required for `integrity` to work in the browser
     crossOriginLoading: 'anonymous',
     // filenames for *initial* files (essentially JS entry points)
     filename: '[name].[contenthash].js',
     // chunkFilename is used because in some cases webpack may generate a
     // filename that starts with "_", which chrome does not allow at the root of
     // the extension directory (subdirectories are fine). If we switch to
-    // `output.module = true` this function must be updated to use return an
-    // `.mjs` extension. Alternatively, we could output all js files to a
-    // subdirectory and not have to worry about it.
+    // `output.module = true` this function must be updated to return an `.mjs`
+    // extension. Alternatively, we could output all js files to a subdirectory
+    // and not have to worry about it.
     chunkFilename: ({ chunk }) => {
       if (chunk!.id?.toString().startsWith('_')) {
         return '-[id].[contenthash].js';
@@ -307,16 +325,24 @@ const webpackOptions = {
   },
 
   module: {
+    noParse: /@lavamoat\/snow/u,
     // an important note: loaders in a `use` array are applied in *reverse*
     // order, i.e., bottom to top, (or right to left depending on the current
     // formatting of the file)
     rules: [
-      // html: use the squirrelly template engine for html files
+      {
+        // don't modify anything coming from the @lavamoat/snow package
+        test: /!@lavamoat\/snow\.*$/u,
+        include: /node_modules/u,
+        type: 'asset/source',
+      },
+      // html: use the Squirrelly template engine for html files
       {
         test: /\.html?$/u,
         loader: require.resolve('./webpack/loaders/squirrellyHtmlLoader'),
         options: {
           isMMI: false,
+          isSnowing: config.snow,
         },
       },
       // json
@@ -325,13 +351,19 @@ const webpackOptions = {
       {
         test: /\.(ts|mts|tsx)$/u,
         exclude: /node_modules/u,
-        use: [getSwcLoader('typescript', true, config, envsStringified), codeFenceLoader],
+        use: [
+          getSwcLoader('typescript', true, config, envsStringified),
+          codeFenceLoader,
+        ],
       },
       // own javascript, and own javascript with jsx
       {
         test: /\.(js|mjs|jsx)$/u,
         exclude: /node_modules/u,
-        use: [getSwcLoader('ecmascript', true, config, envsStringified), codeFenceLoader],
+        use: [
+          getSwcLoader('ecmascript', true, config, envsStringified),
+          codeFenceLoader,
+        ],
       },
       // vendor javascript
       {
@@ -419,10 +451,6 @@ const webpackOptions = {
     ],
   },
 
-  experiments: {
-    layers: true
-  },
-
   stats: {
     colors: false,
   },
@@ -456,17 +484,13 @@ const webpackOptions = {
           // only our own ts/js files
           test: /(?!.*\/node_modules\/).+\.[jt]sx?$/u,
           name: 'js',
-          // ignore scripts that were found in the manifest, as these
-          // are always loaded by the browser extension platform
-          chunks: ({ name }) => !name || !scripts.includes(name),
+          chunks: canIncludeInChunk,
         },
         vendor: {
           // ts/js files in node modules or subdirectories of node_modules
-          test: /[\\/]node_modules[\\/].*?\.[jt]sx?$/,
+          test: /[\\/]node_modules[\\/].*?\.[jt]sx?$/u,
           name: 'vendor',
-          // ignore scripts that were found in the manifest, as these
-          // are always loaded by the browser extension platform
-          chunks: ({ name }) => !name || !scripts.includes(name),
+          chunks: canIncludeInChunk,
         },
       },
     },
@@ -506,8 +530,6 @@ if (HMR_READY && config.watch) {
   webpack(webpackOptions, (err, stats) => {
     err && console.error(err);
     stats && console.log(stats.toString({ colors: true }));
-    if (config.watch) {
-      console.log('🦊 Watching for changes…');
-    }
+    config.watch && console.log('🦊 Watching for changes…');
   });
 }
