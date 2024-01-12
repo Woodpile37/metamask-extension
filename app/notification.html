@@ -1,12 +1,21 @@
-<!doctype html>
+<!DOCTYPE html>
 <html dir="ltr">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta charset="utf-8">
-    <title>MetaMask Notification</title>
-    {{@if(it.isMMI)}}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+
+    {{ @if (it.isTest) }}
+    <title>MetaMask Dialog</title>
+    {{ #elif (it.isMMI) }}
     <title>MetaMask Institutional</title>
+    {{ #else }}
+    <title>MetaMask</title>
     {{/if}}
+    {{ @if (it.isSnowing) }}
+      <script src="@lavamoat/snow/snow.prod.js" defer></script>
+      <script src="./scripts/use-snow.js" defer></script>
+    {{/if}}
+
     <style>
       #app-content {
         display: flex;
@@ -31,10 +40,20 @@
   </head>
   <body class="notification">
     <div id="app-content">
-      <img id="loading__logo" src="./images/logo/metamask-fox.svg" alt="" />
-      <img id="loading__spinner" src="./images/spinner.gif" alt="" />
+      <img
+        id="loading__logo"
+        src="./images/logo/metamask-fox.svg"
+        alt=""
+        loading="lazy"
+      />
+      <img
+        id="loading__spinner"
+        src="./images/spinner.gif"
+        alt=""
+        loading="lazy"
+      />
     </div>
     <div id="popover-content"></div>
-    <script src="./scripts/load-ui.ts"></script>
+    <script src="./scripts/load-ui.ts" async></script>
   </body>
 </html>

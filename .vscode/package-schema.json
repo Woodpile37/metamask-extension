@@ -44,10 +44,6 @@
               "type": "string",
               "description": "Provides zip capabilities for bundling (webpack)"
             },
-            "os-browserify": {
-              "type": "string",
-              "description": "Polyfill's node's os API for use in the browser (webpack)"
-            },
             "postcss-loader": {
               "type": "string",
               "description": "Loads postcss plugins (webpack)"
@@ -67,10 +63,6 @@
             "@swc/core": {
               "type": "string",
               "description": "Transpiles javascript and typescript (webpack)"
-            },
-            "vm-browserify": {
-              "type": "string",
-              "description": "Polyfill's node's vm API for use in the browser (webpack)"
             },
             "tsx": {
               "type": "string",

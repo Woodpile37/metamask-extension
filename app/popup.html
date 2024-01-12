@@ -7,15 +7,28 @@
       content="width=device-width, initial-scale=1 user-scalable=no"
     />
     <title>MetaMask</title>
+    {{ @if (it.isSnowing) }}
+      <script src="@lavamoat/snow/snow.prod.js" defer></script>
+      <script src="./scripts/use-snow.js" defer></script>
+    {{/if}}
     <link rel="stylesheet" href="../ui/css/index.scss" />
   </head>
   <body style="width: 357px; height: 600px">
     <div id="app-content">
-      <img class="loading-logo" src="./images/logo/metamask-fox.svg" alt="" />
-      <img class="loading-spinner" src="./images/spinner.gif" alt="" />
+      <img
+        class="loading-logo"
+        src="./images/logo/metamask-fox.svg"
+        alt=""
+        loading="lazy"
+      />
+      <img
+        class="loading-spinner"
+        src="./images/spinner.gif"
+        alt=""
+        loading="lazy"
+      />
     </div>
     <div id="popover-content"></div>
-    <script></script>
-    <script src="./scripts/load-ui.ts"></script>
+    <script src="./scripts/load-ui.ts" async></script>
   </body>
 </html>
