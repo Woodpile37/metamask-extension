@@ -1,16 +1,7 @@
-diff --git a/node_modules/regenerator-runtime/runtime.js b/node_modules/regenerator-runtime/runtime.js
-index 547b8c6..885626e 100644
---- a/node_modules/regenerator-runtime/runtime.js
-+++ b/node_modules/regenerator-runtime/runtime.js
-@@ -5,7 +5,7 @@
-  * LICENSE file in the root directory of this source tree.
-  */
- 
--var runtime = (function (exports) {
-+ var runtime = (function (exports) {
-   "use strict";
- 
-   var Op = Object.prototype;
+diff --git a/runtime.js b/runtime.js
+index 547b8c6af462faae1a859160a54fd1d107dd52c3..57030742671c525d1717a1fb11eea0c7ffd59689 100644
+--- a/runtime.js
++++ b/runtime.js
 @@ -86,9 +86,9 @@ var runtime = (function (exports) {
    // This is a polyfill for %IteratorPrototype% for environments that
    // don't natively support it.
@@ -58,7 +49,7 @@ index 547b8c6..885626e 100644
 +  });
  
 -  Gp.toString = function() {
-+  define(Gp, "toString", function() {
++  define(Gp, 'toString', function() {
      return "[object Generator]";
 -  };
 +  });

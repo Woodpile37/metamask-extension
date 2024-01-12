@@ -1,7 +1,7 @@
-diff --git a/node_modules/luxon/build/cjs-browser/luxon.js b/node_modules/luxon/build/cjs-browser/luxon.js
-index 206a47a..5556d1d 100644
---- a/node_modules/luxon/build/cjs-browser/luxon.js
-+++ b/node_modules/luxon/build/cjs-browser/luxon.js
+diff --git a/build/cjs-browser/luxon.js b/build/cjs-browser/luxon.js
+index 206a47a5502809dd0d551dfde2b893ce05bc903d..5556d1d19e09454ccd49e17f3a0e5b3207c2d638 100644
+--- a/build/cjs-browser/luxon.js
++++ b/build/cjs-browser/luxon.js
 @@ -7243,13 +7243,13 @@ var DateTime = /*#__PURE__*/function () {
     */
    ;

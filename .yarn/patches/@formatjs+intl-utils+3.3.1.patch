@@ -1,7 +1,7 @@
-diff --git a/node_modules/@formatjs/intl-utils/dist/index.js b/node_modules/@formatjs/intl-utils/dist/index.js
-index cb44944..4ec2d32 100644
---- a/node_modules/@formatjs/intl-utils/dist/index.js
-+++ b/node_modules/@formatjs/intl-utils/dist/index.js
+diff --git a/dist/index.js b/dist/index.js
+index cb44944a2a0e8214e9c507936d9a38fafd355655..4ec2d32be9fdd670c59b5727805eb01c231b86b7 100644
+--- a/dist/index.js
++++ b/dist/index.js
 @@ -25,7 +25,7 @@ exports.toRawFixed = polyfill_utils_1.toRawFixed;
  exports.toRawPrecision = polyfill_utils_1.toRawPrecision;
  exports.getMagnitude = polyfill_utils_1.getMagnitude;
@@ -11,10 +11,10 @@ index cb44944..4ec2d32 100644
  exports.isWellFormedUnitIdentifier = polyfill_utils_1.isWellFormedUnitIdentifier;
  exports.defineProperty = polyfill_utils_1.defineProperty;
  var resolve_locale_1 = require("./resolve-locale");
-diff --git a/node_modules/@formatjs/intl-utils/dist/polyfill-utils.js b/node_modules/@formatjs/intl-utils/dist/polyfill-utils.js
-index 9306ef0..24859ac 100644
---- a/node_modules/@formatjs/intl-utils/dist/polyfill-utils.js
-+++ b/node_modules/@formatjs/intl-utils/dist/polyfill-utils.js
+diff --git a/dist/polyfill-utils.js b/dist/polyfill-utils.js
+index 9306ef0dd39575620352ed50cc3d80ef449910e9..24859acce8a860f2515054e7ae4d17b6bd200327 100644
+--- a/dist/polyfill-utils.js
++++ b/dist/polyfill-utils.js
 @@ -5,7 +5,7 @@ var units_1 = require("./units");
  function hasOwnProperty(o, key) {
      return Object.prototype.hasOwnProperty.call(o, key);
