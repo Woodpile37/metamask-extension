@@ -903,7 +903,15 @@
     },
     "@metamask/announcement-controller": {
       "packages": {
-        "@metamask/base-controller": true
+        "@metamask/announcement-controller>@metamask/base-controller": true
+      }
+    },
+    "@metamask/announcement-controller>@metamask/base-controller": {
+      "globals": {
+        "setTimeout": true
+      },
+      "packages": {
+        "immer": true
       }
     },
     "@metamask/approval-controller": {
@@ -911,9 +919,17 @@
         "console.info": true
       },
       "packages": {
+        "@metamask/approval-controller>@metamask/base-controller": true,
         "@metamask/approval-controller>nanoid": true,
-        "@metamask/base-controller": true,
-        "@metamask/providers>@metamask/rpc-errors": true
+        "eth-rpc-errors": true
+      }
+    },
+    "@metamask/approval-controller>@metamask/base-controller": {
+      "globals": {
+        "setTimeout": true
+      },
+      "packages": {
+        "immer": true
       }
     },
     "@metamask/approval-controller>nanoid": {
@@ -928,7 +944,6 @@
         "URL": true,
         "clearInterval": true,
         "clearTimeout": true,
-        "console.error": true,
         "console.log": true,
         "setInterval": true,
         "setTimeout": true
@@ -939,18 +954,16 @@
         "@ethersproject/providers": true,
         "@metamask/assets-controllers>@metamask/abi-utils": true,
         "@metamask/assets-controllers>@metamask/controller-utils": true,
+        "@metamask/assets-controllers>@metamask/eth-query": true,
         "@metamask/assets-controllers>@metamask/polling-controller": true,
-        "@metamask/assets-controllers>cockatiel": true,
         "@metamask/assets-controllers>multiformats": true,
         "@metamask/base-controller": true,
         "@metamask/contract-metadata": true,
-        "@metamask/eth-query": true,
         "@metamask/metamask-eth-abis": true,
         "@metamask/providers>@metamask/rpc-errors": true,
         "@metamask/utils": true,
         "eth-json-rpc-filters>async-mutex": true,
         "ethereumjs-util": true,
-        "lodash": true,
         "single-call-balance-checker-abi": true,
         "uuid": true,
         "webpack>events": true
@@ -985,6 +998,12 @@
         "ethjs>number-to-bn": true
       }
     },
+    "@metamask/assets-controllers>@metamask/eth-query": {
+      "packages": {
+        "@metamask/eth-query>json-rpc-random-id": true,
+        "watchify>xtend": true
+      }
+    },
     "@metamask/assets-controllers>@metamask/polling-controller": {
       "globals": {
         "clearTimeout": true,
@@ -995,19 +1014,6 @@
         "@metamask/base-controller": true,
         "@metamask/snaps-utils>fast-json-stable-stringify": true,
         "uuid": true
-      }
-    },
-    "@metamask/assets-controllers>cockatiel": {
-      "globals": {
-        "AbortController": true,
-        "AbortSignal": true,
-        "WeakRef": true,
-        "clearTimeout": true,
-        "performance": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "browserify>process": true
       }
     },
     "@metamask/assets-controllers>multiformats": {
@@ -1175,19 +1181,12 @@
       },
       "packages": {
         "@ethereumjs/tx": true,
-        "@metamask/eth-snap-keyring>@metamask/keyring-api": true,
         "@metamask/eth-snap-keyring>uuid": true,
+        "@metamask/keyring-api": true,
         "@metamask/message-manager>@metamask/eth-sig-util": true,
         "@metamask/utils": true,
         "superstruct": true,
         "webpack>events": true
-      }
-    },
-    "@metamask/eth-snap-keyring>@metamask/keyring-api": {
-      "packages": {
-        "@metamask/eth-snap-keyring>uuid": true,
-        "@metamask/utils": true,
-        "superstruct": true
       }
     },
     "@metamask/eth-snap-keyring>uuid": {
@@ -1375,11 +1374,17 @@
       },
       "packages": {
         "@metamask/controller-utils": true,
-        "@metamask/eth-query": true,
+        "@metamask/gas-fee-controller>@metamask/eth-query": true,
         "@metamask/polling-controller": true,
         "ethereumjs-util": true,
         "ethjs>ethjs-unit": true,
         "uuid": true
+      }
+    },
+    "@metamask/gas-fee-controller>@metamask/eth-query": {
+      "packages": {
+        "@metamask/eth-query>json-rpc-random-id": true,
+        "watchify>xtend": true
       }
     },
     "@metamask/jazzicon": {
@@ -1551,9 +1556,30 @@
         "fetch": true
       },
       "packages": {
-        "@metamask/base-controller": true,
-        "@metamask/utils": true,
+        "@metamask/name-controller>@metamask/base-controller": true,
+        "@metamask/name-controller>@metamask/utils": true,
         "eth-json-rpc-filters>async-mutex": true
+      }
+    },
+    "@metamask/name-controller>@metamask/base-controller": {
+      "globals": {
+        "setTimeout": true
+      },
+      "packages": {
+        "immer": true
+      }
+    },
+    "@metamask/name-controller>@metamask/utils": {
+      "globals": {
+        "TextDecoder": true,
+        "TextEncoder": true
+      },
+      "packages": {
+        "@metamask/utils>@noble/hashes": true,
+        "browserify>buffer": true,
+        "nock>debug": true,
+        "semver": true,
+        "superstruct": true
       }
     },
     "@metamask/network-controller": {
@@ -1566,10 +1592,10 @@
       "packages": {
         "@metamask/controller-utils": true,
         "@metamask/eth-json-rpc-middleware": true,
-        "@metamask/eth-query": true,
         "@metamask/network-controller>@metamask/base-controller": true,
         "@metamask/network-controller>@metamask/eth-json-rpc-infura": true,
         "@metamask/network-controller>@metamask/eth-json-rpc-provider": true,
+        "@metamask/network-controller>@metamask/eth-query": true,
         "@metamask/network-controller>@metamask/swappable-obj-proxy": true,
         "@metamask/network-controller>eth-block-tracker": true,
         "@metamask/providers>@metamask/json-rpc-engine": true,
@@ -1611,6 +1637,12 @@
       },
       "packages": {
         "webpack>events": true
+      }
+    },
+    "@metamask/network-controller>@metamask/eth-query": {
+      "packages": {
+        "@metamask/eth-query>json-rpc-random-id": true,
+        "watchify>xtend": true
       }
     },
     "@metamask/network-controller>eth-block-tracker": {
@@ -2024,6 +2056,7 @@
     },
     "@metamask/snaps-controllers": {
       "globals": {
+        "DecompressionStream": true,
         "URL": true,
         "chrome.offscreen.createDocument": true,
         "chrome.offscreen.hasDocument": true,
@@ -2144,7 +2177,6 @@
         "fetch": true
       },
       "packages": {
-        "@metamask/providers>@metamask/rpc-errors": true,
         "@metamask/snaps-sdk>is-svg": true,
         "@metamask/utils": true,
         "superstruct": true
@@ -2280,11 +2312,11 @@
         "@ethereumjs/tx": true,
         "@ethersproject/abi": true,
         "@metamask/base-controller": true,
-        "@metamask/eth-query": true,
         "@metamask/gas-fee-controller": true,
         "@metamask/metamask-eth-abis": true,
         "@metamask/providers>@metamask/rpc-errors": true,
         "@metamask/transaction-controller>@metamask/controller-utils": true,
+        "@metamask/transaction-controller>@metamask/eth-query": true,
         "@metamask/transaction-controller>eth-method-registry": true,
         "@metamask/transaction-controller>nonce-tracker": true,
         "@metamask/utils": true,
@@ -2311,6 +2343,12 @@
         "eslint>fast-deep-equal": true,
         "eth-ens-namehash": true,
         "ethereumjs-util": true
+      }
+    },
+    "@metamask/transaction-controller>@metamask/eth-query": {
+      "packages": {
+        "@metamask/eth-query>json-rpc-random-id": true,
+        "watchify>xtend": true
       }
     },
     "@metamask/transaction-controller>eth-method-registry": {
@@ -2503,12 +2541,28 @@
         "__SENTRY_DEBUG__": true,
         "__SENTRY_RELEASE__": true,
         "indexedDB.open": true,
+        "performance.timeOrigin": true,
         "setTimeout": true
       },
       "packages": {
+        "@sentry/browser>@sentry-internal/feedback": true,
         "@sentry/browser>@sentry-internal/tracing": true,
         "@sentry/browser>@sentry/core": true,
         "@sentry/browser>@sentry/replay": true,
+        "@sentry/utils": true
+      }
+    },
+    "@sentry/browser>@sentry-internal/feedback": {
+      "globals": {
+        "FormData": true,
+        "HTMLFormElement": true,
+        "Node": true,
+        "__SENTRY_DEBUG__": true,
+        "clearTimeout": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "@sentry/browser>@sentry/core": true,
         "@sentry/utils": true
       }
     },
@@ -2520,7 +2574,9 @@
         "__SENTRY_DEBUG__": true,
         "addEventListener": true,
         "performance.getEntriesByType": true,
-        "removeEventListener": true
+        "performance.timeOrigin": true,
+        "removeEventListener": true,
+        "setTimeout": true
       },
       "packages": {
         "@sentry/browser>@sentry/core": true,
@@ -2547,47 +2603,48 @@
         "CSSConditionRule": true,
         "CSSGroupingRule": true,
         "CSSMediaRule": true,
+        "CSSRule": true,
         "CSSSupportsRule": true,
+        "Document": true,
         "DragEvent": true,
         "Element": true,
         "FormData": true,
-        "HTMLCanvasElement": true,
-        "HTMLElement.prototype": true,
+        "HTMLElement": true,
         "HTMLFormElement": true,
-        "HTMLImageElement": true,
-        "HTMLInputElement.prototype": true,
-        "HTMLOptionElement.prototype": true,
-        "HTMLSelectElement.prototype": true,
-        "HTMLTextAreaElement.prototype": true,
         "Headers": true,
-        "ImageData": true,
         "MouseEvent": true,
         "MutationObserver": true,
+        "Node.DOCUMENT_FRAGMENT_NODE": true,
         "Node.prototype.contains": true,
-        "PerformanceObserver": true,
+        "PointerEvent": true,
         "TextEncoder": true,
         "URL": true,
         "URLSearchParams": true,
         "Worker": true,
         "Zone": true,
+        "__RRWEB_EXCLUDE_IFRAME__": true,
+        "__RRWEB_EXCLUDE_SHADOW_DOM__": true,
         "__SENTRY_DEBUG__": true,
+        "__SENTRY_EXCLUDE_REPLAY_WORKER__": true,
         "__rrMutationObserver": true,
+        "addEventListener": true,
         "clearTimeout": true,
         "console.error": true,
         "console.warn": true,
+        "customElements.get": true,
         "document": true,
         "innerHeight": true,
         "innerWidth": true,
         "location.href": true,
-        "pageXOffset": true,
-        "pageYOffset": true,
+        "location.origin": true,
+        "parent": true,
         "requestAnimationFrame": true,
         "setTimeout": true
       },
       "packages": {
+        "@sentry/browser>@sentry-internal/tracing": true,
         "@sentry/browser>@sentry/core": true,
-        "@sentry/utils": true,
-        "browserify>process": true
+        "@sentry/utils": true
       }
     },
     "@sentry/integrations": {
@@ -2597,11 +2654,11 @@
         "console.log": true
       },
       "packages": {
-        "@sentry/utils": true,
+        "@sentry/integrations>@sentry/utils": true,
         "localforage": true
       }
     },
-    "@sentry/utils": {
+    "@sentry/integrations>@sentry/utils": {
       "globals": {
         "CustomEvent": true,
         "DOMError": true,
@@ -2628,9 +2685,33 @@
         "browserify>process": true
       }
     },
-    "@storybook/addon-docs>remark-external-links>mdast-util-definitions": {
+    "@sentry/utils": {
+      "globals": {
+        "CustomEvent": true,
+        "DOMError": true,
+        "DOMException": true,
+        "EdgeRuntime": true,
+        "Element": true,
+        "ErrorEvent": true,
+        "Event": true,
+        "Headers": true,
+        "Request": true,
+        "Response": true,
+        "TextEncoder": true,
+        "URL": true,
+        "XMLHttpRequest.prototype": true,
+        "__SENTRY_BROWSER_BUNDLE__": true,
+        "__SENTRY_DEBUG__": true,
+        "clearTimeout": true,
+        "console.error": true,
+        "document": true,
+        "new": true,
+        "setInterval": true,
+        "setTimeout": true,
+        "target": true
+      },
       "packages": {
-        "react-markdown>unist-util-visit": true
+        "browserify>process": true
       }
     },
     "@storybook/addon-knobs>qs": {
@@ -4421,11 +4502,16 @@
         "console.warn": true
       },
       "packages": {
-        "@storybook/addon-docs>remark-external-links>mdast-util-definitions": true,
+        "react-markdown>remark-rehype>mdast-util-to-hast>mdast-util-definitions": true,
         "react-markdown>remark-rehype>mdast-util-to-hast>mdurl": true,
         "react-markdown>remark-rehype>mdast-util-to-hast>unist-builder": true,
         "react-markdown>remark-rehype>mdast-util-to-hast>unist-util-generated": true,
         "react-markdown>remark-rehype>mdast-util-to-hast>unist-util-position": true,
+        "react-markdown>unist-util-visit": true
+      }
+    },
+    "react-markdown>remark-rehype>mdast-util-to-hast>mdast-util-definitions": {
+      "packages": {
         "react-markdown>unist-util-visit": true
       }
     },
