@@ -4138,9 +4138,42 @@ export default class MetamaskController extends EventEmitter {
   }
 
   async addTransaction(txParams, options) {
+    ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
+    let securityAlertResponse;
+
+    try {
+      const request = {
+        method: 'eth_sendTransaction',
+        id: options.actionId,
+        origin: options.origin,
+        params: [
+          {
+            from: txParams.from,
+            to: txParams.to,
+            value: txParams.value,
+            data: txParams.data,
+          },
+        ],
+      };
+
+      securityAlertResponse = await this.ppomController.usePPOM(
+        async (ppom) => {
+          return ppom.validateJsonRpc(request);
+        },
+      );
+    } catch (e) {
+      log.error(e);
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     const { transactionMeta, result } = await this.txController.addTransaction(
       txParams,
-      options,
+      {
+        ...options,
+        ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
+        securityAlertResponse,
+        ///: END:ONLY_INCLUDE_IF
+      },
     );
 
     result.catch(() => {
