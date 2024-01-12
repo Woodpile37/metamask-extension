@@ -21,7 +21,7 @@ import {
   combineEntriesFromManifestAndDir,
   getLastCommitDateTimeUtc,
   getMinimizers,
-  NODE_MODULES_RE
+  NODE_MODULES_RE,
 } from './webpack/helpers';
 import { parseArgv } from './webpack/cli';
 import { type CodeFenceLoaderOptions } from './webpack/loaders/codeFenceLoader';
@@ -55,7 +55,10 @@ const dir = join(__dirname, 'app');
 const MANIFEST_VERSION = config.manifest_version;
 const manifestPath = join(dir, `manifest/v${MANIFEST_VERSION}/_base.json`);
 const manifest: Manifest = JSON.parse(readFileSync(manifestPath).toString());
-const { entry, selfContainedScripts } = combineEntriesFromManifestAndDir(manifest, dir);
+const { entry, selfContainedScripts } = combineEntriesFromManifestAndDir(
+  manifest,
+  dir,
+);
 
 /**
  * Ignore scripts that were found in the manifest, as these are only loaded by
@@ -258,7 +261,7 @@ const webpackOptions = {
   watchOptions: {
     // ignore node_modules, to avoid `fs.inotify.max_user_watches` issues
     ignored: NODE_MODULES_RE,
-    aggregateTimeout: 5
+    aggregateTimeout: 5,
   },
 
   node: {
@@ -496,7 +499,7 @@ const webpackOptions = {
     runtimeChunk: {
       name(entry: Chunk) {
         return canBeChunked(entry) ? `runtime` : false;
-      }
+      },
     },
     splitChunks: {
       // Impose a 4MB JS file size limit due to Firefox limitations
