@@ -342,8 +342,9 @@ export default class TransactionStateManager extends EventEmitter {
         return;
       }
     }
-
-    this._updateTransactionHistory(txMeta, note);
+    if (txMeta.history) {
+      this._updateTransactionHistory(txMeta, note);
+    }
   }
 
   _updateTransactionHistory(txMeta, note) {

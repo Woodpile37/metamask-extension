@@ -1354,17 +1354,17 @@ export default class TransactionController extends EventEmitter {
     // get the confirmed transactions nonce and from address
     const txMeta = this.txStateManager.getTransaction(txId);
     const { nonce, from } = txMeta.txParams;
-    const sameNonceTxs = this.txStateManager.getTransactions({
-      searchCriteria: { nonce, from },
-    });
+    const sameNonceTxs = this.txStateManager
+      .getTransactions({
+        searchCriteria: { nonce, from },
+      })
+      .filter((otherTxMeta) => otherTxMeta.id !== txId)
+      .filter((otherTxMeta) => otherTxMeta.type !== TransactionType.incoming);
     if (!sameNonceTxs.length) {
       return;
     }
     // mark all same nonce transactions as dropped and give i a replacedBy hash
     sameNonceTxs.forEach((otherTxMeta) => {
-      if (otherTxMeta.id === txId) {
-        return;
-      }
       otherTxMeta.replacedBy = txMeta.hash;
       this.txStateManager.updateTransaction(
         txMeta,
