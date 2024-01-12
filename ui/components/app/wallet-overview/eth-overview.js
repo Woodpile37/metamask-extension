@@ -27,17 +27,19 @@ import UserPreferencedCurrencyDisplay from '../user-preferenced-currency-display
 import { PRIMARY, SECONDARY } from '../../../helpers/constants/common';
 import {
   isBalanceCached,
+  getShouldShowFiat,
   getIsSwapsChain,
+  getSelectedAccountCachedBalance,
   getCurrentChainId,
   getPreferences,
-  getSelectedAddress,
-  getShouldHideZeroBalanceTokens,
   ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
   getSwapsDefaultToken,
   getCurrentKeyring,
   getIsBridgeChain,
   getIsBuyableChain,
   getMetaMetricsId,
+  getSelectedAddress,
+  getShouldHideZeroBalanceTokens,
   ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors';
 ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
@@ -62,10 +64,10 @@ import { IconColor } from '../../../helpers/constants/design-system';
 import useRamps from '../../../hooks/experiences/useRamps';
 import { getPortfolioUrl } from '../../../helpers/utils/portfolio';
 ///: END:ONLY_INCLUDE_IF
-import { useAccountTotalFiatBalance } from '../../../hooks/useAccountTotalFiatBalance';
 import { useIsOriginalNativeTokenSymbol } from '../../../hooks/useIsOriginalNativeTokenSymbol';
 import { getProviderConfig } from '../../../ducks/metamask/metamask';
 import { showPrimaryCurrency } from '../../../../shared/modules/currency-display.utils';
+import { useAccountTotalFiatBalance } from '../../../hooks/useAccountTotalFiatBalance';
 import WalletOverview from './wallet-overview';
 
 const EthOverview = ({ className, showAddress }) => {
@@ -83,6 +85,7 @@ const EthOverview = ({ className, showAddress }) => {
   const defaultSwapsToken = useSelector(getSwapsDefaultToken);
   ///: END:ONLY_INCLUDE_IF
   const balanceIsCached = useSelector(isBalanceCached);
+  const showFiat = useSelector(getShouldShowFiat);
   const { useNativeCurrencyAsPrimaryCurrency } = useSelector(getPreferences);
   const chainId = useSelector(getCurrentChainId);
   const { ticker, type } = useSelector(getProviderConfig);
@@ -102,9 +105,13 @@ const EthOverview = ({ className, showAddress }) => {
     shouldHideZeroBalanceTokens,
   );
 
+  const balance = useSelector(getSelectedAccountCachedBalance);
   const isSwapsChain = useSelector(getIsSwapsChain);
 
-  const balanceToUse = totalWeiBalance;
+  let balanceToUse = totalWeiBalance;
+  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+  balanceToUse = balance;
+  ///: END:ONLY_INCLUDE_IF
 
   ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
   const mmiPortfolioEnabled = useSelector(getMmiPortfolioEnabled);
@@ -180,7 +187,7 @@ const EthOverview = ({ className, showAddress }) => {
                     'eth-overview__cached-balance': balanceIsCached,
                   })}
                   data-testid="eth-overview__primary-currency"
-                  value={balanceToUse}
+                  value={totalWeiBalance}
                   type={
                     showPrimaryCurrency(
                       isOriginalNativeSymbol,
@@ -189,7 +196,6 @@ const EthOverview = ({ className, showAddress }) => {
                       ? PRIMARY
                       : SECONDARY
                   }
-                  showFiat
                   ethNumberOfDecimals={4}
                   hideTitle
                 />
@@ -203,6 +209,19 @@ const EthOverview = ({ className, showAddress }) => {
                 <span className="eth-overview__cached-star">*</span>
               ) : null}
             </div>
+            {showFiat && isOriginalNativeSymbol && totalWeiBalance && (
+              <UserPreferencedCurrencyDisplay
+                className={classnames({
+                  'eth-overview__cached-secondary-balance': balanceIsCached,
+                  'eth-overview__secondary-balance': !balanceIsCached,
+                })}
+                data-testid="eth-overview__secondary-currency"
+                value={balanceToUse}
+                type={SECONDARY}
+                ethNumberOfDecimals={4}
+                hideTitle
+              />
+            )}
           </div>
         </Tooltip>
       }
