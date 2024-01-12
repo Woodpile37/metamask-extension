@@ -1,3 +1,5 @@
+@use "design-system";
+
 .transaction-activity-log {
   &__title {
     border-bottom: 1px solid #d8d8d8;
@@ -54,7 +56,7 @@
   }
 
   &__activity-text {
-    @include H7;
+    @include design-system.H7;
 
     color: var(--dusty-gray);
     cursor: pointer;
@@ -74,7 +76,7 @@
   }
 
   &__action-link {
-    @include H7;
+    @include design-system.H7;
 
     cursor: pointer;
     color: var(--primary-blue);

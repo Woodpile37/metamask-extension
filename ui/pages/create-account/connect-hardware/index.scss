@@ -1,7 +1,6 @@
+@use "design-system";
+
 .hw-tutorial {
-  width: 375px;
-  border-top: 1px solid #d2d8dd;
-  border-bottom: 1px solid #d2d8dd;
   overflow: visible;
   display: block;
   padding: 15px 30px;
@@ -10,21 +9,15 @@
 .hw-connect {
   width: 100%;
 
-  &__header {
-    &__title {
-      @include H3;
+  &__header__title-wrapper {
+    width: 100%;
+  }
 
-      margin-top: 5px;
-      margin-bottom: 15px;
-    }
+  &__QR-subtitle {
+    @include design-system.H5;
 
-    &__msg {
-      @include H6;
-
-      color: #9b9b9b;
-      margin-top: 10px;
-      margin-bottom: 20px;
-    }
+    margin-top: 10px;
+    color: var(--color-text-default);
   }
 
   &__btn-wrapper {
@@ -43,30 +36,49 @@
     opacity: 0.5;
   }
 
+  &__external-btn-first {
+    @include design-system.H7;
+
+    padding: 5px 10px;
+    width: auto;
+    display: inline;
+    margin-top: 10px;
+    margin-right: 20px;
+  }
+
+  &__external-btn {
+    @include design-system.H7;
+
+    padding: 5px 10px;
+    width: auto;
+    display: inline;
+    margin-top: 10px;
+  }
+
   &__btn {
-    background: #fbfbfb;
-    border: 1px solid #e5e5e5;
-    height: 100px;
-    width: 150px;
+    background: var(--color-background-alternative);
+    border: 1px solid var(--color-border-muted);
+    height: 148px;
+    width: 199px;
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 5px;
     padding: 0;
+    margin-right: 15px;
 
     &__img {
-      width: 95px;
+      width: 136px;
     }
   }
 
   &__btn.selected {
-    border-color: #00a8ee;
-    width: 149px;
+    border-color: var(--color-primary-default);
+    width: 199px;
   }
 
   &__btn:first-child {
-    margin-right: 15px;
     margin-left: 20px;
   }
 
@@ -75,7 +87,7 @@
   }
 
   &__hdPath {
-    @include H6;
+    @include design-system.H6;
 
     display: flex;
     flex-direction: row;
@@ -94,32 +106,8 @@
     }
   }
 
-  &__learn-more {
-    @include H6;
-
-    margin-top: 15px;
-    color: #5b5d67;
-    text-align: center;
-    cursor: pointer;
-
-    &__arrow {
-      transform: rotate(90deg);
-      display: block;
-      text-align: center;
-      height: 30px;
-      margin: 0 auto 10px;
-    }
-  }
-
-  &__title {
-    @include H4;
-
-    padding-top: 10px;
-    font-weight: 400;
-  }
-
   &__unlock-title {
-    @include H3;
+    @include design-system.H3;
 
     padding-top: 10px;
     font-weight: 400;
@@ -127,69 +115,20 @@
   }
 
   &__msg {
-    @include H6;
+    &-link {
+      @include design-system.H6;
 
-    color: #9b9b9b;
-    margin-top: 10px;
-    margin-bottom: 15px;
+      text-align: center;
+      color: var(--color-primary-default);
+      background: unset;
+    }
   }
 
   &__error {
-    color: #f7861c;
+    color: var(--color-warning-default);
     margin: 20px 20px 10px;
     display: block;
     text-align: center;
-  }
-
-  &__link {
-    color: #2f9ae0;
-  }
-
-  &__footer {
-    &__title {
-      @include H4;
-
-      padding-top: 15px;
-      padding-bottom: 12px;
-      font-weight: 400;
-      text-align: center;
-    }
-
-    &__msg {
-      @include H6;
-
-      color: #9b9b9b;
-      margin-top: 12px;
-      margin-bottom: 27px;
-      width: 100%;
-      display: block;
-      margin-left: 20px;
-    }
-
-    &__link {
-      color: #2f9ae0;
-      margin-left: 5px;
-    }
-  }
-
-  &__get-hw {
-    width: 100%;
-    padding-bottom: 10px;
-    padding-top: 10px;
-
-    &__msg {
-      @include H6;
-
-      color: #9b9b9b;
-    }
-
-    &__link {
-      @include H4;
-
-      text-align: center;
-      color: #2f9ae0;
-      cursor: pointer;
-    }
   }
 
   &__step-asset {
@@ -211,44 +150,38 @@
   }
 
   &__title {
-    @include H5;
+    @include design-system.H5;
 
     margin-bottom: 23px;
     align-self: flex-start;
-    color: $scorpion;
+    color: var(--color-text-muted);
     font-weight: bold;
     display: flex;
     flex: 1;
   }
 
   &__device {
-    @include Paragraph;
+    @include design-system.Paragraph;
 
     margin-bottom: 23px;
     align-self: flex-end;
-    color: $scorpion;
+    color: var(--color-text-muted);
     display: flex;
   }
 
   &__item {
-    @include Paragraph;
+    @include design-system.Paragraph;
 
     flex-direction: row;
     display: flex;
     padding-left: 10px;
     padding-right: 10px;
-  }
-
-  &__item:nth-of-type(even) {
-    background-color: #fbfbfb;
-  }
-
-  &__item:nth-of-type(odd) {
-    background: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid var(--color-border-muted);
+    background-color: var(--color-background-default);
   }
 
   &__item:hover {
-    background-color: rgba(0, 0, 0, 0.06);
+    background-color: var(--color-background-default-hover);
   }
 
   &__item__index {
@@ -296,12 +229,12 @@
   margin-top: 10px;
 
   &__button {
-    @include H6;
+    @include design-system.H6;
 
-    background: #fff;
+    background: var(--color-background-default);
     height: 19px;
     display: flex;
-    color: #33a4e7;
+    color: var(--color-primary-default);
     border: none;
     min-width: 46px;
     margin-right: 0;
@@ -312,10 +245,9 @@
 }
 
 .new-external-account-form {
-  display: flex;
-  flex-flow: column;
-  align-items: center;
-  padding: 15px 30px 0;
+  &.footer {
+    width: 520px;
+  }
 
   &.unsupported-browser {
     height: 210px;
@@ -352,9 +284,24 @@
   padding: 22px;
 
   a {
-    @include H6;
+    @include design-system.H6;
 
-    color: #2f9ae0;
+    color: var(--color-primary-default);
     cursor: pointer;
+  }
+}
+
+.switch-ledger-path-popover__content {
+  padding: 0 24px 48px 24px;
+}
+
+.switch-ledger-path-popover__footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+
+  button:first-of-type {
+    margin-right: 15px;
   }
 }

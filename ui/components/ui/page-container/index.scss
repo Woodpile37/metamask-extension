@@ -1,7 +1,9 @@
+@use "design-system";
+
 .page-container {
   width: 408px;
   background-color: var(--color-background-default);
-  box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
   z-index: 25;
   display: flex;
   flex-flow: column;
@@ -56,6 +58,7 @@
     justify-content: center;
     border-top: 1px solid var(--color-border-muted);
     flex: 0 0 auto;
+    width: 100%;
 
     footer {
       display: flex;
@@ -74,7 +77,7 @@
 
       a,
       a:hover {
-        @include H7;
+        @include design-system.H7;
 
         text-decoration: none;
         cursor: pointer;
@@ -90,17 +93,22 @@
     &:last-of-type {
       margin-right: 0;
     }
+
+    &__cancel {
+      border-color: var(--color-primary-alternative) !important;
+      color: var(--color-primary-alternative);
+    }
   }
 
   &__back-button {
-    @include Paragraph;
+    @include design-system.Paragraph;
 
-    color: #2f9ae0;
+    color: var(--color-primary-default);
     cursor: pointer;
   }
 
   &__title {
-    @include H2;
+    @include design-system.H2;
 
     color: var(--color-text-default);
     font-weight: 500;
@@ -112,10 +120,10 @@
   }
 
   &__subtitle {
-    @include H6;
+    @include design-system.H6;
 
     padding-top: 0.5rem;
-    color: var(--color-icon-default);
+    color: var(--color-text-alternative);
   }
 
   &__tabs {
@@ -124,10 +132,10 @@
   }
 
   &__tab {
-    @include Paragraph;
+    @include design-system.Paragraph;
 
     min-width: 5rem;
-    color: var(--color-icon-default);
+    color: var(--color-text-alternative);
     border-bottom: none;
     margin-right: 16px;
 
@@ -152,10 +160,10 @@
   }
 
   &__warning-container {
-    background: var(--color-warning-muted);
+    background: var(--color-error-muted);
     padding: 20px;
     display: flex;
-    align-items: start;
+    align-items: flex-start;
   }
 
   &__warning-message {
@@ -168,6 +176,7 @@
 
   &__warning-icon {
     padding-top: 5px;
+    color: var(--color-error-default);
   }
 }
 
@@ -183,13 +192,13 @@
       margin-right: 0;
 
       &:first-of-type {
-        margin-bottom: 0;
+        margin-right: 4px;
       }
     }
   }
 }
 
-@media screen and (max-width: $break-small) {
+@include design-system.screen-sm-max {
   .page-container {
     height: 100%;
     width: 100%;
@@ -200,7 +209,7 @@
   }
 }
 
-@media screen and (min-width: $break-large) {
+@include design-system.screen-sm-min {
   .page-container {
     max-height: 82vh;
     min-height: 570px;

@@ -379,6 +379,7 @@ export default class Routes extends Component {
         }}
       >
         <QRHardwarePopover />
+
         <Modal />
         <Alert visible={this.props.alertOpen} msg={alertMessage} />
         {!this.hideAppHeader() && (

@@ -1,7 +1,9 @@
+@use "design-system";
+
 .fee-card {
   width: 100%;
 
-  @include H7;
+  @include design-system.H7;
 
   &__savings-and-quotes-header {
     display: flex;
@@ -26,7 +28,7 @@
   }
 
   &__savings-text {
-    @include H6;
+    @include design-system.H6;
 
     font-weight: bold;
     color: $Blue-500;
@@ -39,7 +41,7 @@
   }
 
   &__quote-link-text {
-    @include H7;
+    @include design-system.H7;
 
     color: $Blue-500;
   }

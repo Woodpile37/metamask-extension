@@ -1,52 +1,58 @@
+@use "design-system";
+
 .tab-bar {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 
-
   &__tab {
-    @include Paragraph;
+    @include design-system.Paragraph;
 
+    color: var(--color-text-default);
     display: flex;
     flex-flow: row nowrap;
-    align-items: flex-start;
+    align-items: center;
     min-width: 0;
     flex: 0 0 auto;
     box-sizing: border-box;
-    padding: 16px 24px;
-    opacity: 0.5;
     transition: opacity 200ms ease-in-out;
     background-color: unset;
     text-align: start;
-    color: var(--primary-text);
+    position: relative;
 
-    @media screen and (min-width: $break-large) {
-      &:hover {
-        opacity: 0.4;
-      }
+    @include design-system.screen-sm-max {
+      @include design-system.H4;
 
-      &:active {
-        opacity: 0.6;
-      }
-    }
-
-    @media screen and (max-width: $break-small) {
-      @include H4;
-
-      padding: 24px;
-      border-bottom: 1px solid var(--alto);
       opacity: 1;
     }
 
+    &__selected-indicator {
+      width: 4px;
+      height: calc(100% - 8px);
+      position: absolute;
+      top: 4px;
+      left: 4px;
+    }
+
     &__content {
-      flex: 1 1 auto;
-      width: 0;
+      display: flex;
+      align-items: center;
+      position: relative;
+      width: 100%;
+
+      &__title {
+        @include design-system.H4;
+
+        @include design-system.screen-sm-min {
+          @include design-system.H6;
+        }
+      }
 
       &__description {
         display: none;
 
-        @media screen and (max-width: $break-small) {
-          @include H6;
+        @include design-system.screen-sm-max {
+          @include design-system.H6;
 
           display: block;
           font-weight: 300;
@@ -54,19 +60,22 @@
           min-height: 14px;
         }
       }
+
+      &__icon {
+        display: flex;
+        justify-content: center;
+        margin-inline-end: 16px;
+        flex: 0 0 18px;
+      }
     }
 
     &__caret {
       display: none;
 
-      @media screen and (max-width: $break-small) {
+      @include design-system.screen-sm-max {
         display: block;
-        background-image: url('/images/caret-right.svg');
-        width: 8.27px;
-        height: 13.64px;
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
+        margin-inline-start: auto;
+        margin-inline-end: 8px;
 
         [dir='rtl'] & {
           transform: rotate(180deg);
@@ -76,6 +85,10 @@
 
     &--active {
       opacity: 1 !important;
+
+      @include design-system.screen-sm-min {
+        background-color: var(--color-primary-muted);
+      }
     }
   }
 

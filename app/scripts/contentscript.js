@@ -8,22 +8,15 @@ import { EXTENSION_MESSAGES } from '../../shared/constants/app';
 import { checkForLastError } from '../../shared/modules/browser-runtime.utils';
 import { isManifestV3 } from '../../shared/modules/mv3.utils';
 import shouldInjectProvider from '../../shared/modules/provider-injection';
-import { logPortMessages, logPostMessages } from './lib/stream-logger';
-import { METAMASK_CTX } from './context';
 
-// These require calls need to use require to be statically recognized by browserify
-const fs = require('fs');
-const path = require('path');
-
-const inpageContent = fs.readFileSync(
-  path.join(__dirname, '..', '..', 'dist', 'chrome', 'inpage.js'),
-  'utf8',
-);
-const inpageSuffix = `//# sourceURL=${browser.runtime.getURL('inpage.js')}\n`;
-const inpageBundle = inpageContent + inpageSuffix;
+// contexts
+const CONTENT_SCRIPT = 'metamask-contentscript';
+const INPAGE = 'metamask-inpage';
+const PHISHING_WARNING_PAGE = 'metamask-phishing-warning-page';
 
 // stream channels
 const PHISHING_SAFELIST = 'metamask-phishing-safelist';
+const PROVIDER = 'metamask-provider';
 
 // For more information about these legacy streams, see here:
 // https://github.com/MetaMask/metamask-extension/issues/15491
@@ -61,18 +54,23 @@ let extensionMux,
 /**
  * Injects a script tag into the current document
  *
- * @param {string} content - Code to be executed in the current document
+ * @param {string} src - Path to code to be executed in the current document.
+ * @example injectScript(chrome.extension.getURL('scripts/inpage.js'))
  */
-function injectScript(content) {
+function injectScript(src) {
   try {
-    const container = document.head || document.documentElement;
-    const scriptTag = document.createElement('script');
-    scriptTag.setAttribute('async', 'false');
-    scriptTag.textContent = content;
-    container.insertBefore(scriptTag, container.children[0]);
-    container.removeChild(scriptTag);
+    const script = document.createElement("script");
+    // A script that has been injected into the DOM is executed asynchronously
+    // by default, but we need scripts/inpage.js to block so `window.ethereum` is
+    // available before the page's own scripts load.
+    script.async = false
+    script.src = src;
+    document.documentElement.prepend(script);
+    // Immediately remove the script so we don't modify the DOM. Modifiying the
+    // DOM could break some websites that rely on specific DOM structures.
+    script.remove();
   } catch (error) {
-    console.error('MetaMask: Provider injection failed.', error);
+    console.error("MetaMask: Provider injection failed.", error);
   }
 }
 
@@ -83,8 +81,8 @@ function injectScript(content) {
 function setupPhishingPageStreams() {
   // the transport-specific streams for communication between inpage and background
   const phishingPageStream = new WindowPostMessageStream({
-    name: METAMASK_CTX.CONTENTSCRIPT,
-    target: METAMASK_CTX.PHISHING_WARNING_PAGE,
+    name: CONTENT_SCRIPT,
+    target: PHISHING_WARNING_PAGE,
   });
 
   // create and connect channel muxers
@@ -101,12 +99,9 @@ function setupPhishingPageStreams() {
 
 const setupPhishingExtStreams = () => {
   phishingExtPort = browser.runtime.connect({
-    name: METAMASK_CTX.CONTENTSCRIPT,
+    name: CONTENT_SCRIPT,
   });
   phishingExtStream = new PortStream(phishingExtPort);
-  phishingExtStream._setLogger(
-    logPortMessages(METAMASK_CTX.CONTENTSCRIPT, METAMASK_CTX.BACKGROUND),
-  );
 
   // create and connect channel muxers
   // so we can handle the channels individually
@@ -117,7 +112,7 @@ const setupPhishingExtStreams = () => {
     logStreamDisconnectWarning('MetaMask Background Multiplex', err);
     window.postMessage(
       {
-        target: METAMASK_CTX.PHISHING_WARNING_PAGE, // the post-message-stream "target"
+        target: PHISHING_WARNING_PAGE, // the post-message-stream "target"
         data: {
           // this object gets passed to obj-multiplex
           name: PHISHING_SAFELIST, // the obj-multiplex channel name
@@ -222,8 +217,8 @@ const initPhishingStreams = () => {
 const setupPageStreams = () => {
   // the transport-specific streams for communication between inpage and background
   const pageStream = new WindowPostMessageStream({
-    name: METAMASK_CTX.CONTENTSCRIPT,
-    target: METAMASK_CTX.INPAGE,
+    name: CONTENT_SCRIPT,
+    target: INPAGE,
   });
 
   // create and connect channel muxers
@@ -235,7 +230,7 @@ const setupPageStreams = () => {
     logStreamDisconnectWarning('MetaMask Inpage Multiplex', err),
   );
 
-  pageChannel = pageMux.createStream(METAMASK_CTX.PROVIDER);
+  pageChannel = pageMux.createStream(PROVIDER);
 };
 
 // The field below is used to ensure that replay is done only once for each restart.
@@ -243,11 +238,8 @@ let METAMASK_EXTENSION_CONNECT_SENT = false;
 
 const setupExtensionStreams = () => {
   METAMASK_EXTENSION_CONNECT_SENT = true;
-  extensionPort = browser.runtime.connect({ name: METAMASK_CTX.CONTENTSCRIPT });
+  extensionPort = browser.runtime.connect({ name: CONTENT_SCRIPT });
   extensionStream = new PortStream(extensionPort);
-  extensionStream._setLogger(
-    logPortMessages(METAMASK_CTX.CONTENTSCRIPT, METAMASK_CTX.BACKGROUND),
-  );
   extensionStream.on('data', extensionStreamMessageListener);
 
   // create and connect channel muxers
@@ -262,10 +254,10 @@ const setupExtensionStreams = () => {
   });
 
   // forward communication across inpage-background for these channels only
-  extensionChannel = extensionMux.createStream(METAMASK_CTX.PROVIDER);
+  extensionChannel = extensionMux.createStream(PROVIDER);
   pump(pageChannel, extensionChannel, pageChannel, (error) =>
     console.debug(
-      `MetaMask: Muxed traffic for channel "${METAMASK_CTX.PROVIDER}" failed.`,
+      `MetaMask: Muxed traffic for channel "${PROVIDER}" failed.`,
       error,
     ),
   );
@@ -333,14 +325,14 @@ const setupLegacyExtensionStreams = () => {
     },
   );
 
-  legacyExtChannel = legacyExtMux.createStream(METAMASK_CTX.PROVIDER);
+  legacyExtChannel = legacyExtMux.createStream(PROVIDER);
   pump(
     legacyPageMuxLegacyProviderChannel,
     legacyExtChannel,
     legacyPageMuxLegacyProviderChannel,
     (error) =>
       console.debug(
-        `MetaMask: Muxed traffic between channels "${LEGACY_PROVIDER}" and "${METAMASK_CTX.PROVIDER}" failed.`,
+        `MetaMask: Muxed traffic between channels "${LEGACY_PROVIDER}" and "${PROVIDER}" failed.`,
         error,
       ),
   );
@@ -441,7 +433,7 @@ const initStreams = () => {
 // TODO:LegacyProvider: Delete
 function getNotificationTransformStream() {
   return createThoughStream((chunk, _, cb) => {
-    if (chunk?.name === METAMASK_CTX.PROVIDER) {
+    if (chunk?.name === PROVIDER) {
       if (chunk.data?.method === 'metamask_accountsChanged') {
         chunk.data.method = 'wallet_accountsChanged';
         chunk.data.result = chunk.data.params;
@@ -482,10 +474,10 @@ function extensionStreamMessageListener(msg) {
     METAMASK_EXTENSION_CONNECT_SENT = false;
     window.postMessage(
       {
-        target: METAMASK_CTX.INPAGE, // the post-message-stream "target"
+        target: INPAGE, // the post-message-stream "target"
         data: {
           // this object gets passed to obj-multiplex
-          name: METAMASK_CTX.PROVIDER, // the obj-multiplex channel name
+          name: PROVIDER, // the obj-multiplex channel name
           data: {
             jsonrpc: '2.0',
             method: 'METAMASK_EXTENSION_CONNECT_CAN_RETRY',
@@ -505,10 +497,10 @@ function extensionStreamMessageListener(msg) {
 function notifyInpageOfStreamFailure() {
   window.postMessage(
     {
-      target: METAMASK_CTX.INPAGE, // the post-message-stream "target"
+      target: INPAGE, // the post-message-stream "target"
       data: {
         // this object gets passed to obj-multiplex
-        name: METAMASK_CTX.PROVIDER, // the obj-multiplex channel name
+        name: PROVIDER, // the obj-multiplex channel name
         data: {
           jsonrpc: '2.0',
           method: 'METAMASK_STREAM_FAILURE',
@@ -549,7 +541,7 @@ const start = () => {
 
   if (shouldInjectProvider()) {
     if (!isManifestV3) {
-      injectScript(inpageBundle);
+      injectScript(chrome.extension.getURL('scripts/inpage.js'))
     }
     initStreams();
 

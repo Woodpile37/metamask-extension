@@ -6,8 +6,7 @@ import classnames from 'classnames';
 import { uniqBy, isEqual } from 'lodash';
 import { useHistory } from 'react-router-dom';
 import { getTokenTrackerLink } from '@metamask/etherscan-link';
-import { MetaMetricsContext } from '../../../contexts/metametrics.new';
-import { useNewMetricEvent } from '../../../hooks/useMetricEvent';
+import { MetaMetricsContext } from '../../../contexts/metametrics';
 import {
   useTokensToSearch,
   getRenderableTokenData,
@@ -19,18 +18,7 @@ import DropdownSearchList from '../dropdown-search-list';
 import SlippageButtons from '../slippage-buttons';
 import { getTokens, getConversionRate } from '../../../ducks/metamask/metamask';
 import InfoTooltip from '../../../components/ui/info-tooltip';
-import Popover from '../../../components/ui/popover';
-import Button from '../../../components/ui/button';
 import ActionableMessage from '../../../components/ui/actionable-message/actionable-message';
-import Box from '../../../components/ui/box';
-import Typography from '../../../components/ui/typography';
-import {
-  TYPOGRAPHY,
-  DISPLAY,
-  FLEX_DIRECTION,
-  FONT_WEIGHT,
-  COLORS,
-} from '../../../helpers/constants/design-system';
 import {
   VIEW_QUOTE_ROUTE,
   LOADING_QUOTES_ROUTE,
@@ -59,6 +47,8 @@ import {
   getMaxSlippage,
   getIsFeatureFlagLoaded,
   getCurrentSmartTransactionsError,
+  getSmartTransactionFees,
+  getLatestAddedTokenTo,
 } from '../../../ducks/swaps/swaps';
 import {
   getSwapsDefaultToken,
@@ -66,17 +56,12 @@ import {
   getCurrentCurrency,
   getCurrentChainId,
   getRpcPrefsForCurrentProvider,
-  getUseTokenDetection,
   getTokenList,
   isHardwareWallet,
   getHardwareWalletType,
+  getUseCurrencyRateCheck,
 } from '../../../selectors';
 
-import {
-  getValueFromWeiHex,
-  hexToDecimal,
-} from '../../../helpers/utils/conversions.util';
-import { calcTokenAmount } from '../../../helpers/utils/token-util';
 import { getURLHostName } from '../../../helpers/utils/util';
 import { usePrevious } from '../../../hooks/usePrevious';
 import { useTokenTracker } from '../../../hooks/useTokenTracker';
@@ -88,34 +73,43 @@ import {
   isSwapsDefaultTokenSymbol,
 } from '../../../../shared/modules/swaps.utils';
 import {
+  MetaMetricsEventCategory,
+  MetaMetricsEventLinkType,
+  MetaMetricsEventName,
+} from '../../../../shared/constants/metametrics';
+import {
   SWAPS_CHAINID_DEFAULT_BLOCK_EXPLORER_URL_MAP,
   SWAPS_CHAINID_DEFAULT_TOKEN_MAP,
+  TokenBucketPriority,
+  MAX_ALLOWED_SLIPPAGE,
 } from '../../../../shared/constants/swaps';
 
 import {
   resetSwapsPostFetchState,
-  removeToken,
+  ignoreTokens,
   setBackgroundSwapRouteState,
   clearSwapsQuotes,
   stopPollingForQuotes,
   setSmartTransactionsOptInStatus,
+  clearSmartTransactionFees,
 } from '../../../store/actions';
-import {
-  countDecimals,
-  fetchTokenPrice,
-  fetchTokenBalance,
-  shouldEnableDirectWrapping,
-} from '../swaps.util';
+import { countDecimals, fetchTokenPrice } from '../swaps.util';
 import SwapsFooter from '../swaps-footer';
 import { isEqualCaseInsensitive } from '../../../../shared/modules/string-utils';
+import { calcTokenAmount } from '../../../../shared/lib/transactions-controller-utils';
+import { fetchTokenBalance } from '../../../../shared/lib/token-util';
+import { shouldEnableDirectWrapping } from '../../../../shared/lib/swaps-utils';
+import {
+  getValueFromWeiHex,
+  hexToDecimal,
+} from '../../../../shared/modules/conversion.utils';
+import SmartTransactionsPopover from '../prepare-swap-page/smart-transactions-popover';
 
 const fuseSearchKeys = [
   { name: 'name', weight: 0.499 },
   { name: 'symbol', weight: 0.499 },
   { name: 'address', weight: 0.002 },
 ];
-
-const MAX_ALLOWED_SLIPPAGE = 15;
 
 let timeoutIdForQuotesPrefetching;
 
@@ -127,11 +121,10 @@ export default function BuildQuote({
   const t = useContext(I18nContext);
   const dispatch = useDispatch();
   const history = useHistory();
-  const metaMetricsEvent = useContext(MetaMetricsContext);
+  const trackEvent = useContext(MetaMetricsContext);
 
-  const [fetchedTokenExchangeRate, setFetchedTokenExchangeRate] = useState(
-    undefined,
-  );
+  const [fetchedTokenExchangeRate, setFetchedTokenExchangeRate] =
+    useState(undefined);
   const [verificationClicked, setVerificationClicked] = useState(false);
 
   const isFeatureFlagLoaded = useSelector(getIsFeatureFlagLoaded);
@@ -140,22 +133,23 @@ export default function BuildQuote({
   const { sourceTokenInfo = {}, destinationTokenInfo = {} } =
     fetchParams?.metaData || {};
   const tokens = useSelector(getTokens, isEqual);
-  const topAssets = useSelector(getTopAssets);
+  const topAssets = useSelector(getTopAssets, isEqual);
   const fromToken = useSelector(getFromToken, isEqual);
   const fromTokenInputValue = useSelector(getFromTokenInputValue);
   const fromTokenError = useSelector(getFromTokenError);
   const maxSlippage = useSelector(getMaxSlippage);
-  const toToken = useSelector(getToToken) || destinationTokenInfo;
+  const toToken = useSelector(getToToken, isEqual) || destinationTokenInfo;
   const defaultSwapsToken = useSelector(getSwapsDefaultToken, isEqual);
   const chainId = useSelector(getCurrentChainId);
   const rpcPrefs = useSelector(getRpcPrefsForCurrentProvider, shallowEqual);
   const tokenList = useSelector(getTokenList, isEqual);
-  const useTokenDetection = useSelector(getUseTokenDetection);
   const quotes = useSelector(getQuotes, isEqual);
   const areQuotesPresent = Object.keys(quotes).length > 0;
+  const latestAddedTokenTo = useSelector(getLatestAddedTokenTo, isEqual);
 
   const tokenConversionRates = useSelector(getTokenExchangeRates, isEqual);
   const conversionRate = useSelector(getConversionRate);
+  const useCurrencyRateCheck = useSelector(getUseCurrencyRateCheck);
   const hardwareWalletUsed = useSelector(isHardwareWallet);
   const hardwareWalletType = useSelector(getHardwareWalletType);
   const smartTransactionsOptInStatus = useSelector(
@@ -165,6 +159,7 @@ export default function BuildQuote({
   const currentSmartTransactionsEnabled = useSelector(
     getCurrentSmartTransactionsEnabled,
   );
+  const smartTransactionFees = useSelector(getSmartTransactionFees);
   const smartTransactionsOptInPopoverDisplayed =
     smartTransactionsOptInStatus !== undefined;
   const currentSmartTransactionsError = useSelector(
@@ -177,11 +172,11 @@ export default function BuildQuote({
 
   const onCloseSmartTransactionsOptInPopover = (e) => {
     e?.preventDefault();
-    setSmartTransactionsOptInStatus(false);
+    setSmartTransactionsOptInStatus(false, smartTransactionsOptInStatus);
   };
 
   const onEnableSmartTransactionsClick = () =>
-    setSmartTransactionsOptInStatus(true);
+    setSmartTransactionsOptInStatus(true, smartTransactionsOptInStatus);
 
   const fetchParamsFromToken = isSwapsDefaultTokenSymbol(
     sourceTokenInfo?.symbol,
@@ -190,7 +185,7 @@ export default function BuildQuote({
     ? defaultSwapsToken
     : sourceTokenInfo;
 
-  const { loading, tokensWithBalances } = useTokenTracker(tokens);
+  const { loading, tokensWithBalances } = useTokenTracker({ tokens });
 
   // If the fromToken was set in a call to `onFromSelect` (see below), and that from token has a balance
   // but is not in tokensWithBalances or tokens, then we want to add it to the usersTokens array so that
@@ -212,16 +207,22 @@ export default function BuildQuote({
     currentCurrency,
     chainId,
     tokenList,
-    useTokenDetection,
   );
 
-  const tokensToSearch = useTokensToSearch({
+  const tokensToSearchSwapFrom = useTokensToSearch({
     usersTokens: memoizedUsersTokens,
     topTokens: topAssets,
     shuffledTokensList,
+    tokenBucketPriority: TokenBucketPriority.owned,
+  });
+  const tokensToSearchSwapTo = useTokensToSearch({
+    usersTokens: memoizedUsersTokens,
+    topTokens: topAssets,
+    shuffledTokensList,
+    tokenBucketPriority: TokenBucketPriority.top,
   });
   const selectedToToken =
-    tokensToSearch.find(({ address }) =>
+    tokensToSearchSwapFrom.find(({ address }) =>
       isEqualCaseInsensitive(address, toToken?.address),
     ) || toToken;
   const toTokenIsNotDefault =
@@ -250,13 +251,13 @@ export default function BuildQuote({
     fromTokenInputValue || 0,
     fromTokenSymbol,
     {
-      showFiat: true,
+      showFiat: useCurrencyRateCheck,
     },
     true,
   );
   const swapFromEthFiatValue = useEthFiatAmount(
     fromTokenInputValue || 0,
-    { showFiat: true },
+    { showFiat: useCurrencyRateCheck },
     true,
   );
   const swapFromFiatValue = isSwapsDefaultTokenSymbol(fromTokenSymbol, chainId)
@@ -269,7 +270,7 @@ export default function BuildQuote({
       const newBalanceError = new BigNumber(newInputValue || 0).gt(
         balance || 0,
       );
-      // "setBalanceError" is just a warning, a user can still click on the "Review Swap" button.
+      // "setBalanceError" is just a warning, a user can still click on the "Review swap" button.
       if (balanceError !== newBalanceError) {
         dispatch(setBalanceError(newBalanceError));
       }
@@ -304,24 +305,26 @@ export default function BuildQuote({
         isEqualCaseInsensitive(usersToken.address, token.address),
       )
     ) {
-      fetchTokenBalance(token.address, selectedAccountAddress).then(
-        (fetchedBalance) => {
-          if (fetchedBalance?.balance) {
-            const balanceAsDecString = fetchedBalance.balance.toString(10);
-            const userTokenBalance = calcTokenAmount(
-              balanceAsDecString,
-              token.decimals,
-            );
-            dispatch(
-              setSwapsFromToken({
-                ...token,
-                string: userTokenBalance.toString(10),
-                balance: balanceAsDecString,
-              }),
-            );
-          }
-        },
-      );
+      fetchTokenBalance(
+        token.address,
+        selectedAccountAddress,
+        global.ethereumProvider,
+      ).then((fetchedBalance) => {
+        if (fetchedBalance?.balance) {
+          const balanceAsDecString = fetchedBalance.balance.toString(10);
+          const userTokenBalance = calcTokenAmount(
+            balanceAsDecString,
+            token.decimals,
+          );
+          dispatch(
+            setSwapsFromToken({
+              ...token,
+              string: userTokenBalance.toString(10),
+              balance: balanceAsDecString,
+            }),
+          );
+        }
+      });
     }
     dispatch(setSwapsFromToken(token));
     onInputChange(
@@ -338,9 +341,7 @@ export default function BuildQuote({
     null, // no holderAddress
     {
       blockExplorerUrl:
-        rpcPrefs.blockExplorerUrl ??
-        SWAPS_CHAINID_DEFAULT_BLOCK_EXPLORER_URL_MAP[chainId] ??
-        null,
+        SWAPS_CHAINID_DEFAULT_BLOCK_EXPLORER_URL_MAP[chainId] ?? null,
     },
   );
 
@@ -348,27 +349,21 @@ export default function BuildQuote({
     ? getURLHostName(blockExplorerTokenLink)
     : t('etherscan');
 
-  const blockExplorerLinkClickedEvent = useNewMetricEvent({
-    category: 'Swaps',
-    event: 'Clicked Block Explorer Link',
-    properties: {
-      link_type: 'Token Tracker',
-      action: 'Swaps Confirmation',
-      block_explorer_domain: getURLHostName(blockExplorerTokenLink),
-    },
-  });
-
-  const { destinationTokenAddedForSwap } = fetchParams || {};
   const { address: toAddress } = toToken || {};
   const onToSelect = useCallback(
     (token) => {
-      if (destinationTokenAddedForSwap && token.address !== toAddress) {
-        dispatch(removeToken(toAddress));
+      if (latestAddedTokenTo && token.address !== toAddress) {
+        dispatch(
+          ignoreTokens({
+            tokensToIgnore: toAddress,
+            dontShowLoadingIndicator: true,
+          }),
+        );
       }
       dispatch(setSwapToToken(token));
       setVerificationClicked(false);
     },
-    [dispatch, destinationTokenAddedForSwap, toAddress],
+    [dispatch, latestAddedTokenTo, toAddress],
   );
 
   const hideDropdownItemIf = useCallback(
@@ -443,23 +438,39 @@ export default function BuildQuote({
     fromTokenBalance,
   ]);
 
-  const buildQuotePageLoadedEvent = useNewMetricEvent({
-    event: 'Build Quote Page Loaded',
-    category: 'swaps',
-    sensitiveProperties: {
-      is_hardware_wallet: hardwareWalletUsed,
-      hardware_wallet_type: hardwareWalletType,
-      stx_enabled: smartTransactionsEnabled,
-      current_stx_enabled: currentSmartTransactionsEnabled,
-      stx_user_opt_in: smartTransactionsOptInStatus,
-    },
-  });
+  const trackBuildQuotePageLoadedEvent = useCallback(() => {
+    trackEvent({
+      event: 'Build Quote Page Loaded',
+      category: MetaMetricsEventCategory.Swaps,
+      sensitiveProperties: {
+        is_hardware_wallet: hardwareWalletUsed,
+        hardware_wallet_type: hardwareWalletType,
+        stx_enabled: smartTransactionsEnabled,
+        current_stx_enabled: currentSmartTransactionsEnabled,
+        stx_user_opt_in: smartTransactionsOptInStatus,
+      },
+    });
+  }, [
+    trackEvent,
+    hardwareWalletUsed,
+    hardwareWalletType,
+    smartTransactionsEnabled,
+    currentSmartTransactionsEnabled,
+    smartTransactionsOptInStatus,
+  ]);
 
   useEffect(() => {
     dispatch(resetSwapsPostFetchState());
     dispatch(setReviewSwapClickedTimestamp());
-    buildQuotePageLoadedEvent();
-  }, [dispatch, buildQuotePageLoadedEvent]);
+    trackBuildQuotePageLoadedEvent();
+  }, [dispatch, trackBuildQuotePageLoadedEvent]);
+
+  useEffect(() => {
+    if (smartTransactionsEnabled && smartTransactionFees?.tradeTxFees) {
+      // We want to clear STX fees, because we only want to use fresh ones on the View Quote page.
+      clearSmartTransactionFees();
+    }
+  }, [smartTransactionsEnabled, smartTransactionFees]);
 
   const BlockExplorerLink = () => {
     return (
@@ -467,7 +478,16 @@ export default function BuildQuote({
         className="build-quote__token-etherscan-link build-quote__underline"
         key="build-quote-etherscan-link"
         onClick={() => {
-          blockExplorerLinkClickedEvent();
+          /* istanbul ignore next */
+          trackEvent({
+            event: MetaMetricsEventName.ExternalLinkClicked,
+            category: MetaMetricsEventCategory.Swaps,
+            properties: {
+              link_type: MetaMetricsEventLinkType.TokenTracker,
+              location: 'Swaps Confirmation',
+              url_domain: getURLHostName(blockExplorerTokenLink),
+            },
+          });
           global.platform.openTab({
             url: blockExplorerTokenLink,
           });
@@ -524,7 +544,7 @@ export default function BuildQuote({
           history,
           fromTokenInputValue,
           maxSlippage,
-          metaMetricsEvent,
+          trackEvent,
           pageRedirectionDisabled,
         ),
       );
@@ -534,7 +554,7 @@ export default function BuildQuote({
     timeoutIdForQuotesPrefetching = setTimeout(() => {
       timeoutIdForQuotesPrefetching = null;
       if (!isReviewSwapButtonDisabled) {
-        // Only do quotes prefetching if the Review Swap button is enabled.
+        // Only do quotes prefetching if the Review swap button is enabled.
         prefetchQuotesWithoutRedirecting();
       }
     }, 1000);
@@ -543,7 +563,7 @@ export default function BuildQuote({
     dispatch,
     history,
     maxSlippage,
-    metaMetricsEvent,
+    trackEvent,
     isReviewSwapButtonDisabled,
     fromTokenInputValue,
     fromTokenAddress,
@@ -554,90 +574,14 @@ export default function BuildQuote({
   return (
     <div className="build-quote">
       <div className="build-quote__content">
-        {showSmartTransactionsOptInPopover && (
-          <Popover
-            title={t('stxAreHere')}
-            footer={
-              <>
-                <Button type="primary" onClick={onEnableSmartTransactionsClick}>
-                  {t('enableSmartTransactions')}
-                </Button>
-                <Box marginTop={1}>
-                  <Typography variant={TYPOGRAPHY.H6}>
-                    <Button
-                      type="link"
-                      onClick={onCloseSmartTransactionsOptInPopover}
-                      className="smart-transactions-popover__no-thanks-link"
-                    >
-                      {t('noThanksVariant2')}
-                    </Button>
-                  </Typography>
-                </Box>
-              </>
-            }
-            footerClassName="smart-transactions-popover__footer"
-            className="smart-transactions-popover"
-          >
-            <Box
-              paddingRight={6}
-              paddingLeft={6}
-              paddingTop={0}
-              paddingBottom={0}
-              display={DISPLAY.FLEX}
-              className="smart-transactions-popover__content"
-            >
-              <Box
-                marginTop={0}
-                marginBottom={4}
-                display={DISPLAY.FLEX}
-                flexDirection={FLEX_DIRECTION.COLUMN}
-              >
-                <img
-                  src="./images/logo/smart-transactions-header.png"
-                  alt={t('swapSwapSwitch')}
-                />
-              </Box>
-              <Typography variant={TYPOGRAPHY.H7} marginTop={0}>
-                {t('stxDescription')}
-              </Typography>
-              <Typography
-                tag="ul"
-                variant={TYPOGRAPHY.H7}
-                fontWeight={FONT_WEIGHT.BOLD}
-                marginTop={3}
-              >
-                <li>{t('stxBenefit1')}</li>
-                <li>{t('stxBenefit2')}</li>
-                <li>{t('stxBenefit3')}</li>
-                <li>
-                  {t('stxBenefit4')}
-                  <Typography
-                    tag="span"
-                    fontWeight={FONT_WEIGHT.NORMAL}
-                    variant={TYPOGRAPHY.H7}
-                  >
-                    {' *'}
-                  </Typography>
-                </li>
-              </Typography>
-              <Typography
-                variant={TYPOGRAPHY.H8}
-                color={COLORS.TEXT_ALTERNATIVE}
-                boxProps={{ marginTop: 3 }}
-              >
-                {t('stxSubDescription')}&nbsp;
-                <Typography
-                  tag="span"
-                  fontWeight={FONT_WEIGHT.BOLD}
-                  variant={TYPOGRAPHY.H8}
-                  color={COLORS.TEXT_ALTERNATIVE}
-                >
-                  {t('stxYouCanOptOut')}&nbsp;
-                </Typography>
-              </Typography>
-            </Box>
-          </Popover>
-        )}
+        <SmartTransactionsPopover
+          onEnableSmartTransactionsClick={onEnableSmartTransactionsClick}
+          onCloseSmartTransactionsOptInPopover={
+            onCloseSmartTransactionsOptInPopover
+          }
+          isOpen={showSmartTransactionsOptInPopover}
+        />
+
         <div className="build-quote__dropdown-input-pair-header">
           <div className="build-quote__input-label">{t('swapSwapFrom')}</div>
           {!isSwapsDefaultTokenSymbol(fromTokenSymbol, chainId) && (
@@ -654,8 +598,9 @@ export default function BuildQuote({
         </div>
         <DropdownInputPair
           onSelect={onFromSelect}
-          itemsToSearch={tokensToSearch}
+          itemsToSearch={tokensToSearchSwapFrom}
           onInputChange={(value) => {
+            /* istanbul ignore next */
             onInputChange(value, fromTokenBalance);
           }}
           inputValue={fromTokenInputValue}
@@ -664,7 +609,7 @@ export default function BuildQuote({
           maxListItems={30}
           loading={
             loading &&
-            (!tokensToSearch?.length ||
+            (!tokensToSearchSwapFrom?.length ||
               !topAssets ||
               !Object.keys(topAssets).length)
           }
@@ -710,17 +655,14 @@ export default function BuildQuote({
         <div className="build-quote__swap-arrows-row">
           <button
             className="build-quote__swap-arrows"
+            data-testid="build-quote__swap-arrows"
             onClick={() => {
               onToSelect(selectedFromToken);
               onFromSelect(selectedToToken);
             }}
           >
-            <img
-              src="./images/icons/swap2.svg"
-              alt={t('swapSwapSwitch')}
-              width="12"
-              height="16"
-            />
+            <i className="fa fa-arrow-up" title={t('swapSwapSwitch')} />
+            <i className="fa fa-arrow-down" title={t('swapSwapSwitch')} />
           </button>
         </div>
         <div className="build-quote__dropdown-swap-to-header">
@@ -729,15 +671,14 @@ export default function BuildQuote({
         <div className="dropdown-input-pair dropdown-input-pair__to">
           <DropdownSearchList
             startingItem={selectedToToken}
-            itemsToSearch={tokensToSearch}
-            searchPlaceholderText={t('swapSearchForAToken')}
+            itemsToSearch={tokensToSearchSwapTo}
             fuseSearchKeys={fuseSearchKeys}
             selectPlaceHolderText={t('swapSelectAToken')}
             maxListItems={30}
             onSelect={onToSelect}
             loading={
               loading &&
-              (!tokensToSearch?.length ||
+              (!tokensToSearchSwapTo?.length ||
                 !topAssets ||
                 !Object.keys(topAssets).length)
             }
@@ -764,6 +705,7 @@ export default function BuildQuote({
                 </div>
               }
               primaryAction={
+                /* istanbul ignore next */
                 verificationClicked
                   ? null
                   : {
@@ -792,7 +734,18 @@ export default function BuildQuote({
                       className="build-quote__token-etherscan-link"
                       key="build-quote-etherscan-link"
                       onClick={() => {
-                        blockExplorerLinkClickedEvent();
+                        /* istanbul ignore next */
+                        trackEvent({
+                          event: 'Clicked Block Explorer Link',
+                          category: MetaMetricsEventCategory.Swaps,
+                          properties: {
+                            link_type: 'Token Tracker',
+                            action: 'Swaps Confirmation',
+                            block_explorer_domain: getURLHostName(
+                              blockExplorerTokenLink,
+                            ),
+                          },
+                        });
                         global.platform.openTab({
                           url: blockExplorerTokenLink,
                         });
@@ -815,7 +768,8 @@ export default function BuildQuote({
               )}
             </div>
           ))}
-        {!isDirectWrappingEnabled && (
+        {(smartTransactionsEnabled ||
+          (!smartTransactionsEnabled && !isDirectWrappingEnabled)) && (
           <div className="build-quote__slippage-buttons-container">
             <SlippageButtons
               onSelect={(newSlippage) => {
@@ -827,35 +781,39 @@ export default function BuildQuote({
               smartTransactionsOptInStatus={smartTransactionsOptInStatus}
               setSmartTransactionsOptInStatus={setSmartTransactionsOptInStatus}
               currentSmartTransactionsError={currentSmartTransactionsError}
+              isDirectWrappingEnabled={isDirectWrappingEnabled}
             />
           </div>
         )}
       </div>
       <SwapsFooter
-        onSubmit={async () => {
-          // We need this to know how long it took to go from clicking on the Review Swap button to rendered View Quote page.
-          dispatch(setReviewSwapClickedTimestamp(Date.now()));
-          // In case that quotes prefetching is waiting to be executed, but hasn't started yet,
-          // we want to cancel it and fetch quotes from here.
-          if (timeoutIdForQuotesPrefetching) {
-            clearTimeout(timeoutIdForQuotesPrefetching);
-            dispatch(
-              fetchQuotesAndSetQuoteState(
-                history,
-                fromTokenInputValue,
-                maxSlippage,
-                metaMetricsEvent,
-              ),
-            );
-          } else if (areQuotesPresent) {
-            // If there are prefetched quotes already, go directly to the View Quote page.
-            history.push(VIEW_QUOTE_ROUTE);
-          } else {
-            // If the "Review Swap" button was clicked while quotes are being fetched, go to the Loading Quotes page.
-            await dispatch(setBackgroundSwapRouteState('loading'));
-            history.push(LOADING_QUOTES_ROUTE);
+        onSubmit={
+          /* istanbul ignore next */
+          async () => {
+            // We need this to know how long it took to go from clicking on the Review swap button to rendered View Quote page.
+            dispatch(setReviewSwapClickedTimestamp(Date.now()));
+            // In case that quotes prefetching is waiting to be executed, but hasn't started yet,
+            // we want to cancel it and fetch quotes from here.
+            if (timeoutIdForQuotesPrefetching) {
+              clearTimeout(timeoutIdForQuotesPrefetching);
+              dispatch(
+                fetchQuotesAndSetQuoteState(
+                  history,
+                  fromTokenInputValue,
+                  maxSlippage,
+                  trackEvent,
+                ),
+              );
+            } else if (areQuotesPresent) {
+              // If there are prefetched quotes already, go directly to the View Quote page.
+              history.push(VIEW_QUOTE_ROUTE);
+            } else {
+              // If the "Review swap" button was clicked while quotes are being fetched, go to the Loading Quotes page.
+              await dispatch(setBackgroundSwapRouteState('loading'));
+              history.push(LOADING_QUOTES_ROUTE);
+            }
           }
-        }}
+        }
         submitText={t('swapReviewSwap')}
         disabled={isReviewSwapButtonDisabled}
         hideCancel

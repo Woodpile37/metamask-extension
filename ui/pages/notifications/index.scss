@@ -1,3 +1,5 @@
+@use "design-system";
+
 .notifications {
   position: relative;
   display: flex;
@@ -12,7 +14,7 @@
     padding: 65px 24px 15px 24px;
     border-bottom: 1px solid var(--color-border-muted);
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       padding: 10px 20px;
     }
 
@@ -23,12 +25,12 @@
       flex: 0 0 auto;
 
       &__title {
-        @include H3;
+        @include design-system.H3;
 
         margin-left: 26px;
 
-        @media screen and (max-width: $break-small) {
-          @include H6;
+        @include design-system.screen-sm-max {
+          @include design-system.H6;
 
           margin-left: 16px;
           font-weight: bold;
@@ -39,7 +41,7 @@
     &_button {
       width: auto;
 
-      @media screen and (max-width: $break-small) {
+      @include design-system.screen-sm-max {
         font-size: 0.75rem;
         padding: 3.5px 1rem;
       }
@@ -52,18 +54,18 @@
     flex-direction: column;
     flex: 1 1 auto;
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       height: 100%;
     }
 
     &__text {
-      @include H3;
+      @include design-system.H3;
 
       color: var(--color-text-muted);
       text-align: center;
 
-      @media screen and (max-width: $break-small) {
-        @include H6;
+      @include design-system.screen-sm-max {
+        @include design-system.H6;
       }
     }
   }
@@ -78,11 +80,11 @@
     flex-direction: row;
     align-items: center;
     border-bottom: 1px solid var(--color-border-muted);
-    padding: 16px;
+    padding: 16px 32px 16px 16px;
     cursor: pointer;
 
     &:hover {
-      background-color: var(--color-background-alternative);
+      background-color: var(--color-background-default-hover);
     }
 
     &__unread-dot {
@@ -96,6 +98,7 @@
     }
 
     .unread {
+      flex-shrink: 0;
       background-color: var(--color-primary-default);
     }
 
@@ -103,6 +106,10 @@
       display: flex;
       flex-direction: column;
       margin-left: 12px;
+
+      &__message {
+        overflow-wrap: anywhere;
+      }
 
       &__infos {
         color: var(--color-text-muted);

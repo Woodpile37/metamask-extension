@@ -1,3 +1,5 @@
+@use "design-system";
+
 .home {
   &__container {
     display: flex;
@@ -23,11 +25,11 @@
   // TODO: fix style import order so this isn't required to override specificity of `tab` class
   &__main-view &__tabs {
     border: none;
-    box-shadow: 0 3px 4px rgba(135, 134, 134, 0.16);
+    padding: 0 16px;
   }
 
   &__main-view &__tab {
-    @include H6;
+    @include design-system.H6;
 
     flex-grow: 1;
     color: var(--color-icon-default);
@@ -39,14 +41,14 @@
   }
 
   &__main-view &__tab button {
-    padding: 16px 8px;
+    padding: 8px;
   }
 
   &__connect-status-text {
     display: flex;
     flex-direction: column;
 
-    @include H6;
+    @include design-system.H6;
 
     padding-left: 24px;
     padding-right: 24px;
@@ -83,7 +85,7 @@
     }
 
     .popover-footer {
-      @include H6;
+      @include design-system.H6;
 
       border-top: 0;
       justify-content: space-between;
@@ -116,7 +118,7 @@
     position: absolute;
     top: 73px;
     opacity: 1;
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-size-lg) var(--color-shadow-default);
     background: none;
   }
 
@@ -182,7 +184,7 @@
     margin-inline-start: 8px;
     padding: 8px;
 
-    @media screen and (min-width: $break-large) {
+    @include design-system.screen-sm-min {
       margin-bottom: 50px;
       margin-inline-end: 8px;
       left: 70%;
@@ -194,7 +196,7 @@
     }
 
     &-icon {
-      @include H3;
+      @include design-system.H3;
 
       margin-inline-end: 12px;
       padding-top: 12px;
@@ -222,7 +224,55 @@
     }
   }
 
-  &__error-message {
-    left: 8px;
+  &__subheader-link {
+    display: flex;
+    padding: 12px 0;
+    justify-content: center;
+    color: var(--color-primary-default);
+    align-items: center;
+    cursor: pointer;
+
+    &--tooltip-content {
+      &-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+
+        &-text {
+          font-size: 18px;
+          line-height: 22.82px;
+          font-weight: 700;
+        }
+
+        &-button {
+          background-color: var(--color-primary-default);
+          color: var(--color-primary-inverse);
+          border: 0;
+        }
+      }
+
+      &-text-bold {
+        font-weight: 700;
+      }
+    }
+
+    &--tooltip-theme {
+      background-color: var(--color-primary-default) !important;
+
+      & .tippy-tooltip-content {
+        color: var(--color-primary-inverse) !important;
+      }
+
+      & .arrow-regular {
+        border-bottom-color: var(--color-primary-default) !important;
+      }
+    }
+
+    &--text {
+      margin-left: 8px;
+      font-weight: 400;
+      font-size: 12px;
+      line-height: 140.62%;
+    }
   }
 }

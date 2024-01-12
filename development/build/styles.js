@@ -1,44 +1,42 @@
 const pify = require('pify');
 const gulp = require('gulp');
-const sass = require('gulp-sass');
-const autoprefixer = require('gulp-autoprefixer');
+const autoprefixer = require('autoprefixer');
 const gulpStylelint = require('gulp-stylelint');
 const watch = require('gulp-watch');
 const sourcemaps = require('gulp-sourcemaps');
-const rtlcss = require('gulp-rtlcss');
-const rename = require('gulp-rename');
+const rtlcss = require('postcss-rtlcss');
+const postcss = require('gulp-postcss');
+const sass = require('gulp-sass')(require("./sass-compiler"));
 const pump = pify(require('pump'));
+const { TASKS } = require('./constants');
 const { createTask } = require('./task');
 
-// use our own compiler which runs sass in its own process
-// in order to not pollute the intrinsics
-sass.compiler = require('./sass-compiler.js');
 
 // scss compilation and autoprefixing tasks
 module.exports = createStyleTasks;
 
 function createStyleTasks({ livereload }) {
   const prod = createTask(
-    'styles:prod',
+    TASKS.STYLES_PROD,
     createScssBuildTask({
-      src: 'ui/app/css/index.scss',
-      dest: 'ui/app/css/output',
+      src: 'ui/css/index.scss',
+      dest: 'ui/css/output',
       devMode: false,
     }),
   );
 
   const dev = createTask(
-    'styles:dev',
+    TASKS.STYLES_DEV,
     createScssBuildTask({
-      src: 'ui/app/css/index.scss',
-      dest: 'ui/app/css/output',
+      src: 'ui/css/index.scss',
+      dest: 'ui/css/output',
       devMode: true,
-      pattern: 'ui/app/**/*.scss',
+      pattern: 'ui/**/*.scss',
     }),
   );
 
-  const lint = createTask('lint-scss', function () {
-    return gulp.src('ui/app/css/itcss/**/*.scss').pipe(
+  const lint = createTask(TASKS.LINT_SCSS, function () {
+    return gulp.src('ui/css/itcss/**/*.scss').pipe(
       gulpStylelint({
         reporters: [{ formatter: 'string', console: true }],
         fix: true,
@@ -60,24 +58,30 @@ function createStyleTasks({ livereload }) {
     };
 
     async function buildScss() {
-      await Promise.all([
-        buildScssPipeline(src, dest, devMode, false),
-        buildScssPipeline(src, dest, devMode, true),
-      ]);
+      await buildScssPipeline(src, dest, devMode);
     }
   }
 }
 
-async function buildScssPipeline(src, dest, devMode, rtl) {
+async function buildScssPipeline(src, dest, devMode) {
   await pump(
     ...[
       // pre-process
       gulp.src(src),
       devMode && sourcemaps.init(),
-      sass().on('error', sass.logError),
-      autoprefixer(),
-      rtl && rtlcss(),
-      rtl && rename({ suffix: '-rtl' }),
+      sass({
+        // The order of includePaths is important; prefer our own
+        // folders over `node_modules`
+        includePaths: [
+          // enables shortcuts to `@use design-system`, `@use utilities`, etc.
+          './ui/css',
+          './node_modules'
+        ]
+      }),
+      postcss([
+        autoprefixer(),
+        rtlcss()
+      ]),
       devMode && sourcemaps.write(),
       gulp.dest(dest),
     ].filter(Boolean),

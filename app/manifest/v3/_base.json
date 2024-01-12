@@ -14,7 +14,7 @@
   },
   "author": "https://metamask.io",
   "background": {
-    "service_worker": "app-init.js"
+    "service_worker": "scripts/app-init.js"
   },
   "commands": {
     "_execute_browser_action": {
@@ -29,14 +29,7 @@
   "content_scripts": [
     {
       "matches": ["file://*/*", "http://*/*", "https://*/*"],
-      "js": [
-        "disable-console.js",
-        "globalthis.js",
-        "lockdown-install.js",
-        "lockdown-run.js",
-        "lockdown-more.js",
-        "contentscript.js"
-      ],
+      "js": ["contentscript.js"],
       "run_at": "document_start",
       "all_frames": true
     },
@@ -76,5 +69,12 @@
     "webRequest",
     "offscreen"
   ],
-  "short_name": "__MSG_appName__"
+  "short_name": "__MSG_appName__",
+  "web_accessible_resources": [
+    {
+      "resources": ["scripts/inpage.js"],
+      "matches": ["<all_urls>"],
+      "use_dynamic_url": true
+    }
+  ]
 }

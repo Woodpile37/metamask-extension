@@ -1,3 +1,5 @@
+@use "design-system";
+
 .list-item {
   width: 100%;
   min-height: 86px;
@@ -5,9 +7,8 @@
   background: var(--color-background-default);
   padding: 24px 16px;
 
-  @include Paragraph;
+  @include design-system.Paragraph;
 
-  border-top: 1px solid var(--color-border-muted);
   border-bottom: 1px solid var(--color-border-muted);
   color: var(--color-text-default);
   display: grid;
@@ -16,12 +17,12 @@
     'icon head     head     head     head     head     head     head     right right right right'
     'icon sub      sub      sub      sub      sub      sub      sub      right right right right'
     '.    actions  actions  actions  actions  actions  actions  actions  right right right right';
-  align-items: start;
+  align-items: flex-start;
   cursor: pointer;
 
   &:hover,
   &:focus-within {
-    background-color: var(--color-background-alternative);
+    background-color: var(--color-background-default-hover);
   }
 
   &__icon {
@@ -38,7 +39,7 @@
   }
 
   &__heading {
-    @include H5;
+    @include design-system.H5;
 
     grid-area: head;
     position: relative;
@@ -64,10 +65,10 @@
   }
 
   &__subheading {
-    @include H7;
+    @include design-system.H7;
 
     grid-area: sub;
-    color: var(--color-icon-default);
+    color: var(--color-text-alternative);
     margin-top: 4px;
     // all direct descendants should be truncated with ellipses
     // allows flexibility in consuming components to use h3/other tag
@@ -83,10 +84,10 @@
   }
 
   &__mid-content {
-    @include H7;
+    @include design-system.H7;
 
     grid-area: mid;
-    color: var(--color-icon-default);
+    color: var(--color-text-muted);
   }
 
   &__right-content {
@@ -97,13 +98,13 @@
     white-space: nowrap;
   }
 
-  @media (max-width: $break-small) {
+  @include design-system.screen-sm-max {
     &__mid-content {
       display: none;
     }
   }
 
-  @media (min-width: $break-large) {
+  @include design-system.screen-sm-min {
     grid-template-areas:
       'icon head     head     head     head     mid mid mid mid right right right'
       'icon sub      sub      sub      sub      mid mid mid mid right right right'
@@ -115,7 +116,7 @@
   grid-template-areas: 'icon head     head     head     head     head     head     head     right right right right';
   align-items: center;
 
-  @media (min-width: $break-large) {
+  @include design-system.screen-sm-min {
     grid-template-areas: 'icon head     head     head     head     mid mid mid mid right right right';
   }
 }

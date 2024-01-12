@@ -1,5 +1,4 @@
-$sub-mid-size-breakpoint: 667px;
-$sub-mid-size-breakpoint-range: "screen and (min-width: #{$break-large}) and (max-width: #{$sub-mid-size-breakpoint})";
+@use "design-system";
 
 /*
   NewUI Container Elements
@@ -50,7 +49,7 @@ $sub-mid-size-breakpoint-range: "screen and (min-width: #{$break-large}) and (ma
 
 // main-container media queries
 
-@media screen and (min-width: $break-large) {
+@include design-system.screen-sm-min {
   .lap-visible {
     display: flex;
   }
@@ -61,29 +60,28 @@ $sub-mid-size-breakpoint-range: "screen and (min-width: #{$break-large}) and (ma
 
   .main-container {
     width: 85vw;
-    margin-bottom: 10vh;
     min-height: 90vh;
-    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
   }
 }
 
-@media screen and (min-width: 769px) {
+@include design-system.screen-md-min {
   .main-container {
     width: 80vw;
     min-height: 82vh;
-    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
   }
 }
 
-@media screen and (min-width: 1281px) {
+@include design-system.screen-lg-min {
   .main-container {
     width: 62vw;
     min-height: 82vh;
-    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
   }
 }
 
-@media screen and (max-width: $break-small) {
+@include design-system.screen-sm-max {
   .lap-visible {
     display: none;
   }
@@ -96,6 +94,10 @@ $sub-mid-size-breakpoint-range: "screen and (min-width: #{$break-large}) and (ma
     width: 100%;
     overflow-y: auto;
     background-color: var(--color-background-default);
+  }
+
+  .main-container-wrapper {
+    flex: 1;
   }
 }
 
@@ -113,19 +115,19 @@ $sub-mid-size-breakpoint-range: "screen and (min-width: #{$break-large}) and (ma
   flex-direction: row-reverse;
   justify-content: space-between;
 
-  @media screen and (max-width: $break-small) {
+  @include design-system.screen-sm-max {
     height: 100%;
   }
 
-  @media screen and (min-width: $break-large) {
+  @include design-system.screen-sm-min {
     width: 85vw;
   }
 
-  @media screen and (min-width: 769px) {
+  @include design-system.screen-md-min {
     width: 80vw;
   }
 
-  @media screen and (min-width: 1281px) {
+  @include design-system.screen-lg-min {
     width: 62vw;
   }
 }

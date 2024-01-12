@@ -1,3 +1,5 @@
+@use "design-system";
+
 @import 'confirm-page-container-warning/index';
 @import 'confirm-page-container-summary/index';
 
@@ -73,7 +75,7 @@
   }
 
   &__tab {
-    @include H7;
+    @include design-system.H7;
 
     color: #8c8e94;
     text-transform: uppercase;

@@ -1,8 +1,10 @@
+@use "design-system";
+
 .settings-tab {
   &__error {
     padding-bottom: 20px;
     text-align: center;
-    color: var(--crimson);
+    color: var(--color-error-default);
   }
 
   &__rpc-save-button {
@@ -13,16 +15,16 @@
   }
 
   &__button--red {
-    /* border-color: lighten( var(--monzo), 10%); */
-    color: var(--monzo);
+    border-color: lighten(design-system.$monzo, 10%);
+    color: var(--color-error-default);
 
     &:active {
-      /* background: lighten( var(--monzo), 55%); */
-      border-color: var(--monzo);
+      background: lighten(design-system.$monzo, 55%);
+      border-color: var(--color-error-default);
     }
 
     &:hover {
-      border-color: var(--monzo);
+      border-color: var(--color-error-default);
     }
   }
 

@@ -1,9 +1,11 @@
+@use "design-system";
+
 .send-screen-wrapper {
   display: flex;
   flex-flow: column nowrap;
   z-index: 25;
 
-  @media screen and (max-width: $break-small) {
+  @include design-system.screen-sm-max {
     width: 100%;
     overflow-y: auto;
   }
@@ -14,8 +16,8 @@
 }
 
 .send-screen-card {
-  background-color: var(--white);
-  box-shadow: 0 2px 4px 0 rgba($black, 0.08);
+  background-color: var(--color-background-default);
+  box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
   padding: 46px 40.5px 26px;
   position: relative;
   align-items: center;
@@ -24,7 +26,7 @@
   width: 498px;
   flex: 1 0 auto;
 
-  @media screen and (max-width: $break-small) {
+  @include design-system.screen-sm-max {
     top: 0;
     width: 100%;
     box-shadow: none;
@@ -39,7 +41,7 @@
 }
 
 .send-screen input {
-  @include H7;
+  @include design-system.H7;
 
   width: 100%;
 }
@@ -48,15 +50,15 @@
   border-radius: 50%;
   width: 70px;
   height: 70px;
-  border: 1px solid var(--alto);
-  box-shadow: 0 0 4px 0 rgba($black, 0.2);
+  border: 1px solid var(--color-border-muted);
+  box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
   position: absolute;
   top: -35px;
   z-index: 25;
   padding: 4px;
-  background-color: var(--white);
+  background-color: var(--color-background-default);
 
-  @media screen and (max-width: $break-small) {
+  @include design-system.screen-sm-max {
     position: relative;
     top: 0;
   }
@@ -70,14 +72,6 @@
     padding-right: 4px;
   }
 
-  .large-input {
-    @include Paragraph;
-
-    border: 1px solid var(--dusty-gray);
-    border-radius: 4px;
-    margin: 4px 0 20px;
-  }
-
   .send-screen-gas-input {
     border: 1px solid transparent;
   }
@@ -89,28 +83,28 @@
   &--error {
     input,
     .send-screen-gas-input {
-      border-color: var(--red) !important;
+      border-color: var(--color-error-default) !important;
     }
 
     .send-screen-input-wrapper__error-message {
-      @include H7;
+      @include design-system.H7;
 
       display: block;
       position: absolute;
       bottom: 4px;
       left: 8px;
-      color: var(--red);
+      color: var(--color-error-default);
     }
   }
 
   .send-screen-input-wrapper__error-message {
-    @include H7;
+    @include design-system.H7;
 
     display: block;
     position: absolute;
     bottom: 4px;
     left: 8px;
-    color: var(--red);
+    color: var(--color-error-default);
   }
 }
 
@@ -119,12 +113,12 @@
 }
 
 .send-screen-gas-input {
-  @include Paragraph;
+  @include design-system.Paragraph;
 
   width: 100%;
   height: 41px;
   border-radius: 3px;
-  background-color: #f3f3f3;
+  background-color: var(--color-background-default);
   border-width: 0;
   border-style: none;
   display: flex;
@@ -132,7 +126,7 @@
   align-items: center;
   padding-left: 10px;
   padding-right: 12px;
-  color: var(--scorpion);
+  color: var(--color-text-alternative);
 }
 
 .send-screen-amount-labels {
@@ -149,20 +143,20 @@
 
 .currency-toggle {
   &__item {
-    color: var(--primary-blue);
+    color: var(--color-primary-default);
     cursor: pointer;
 
     &--selected {
-      color: var(--primary-text-emphasized);
+      color: var(--color-text-default);
       cursor: default;
     }
   }
 }
 
 .send-screen-gas-input-customize {
-  @include H7;
+  @include design-system.H7;
 
-  color: var(--primary-blue);
+  color: var(--color-primary-default);
   cursor: pointer;
 }
 
@@ -175,46 +169,16 @@
   height: 100%;
 }
 
-.customize-gas-tooltip-container {
-  @include Paragraph;
-
-  position: absolute;
-  bottom: 50px;
-  width: 237px;
-  height: 307px;
-  background-color: var(--white);
-  opacity: 1;
-  box-shadow: var(--alto) 0 0 5px;
-  z-index: 1050;
-  padding: 13px 19px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
 .gas-tooltip-arrow {
   height: 25px;
   width: 25px;
   z-index: 1200;
-  background: var(--white);
+  background: var(--color-background-default);
   position: absolute;
   transform: rotate(45deg);
   left: 107px;
   top: 294px;
-  box-shadow: 2px 2px 2px var(--alto);
-}
-
-.customize-gas-tooltip-container input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  display: none;
-}
-
-.customize-gas-tooltip-container input[type="number"]:hover::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  display: none;
-}
-
-.customize-gas-tooltip {
-  position: relative;
+  box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
 }
 
 .gas-tooltip {
@@ -223,9 +187,9 @@
 }
 
 .gas-tooltip-label {
-  @include Paragraph;
+  @include design-system.Paragraph;
 
-  color: var(--tundora);
+  color: var(--color-text-alternative);
 }
 
 .gas-tooltip-header {
@@ -237,46 +201,32 @@
 }
 
 .gas-tooltip-input-label i {
-  color: var(--silver-chalice);
+  color: var(--color-icon-muted);
   margin-left: 6px;
 }
 
-.customize-gas-input {
-  @include Paragraph;
-
-  width: 178px;
-  height: 28px;
-  border: 1px solid var(--alto);
-  color: var(--nile-blue);
-  padding-left: 8px;
-}
-
-.customize-gas-input-wrapper {
-  position: relative;
-}
-
 .gas-tooltip-input-detail {
-  @include H7;
+  @include design-system.H7;
 
   position: absolute;
   top: 4px;
   right: 26px;
-  color: var(--silver-chalice);
+  color: var(--color-text-muted);
 }
 
 .gas-tooltip-input-arrows {
-  @include H6;
+  @include design-system.H6;
 
   position: absolute;
   top: 0;
   right: 4px;
   width: 17px;
   height: 28px;
-  border: 1px solid #dadada;
+  border: 1px solid var(--color-icon-muted);
   border-left: 0;
   display: flex;
   flex-direction: column;
-  color: #9b9b9b;
+  color: var(--color-text-muted);
   padding: 1px 4px;
   cursor: pointer;
 }
@@ -294,13 +244,13 @@
 
 .send-screen {
   &__title {
-    @include H4;
+    @include design-system.H4;
 
-    color: var(--scorpion);
+    color: var(--color-text-alternative);
   }
 
   &__subtitle {
-    @include H6;
+    @include design-system.H6;
 
     margin: 10px 0 20px;
   }
@@ -325,8 +275,8 @@
   &__content {
     width: 498px;
     height: 605px;
-    background-color: var(--white);
-    box-shadow: 0 2px 4px 0 rgba($black, 0.08);
+    background-color: var(--color-background-default);
+    box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
     padding: 46px 40.5px 26px;
     position: relative;
     align-items: center;
@@ -334,7 +284,7 @@
     flex-flow: column nowrap;
     flex: 1 0 auto;
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       top: 0;
       width: 100%;
       box-shadow: none;
@@ -347,7 +297,7 @@
     top: -35px;
     z-index: 25;
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       position: relative;
       top: 0;
       flex: 0 0 auto;
@@ -355,22 +305,22 @@
   }
 
   &__title {
-    @include H4;
+    @include design-system.H4;
 
-    color: var(--scorpion);
+    color: var(--color-text-alternative);
   }
 
   &__description,
   &__balance-text,
   &__token-symbol {
-    @include H6;
+    @include design-system.H6;
 
     margin-top: 10px;
     text-align: center;
   }
 
   &__token-balance {
-    @include H1;
+    @include design-system.H1;
 
     margin-top: 13px;
 
@@ -385,7 +335,7 @@
     align-items: center;
     flex: 0 0 auto;
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       margin-top: 24px;
     }
 
@@ -405,15 +355,15 @@
   &__container {
     width: 380px;
     border-radius: 8px;
-    background-color: var(--white);
-    box-shadow: 0 2px 4px 0 rgba($black, 0.08);
+    background-color: var(--color-background-default);
+    box-shadow: var(--shadow-size-xs) var(--color-shadow-default);
     display: flex;
     flex-flow: column nowrap;
     z-index: 25;
     align-items: center;
     position: relative;
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       width: 100%;
       top: 0;
       box-shadow: none;
@@ -424,7 +374,7 @@
   &__send-header-icon-container {
     z-index: 25;
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       position: relative;
       top: 0;
     }
@@ -434,24 +384,14 @@
     border-radius: 50%;
     width: 48px;
     height: 48px;
-    border: 1px solid var(--alto);
+    border: 1px solid var(--color-border-muted);
     z-index: 25;
     padding: 4px;
-    background-color: var(--white);
-  }
-
-  &__send-arrow-icon {
-    @include H4;
-
-    color: #f28930;
-    transform: rotate(-45deg);
-    position: absolute;
-    top: -2px;
-    left: 0;
+    background-color: var(--color-background-default);
   }
 
   &__arrow-background {
-    background-color: var(--white);
+    background-color: var(--color-background-default);
     height: 14px;
     width: 14px;
     position: absolute;
@@ -460,7 +400,7 @@
     border-radius: 50%;
     z-index: 100;
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       top: 36px;
     }
   }
@@ -468,13 +408,13 @@
   &__header {
     height: 88px;
     width: 380px;
-    background-color: var(--athens-grey);
+    background-color: var(--color-background-alternative);
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       height: 59px;
       width: 100vw;
     }
@@ -483,13 +423,13 @@
   &__header-tip {
     height: 25px;
     width: 25px;
-    background: var(--athens-grey);
+    background-color: var(--color-background-alternative);
     position: absolute;
     transform: rotate(45deg);
     left: 178px;
     top: 75px;
 
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       top: 46px;
       left: 0;
       right: 0;
@@ -498,27 +438,27 @@
   }
 
   &__title {
-    @include H3;
+    @include design-system.H3;
 
-    color: var(--scorpion);
+    color: var(--color-text-alternative);
     text-align: center;
     margin-top: 25px;
   }
 
   &__copy {
-    @include H6;
+    @include design-system.H6;
 
-    color: var(--gray);
+    color: var(--color-text-alternative);
     text-align: center;
     margin-top: 10px;
     width: 287px;
   }
 
   &__error {
-    @include H7;
+    @include design-system.H7;
 
     left: 8px;
-    color: var(--red);
+    color: var(--color-error-default);
   }
 
   &__error-amount {
@@ -526,18 +466,18 @@
   }
 
   &__warning {
-    @include H7;
+    @include design-system.H7;
 
     left: 8px;
-    color: var(--orange);
+    color: var(--color-warning-default);
   }
 
   &__error-border {
-    color: var(--red);
+    color: var(--color-error-default);
   }
 
   &__form {
-    @media screen and (max-width: $break-small) {
+    @include design-system.screen-sm-max {
       margin: 0;
       flex: 1 1 auto;
     }
@@ -572,42 +512,42 @@
     min-width: 0;
 
     .currency-display {
-      color: var(--tundora);
+      color: var(--color-text-alternative);
 
       &__currency-symbol {
-        color: var(--tundora);
+        color: var(--color-text-alternative);
       }
 
       &__converted-value,
       &__converted-currency {
-        color: var(--tundora);
+        color: var(--color-text-alternative);
       }
     }
 
     .account-list-item {
       &__account-secondary-balance {
-        color: var(--tundora);
+        color: var(--color-text-alternative);
       }
     }
   }
 
   &__form-label {
-    @include Paragraph;
+    @include design-system.Paragraph;
 
-    color: var(--scorpion);
+    color: var(--color-text-alternative);
     width: 95px;
     flex: 0 0 auto;
   }
 
   &__from-dropdown,
   &__asset-dropdown {
-    @include H7;
+    @include design-system.H7;
 
     width: 100%;
-    border: 1px solid var(--alto);
+    border: 1px solid var(--color-border-muted);
     border-radius: 4px;
-    background-color: var(--white);
-    color: var(--tundora);
+    background-color: var(--color-background-default);
+    color: var(--color-text-default);
     position: relative;
 
     &__close-area {
@@ -624,10 +564,10 @@
       position: absolute;
       height: 220px;
       width: 100%;
-      border: 1px solid var(--geyser);
+      border: 1px solid var(--color-border-muted);
       border-radius: 4px;
-      background-color: var(--white);
-      box-shadow: 0 3px 6px 0 rgba($black, 0.11);
+      background-color: var(--color-background-default);
+      box-shadow: var(--shadow-size-sm) var(--color-shadow-default);
       margin-top: 11px;
       margin-left: -1px;
       overflow-y: scroll;
@@ -648,14 +588,10 @@
       flex-flow: row nowrap;
       align-items: center;
       padding: 8px 8px;
-
-      &:hover {
-        background-color: rgba($alto, 0.2);
-      }
     }
 
     &__caret {
-      color: var(--silver);
+      color: var(--color-icon-default);
       padding: 0 10px;
     }
 
@@ -666,14 +602,14 @@
       padding: 0 8px;
       cursor: pointer;
 
-      &:hover {
-        background-color: rgba($alto, 0.2);
-      }
+      /* Prevents the contents of the asset from going outside the dropdown area  */
+      max-width: 100%;
+      overflow: hidden;
     }
 
     &__asset-icon {
       .identicon {
-        border: 1px solid var(--alto);
+        border: 1px solid var(--color-border-muted);
       }
     }
 
@@ -682,22 +618,38 @@
       flex-flow: column nowrap;
       margin-left: 8px;
       flex-grow: 1;
+
+      /* Keeps the down arrow on screen */
+      overflow: hidden;
+    }
+
+    @include design-system.screen-sm-max {
+      &__asset-data {
+        width: 60%;
+      }
     }
 
     &__symbol {
-      @include Paragraph;
+      @include design-system.Paragraph;
 
       margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     &__name {
-      @include H7;
+      @include design-system.H7;
 
+      /* Prevents the token balance or NFT title from wrapping or silently truncating */
       display: flex;
-      flex-flow: row nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
 
       &__label {
         margin-right: 0.25rem;
+        min-width: 52px;
       }
     }
 
@@ -710,10 +662,10 @@
       position: absolute;
       height: 220px;
       width: 100%;
-      border: 1px solid var(--geyser);
+      border: 1px solid var(--color-border-muted);
       border-radius: 4px;
-      background-color: var(--white);
-      box-shadow: 0 3px 6px 0 rgba($black, 0.11);
+      background-color: var(--color-background-default);
+      box-shadow: var(--shadow-size-sm) var(--color-shadow-default);
       top: 65px;
       left: 0;
       box-sizing: content-box;
@@ -727,7 +679,7 @@
     }
 
     &__input-wrapper {
-      border: 1px solid var(--alto);
+      border: 1px solid var(--color-border-muted);
       border-radius: 4px;
       height: 100%;
 
@@ -740,13 +692,13 @@
         height: 100%;
 
         &:hover {
-          background-color: var(--white);
+          background-color: var(--color-background-default-hover);
         }
       }
     }
 
     &__input {
-      @include Paragraph;
+      @include design-system.Paragraph;
 
       z-index: 1025;
       position: relative;
@@ -754,8 +706,8 @@
       width: 100%;
       border: none;
       border-radius: 4px;
-      background-color: var(--white);
-      color: var(--tundora);
+      background-color: var(--color-background-default);
+      color: var(--color-text-alternative);
       padding: 10px;
     }
   }
@@ -763,22 +715,22 @@
   &__memo-text-area,
   &__hex-data {
     &__input {
-      @include Paragraph;
+      @include design-system.Paragraph;
 
       z-index: 1025;
       position: relative;
       height: 54px;
       width: 100%;
-      border: 1px solid var(--alto);
+      border: 1px solid var(--color-border-muted);
       border-radius: 4px;
-      background-color: var(--white);
-      color: var(--tundora);
+      background-color: var(--color-background-default);
+      color: var(--color-text-alternative);
       padding: 10px;
     }
   }
 
   &__amount-max {
-    @include H7;
+    @include design-system.H7;
 
     position: relative;
     display: inline-block;
@@ -791,7 +743,7 @@
       width: 56px;
       height: 20px;
       position: absolute;
-      border: 1px solid #b0d7f2;
+      border: 1px solid var(--color-primary-default);
       border-radius: 100px;
       cursor: pointer;
       top: 0;
@@ -801,19 +753,19 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #2f9ae0;
-      background: var(--white);
+      color: var(--color-primary-default);
+      background: var(--color-background-default);
 
       &__disabled {
-        color: #b0d7f2;
+        opacity: 0.5;
         cursor: auto;
       }
     }
 
     input:checked + &__button {
-      background-color: var(--primary-blue);
-      border: 1px solid var(--primary-blue);
-      color: var(--white);
+      background-color: var(--color-primary-default);
+      border: 1px solid var(--color-primary-default);
+      color: var(--color-primary-inverse);
     }
   }
 
@@ -823,28 +775,17 @@
     height: 0;
   }
 
-  &__gas-fee-display {
-    width: 100%;
-    position: relative;
-
-    .currency-display--message {
-      padding: 8px 38px 8px 10px;
-      display: flex;
-      align-items: center;
-    }
-  }
-
   &__sliders-icon-container {
-    @include Paragraph;
+    @include design-system.Paragraph;
 
     display: flex;
     align-items: center;
     justify-content: center;
     height: 24px;
     width: 24px;
-    border: 1px solid var(--primary-blue);
+    border: 1px solid var(--color-primary-default);
     border-radius: 4px;
-    background-color: var(--white);
+    background-color: var(--color-background-default);
     position: absolute;
     right: 15px;
     top: 14px;
@@ -852,7 +793,7 @@
   }
 
   &__sliders-icon {
-    color: var(--primary-blue);
+    color: var(--color-primary-default);
   }
 
   &__memo-text-area {
@@ -867,8 +808,8 @@
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    border-top: 1px solid var(--alto);
-    background: var(--white);
+    border-top: 1px solid var(--color-border-muted);
+    background: var(--color-background-default);
     padding: 0 12px;
     flex-shrink: 0;
   }
@@ -879,129 +820,6 @@
     margin: 0 4px;
   }
 
-  &__customize-gas {
-    border: 1px solid #d8d8d8;
-    border-radius: 4px;
-    background-color: var(--white);
-    box-shadow: 0 2px 4px 0 rgba($black, 0.14);
-    display: flex;
-    flex-flow: column;
-
-    @media screen and (max-width: $break-small) {
-      width: 100vw;
-      height: 100vh;
-    }
-
-    &__header {
-      @include H3;
-
-      height: 52px;
-      border-bottom: 1px solid var(--alto);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      @media screen and (max-width: $break-small) {
-        flex: 0 0 auto;
-      }
-    }
-
-    &__title {
-      margin-left: 19.25px;
-    }
-
-    &__close::after {
-      content: '\00D7';
-      font-size: 1.8em;
-      color: var(--dusty-gray);
-      cursor: pointer;
-      margin-right: 19.25px;
-    }
-
-    &__content {
-      display: flex;
-      flex-flow: column nowrap;
-      height: 100%;
-    }
-
-    &__body {
-      display: flex;
-      margin-bottom: 24px;
-
-      @media screen and (max-width: $break-small) {
-        flex-flow: column;
-        flex: 1 1 auto;
-      }
-    }
-
-    &__footer {
-      @include H3;
-
-      height: 75px;
-      border-top: 1px solid var(--alto);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-
-      @media screen and (max-width: $break-small) {
-        flex: 0 0 auto;
-      }
-    }
-
-    &__buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-right: 21.25px;
-    }
-
-    &__revert,
-    &__cancel,
-    &__save,
-    &__save__error {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 0 3px;
-      cursor: pointer;
-    }
-
-    &__revert {
-      @include Paragraph;
-
-      color: var(--silver-chalice);
-      margin-left: 21.25px;
-    }
-
-    &__cancel,
-    &__save,
-    &__save__error {
-      width: 85.74px;
-      min-width: initial;
-    }
-
-    &__save__error {
-      opacity: 0.5;
-      cursor: auto;
-    }
-
-    &__error-message {
-      @include H7;
-
-      display: block;
-      position: absolute;
-      top: -18px;
-      right: 0;
-      color: var(--red);
-      width: 100%;
-      text-align: center;
-    }
-
-    &__cancel {
-      margin-right: 10px;
-    }
-  }
-
   &__gas-modal-card {
     width: 360px;
     display: flex;
@@ -1010,41 +828,29 @@
     padding-left: 20px;
 
     &__title {
-      @include H4;
+      @include design-system.H4;
 
       height: 26px;
-      color: var(--tundora);
+      color: var(--color-text-alternative);
       margin-top: 17px;
     }
 
     &__copy {
-      @include Paragraph;
+      @include design-system.Paragraph;
 
       height: 38px;
       width: 314px;
-      color: var(--tundora);
+      color: var(--color-text-alternative);
       margin-top: 17px;
-    }
-
-    .customize-gas-input-wrapper {
-      margin-top: 17px;
-    }
-
-    .customize-gas-input {
-      height: 54px;
-      width: 315px;
-      border: 1px solid var(--geyser);
-      background-color: var(--white);
-      padding-left: 15px;
     }
 
     .gas-tooltip-input-arrows {
-      @include H4;
+      @include design-system.H4;
 
       width: 32px;
       height: 54px;
-      border-left: 1px solid #dadada;
-      color: var(--tundora);
+      border-left: 1px solid var(--color-border-muted);
+      color: var(--color-text-alternative);
       right: 0;
       padding: 0;
       display: flex;
@@ -1061,12 +867,12 @@
       justify-content: center;
     }
 
-    input[type="number"]::-webkit-inner-spin-button {
+    input[type='number']::-webkit-inner-spin-button {
       -webkit-appearance: none;
       display: none;
     }
 
-    input[type="number"]:hover::-webkit-inner-spin-button {
+    input[type='number']:hover::-webkit-inner-spin-button {
       -webkit-appearance: none;
       display: none;
     }
@@ -1074,26 +880,26 @@
 }
 
 .advanced-gas-options-btn {
-  @include H6;
+  @include design-system.H6;
 
   display: flex;
   justify-content: flex-end;
-  color: #2f9ae0;
+  color: var(--color-primary-default);
   cursor: pointer;
   margin-top: 5px;
 }
 
 .sliders-icon-container {
-  @include Paragraph;
+  @include design-system.Paragraph;
 
   display: flex;
   align-items: center;
   justify-content: center;
   height: 24px;
   width: 24px;
-  border: 1px solid var(--primary-blue);
+  border: 1px solid var(--color-primary-default);
   border-radius: 4px;
-  background-color: var(--white);
+  background-color: var(--color-background-default);
   position: absolute;
   right: 15px;
   top: 14px;
@@ -1101,21 +907,21 @@
 }
 
 .gas-fee-reset {
-  @include H6;
+  @include design-system.H6;
 
   display: flex;
   align-items: center;
   justify-content: center;
   height: 24px;
   border-radius: 4px;
-  background-color: var(--white);
+  background-color: var(--color-background-default);
   position: absolute;
   right: 12px;
   top: 14px;
   cursor: pointer;
-  color: #2f9ae0;
+  color: var(--color-primary-default);
 }
 
 .sliders-icon {
-  color: var(--primary-blue);
+  color: var(--color-primary-default);
 }

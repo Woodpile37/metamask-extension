@@ -1,3 +1,5 @@
+@use "design-system";
+
 .button-group {
   display: flex;
   justify-content: center;
@@ -38,7 +40,7 @@
 
 .radio-button-group {
   .radio-button {
-    @include H7;
+    @include design-system.H7;
 
     color: var(--Grey-700);
     border: 1px solid var(--Grey-100);
