@@ -1,19 +1,31 @@
 .transaction-detail-item {
-  padding: 20px 0;
-  color: $ui-4;
-
-  &--thin-bottom {
-    padding-bottom: 12px;
-  }
+  color: var(--color-text-alternative);
+  margin-bottom: 8px;
 
   &__row {
     display: flex;
+    justify-content: space-between;
     grid-gap: 5px;
+
+    &-subText {
+      display: flex;
+      align-items: center;
+
+      .currency-display-component {
+        margin-left: 4px;
+      }
+    }
   }
 
-  &__title {
-    flex-grow: 1;
-    word-break: break-word;
+  &__detail-values {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    width: 52%;
+
+    &--flex-width {
+      width: auto;
+    }
   }
 
   .info-tooltip {
@@ -21,25 +33,16 @@
     margin-inline-start: 4px;
 
     path {
-      fill: $ui-3;
+      fill: var(--color-icon-alternative);
     }
-  }
-
-  &__total {
-    font-weight: bold;
-    color: $ui-black;
-  }
-
-  &__subtitle {
-    flex-grow: 1;
-  }
-
-  &__subtext {
-    text-align: end;
   }
 
   .currency-display-component {
     display: inline;
+  }
+
+  &:first-of-type {
+    padding-top: 0;
   }
 
   &:first-child {
@@ -48,12 +51,6 @@
 
   &:last-child {
     padding-bottom: 0;
-    border-top: 1px solid $ui-3;
-  }
-
-  &--standard-bottom {
-    &:last-child {
-      padding-bottom: 20px;
-    }
+    border-bottom: 0;
   }
 }

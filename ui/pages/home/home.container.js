@@ -1,84 +1,119 @@
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
+///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+import {
+  getMmiPortfolioEnabled,
+  getMmiPortfolioUrl,
+  getWaitForConfirmDeepLinkDialog,
+} from '../../selectors/institutional/selectors';
+import { mmiActionsFactory } from '../../store/institutional/institution-background';
+import { getInstitutionalConnectRequests } from '../../ducks/institutional/institutional';
+///: END:ONLY_INCLUDE_IF
 import {
   activeTabHasPermissions,
-  getCurrentEthBalance,
   getFirstPermissionRequest,
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  getFirstSnapInstallOrUpdateRequest,
+  ///: END:ONLY_INCLUDE_IF
   getIsMainnet,
   getOriginOfCurrentTab,
   getTotalUnapprovedCount,
   getUnapprovedTemplatedConfirmations,
   getWeb3ShimUsageStateForOrigin,
-  unconfirmedTransactionsCountSelector,
   getInfuraBlocked,
   getShowWhatsNewPopup,
-  getSortedNotificationsToShow,
+  getSortedAnnouncementsToShow,
   getShowRecoveryPhraseReminder,
+  getShowTermsOfUse,
+  getShowOutdatedBrowserWarning,
   getNewNetworkAdded,
   hasUnsignedQRHardwareTransaction,
   hasUnsignedQRHardwareMessage,
-  getNewCollectibleAddedMessage,
+  getNewNftAddedMessage,
+  getNewTokensImported,
+  getShouldShowSeedPhraseReminder,
+  getRemoveNftMessage,
+  getSuggestedTokens,
+  getSuggestedNfts,
+  getApprovalFlows,
+  getShowSurveyToast,
+  getNewTokensImportedError,
+  hasPendingApprovals,
 } from '../../selectors';
 
 import {
-  restoreFromThreeBox,
-  turnThreeBoxSyncingOn,
-  getThreeBoxLastUpdated,
-  setShowRestorePromptToFalse,
+  closeNotificationPopup,
   setConnectedStatusPopoverHasBeenShown,
   setDefaultHomeActiveTabName,
   setWeb3ShimUsageAlertDismissed,
   setAlertEnabledness,
   setRecoveryPhraseReminderHasBeenShown,
   setRecoveryPhraseReminderLastShown,
+  setTermsOfUseLastAgreed,
+  setOutdatedBrowserWarningLastShown,
   setNewNetworkAdded,
-  setNewCollectibleAddedMessage,
-  ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  removeSnapError,
-  ///: END:ONLY_INCLUDE_IN
+  setNewNftAddedMessage,
+  setRemoveNftMessage,
+  setNewTokensImported,
+  setActiveNetwork,
+  setSurveyLinkLastClickedOrClosed,
+  setNewTokensImportedError,
 } from '../../store/actions';
-import { setThreeBoxLastUpdated, hideWhatsNewPopup } from '../../ducks/app/app';
+import { hideWhatsNewPopup } from '../../ducks/app/app';
 import { getWeb3ShimUsageAlertEnabledness } from '../../ducks/metamask/metamask';
 import { getSwapsFeatureIsLive } from '../../ducks/swaps/swaps';
 import { getEnvironmentType } from '../../../app/scripts/lib/util';
+import { getIsBrowserDeprecated } from '../../helpers/utils/util';
 import {
   ENVIRONMENT_TYPE_NOTIFICATION,
   ENVIRONMENT_TYPE_POPUP,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES,
+  ///: END:ONLY_INCLUDE_IF
 } from '../../../shared/constants/app';
 import {
-  ALERT_TYPES,
-  WEB3_SHIM_USAGE_ALERT_STATES,
+  AlertTypes,
+  Web3ShimUsageAlertStates,
 } from '../../../shared/constants/alerts';
+import { hasTransactionPendingApprovals } from '../../selectors/transactions';
 import Home from './home.component';
 
 const mapStateToProps = (state) => {
   const { metamask, appState } = state;
   const {
-    suggestedAssets,
     seedPhraseBackedUp,
-    tokens,
-    threeBoxSynced,
-    showRestorePrompt,
     selectedAddress,
     connectedStatusPopoverHasBeenShown,
     defaultHomeActiveTabName,
     swapsState,
-    dismissSeedBackUpReminder,
+    firstTimeFlowType,
+    completedOnboarding,
   } = metamask;
-  const accountBalance = getCurrentEthBalance(state);
-  const { forgottenPassword, threeBoxLastUpdated } = appState;
+  const { forgottenPassword } = metamask;
   const totalUnapprovedCount = getTotalUnapprovedCount(state);
   const swapsEnabled = getSwapsFeatureIsLive(state);
   const pendingConfirmations = getUnapprovedTemplatedConfirmations(state);
+  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+  const institutionalConnectRequests = getInstitutionalConnectRequests(state);
+  ///: END:ONLY_INCLUDE_IF
 
   const envType = getEnvironmentType();
   const isPopup = envType === ENVIRONMENT_TYPE_POPUP;
   const isNotification = envType === ENVIRONMENT_TYPE_NOTIFICATION;
 
-  const firstPermissionsRequest = getFirstPermissionRequest(state);
-  const firstPermissionsRequestId =
-    firstPermissionsRequest?.metadata.id || null;
+  let firstPermissionsRequest, firstPermissionsRequestId;
+  firstPermissionsRequest = getFirstPermissionRequest(state);
+  firstPermissionsRequestId = firstPermissionsRequest?.metadata.id || null;
+
+  // getFirstPermissionRequest should be updated with snap update logic once we hit main extension release
+
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  if (!firstPermissionsRequest) {
+    firstPermissionsRequest = getFirstSnapInstallOrUpdateRequest(state);
+    firstPermissionsRequestId = firstPermissionsRequest?.metadata.id || null;
+  }
+  ///: END:ONLY_INCLUDE_IF
 
   const originOfCurrentTab = getOriginOfCurrentTab(state);
   const shouldShowWeb3ShimUsageNotification =
@@ -86,31 +121,39 @@ const mapStateToProps = (state) => {
     getWeb3ShimUsageAlertEnabledness(state) &&
     activeTabHasPermissions(state) &&
     getWeb3ShimUsageStateForOrigin(state, originOfCurrentTab) ===
-      WEB3_SHIM_USAGE_ALERT_STATES.RECORDED;
+      Web3ShimUsageAlertStates.recorded;
 
   const isSigningQRHardwareTransaction =
     hasUnsignedQRHardwareTransaction(state) ||
     hasUnsignedQRHardwareMessage(state);
 
+  const hasWatchTokenPendingApprovals = getSuggestedTokens(state).length > 0;
+
+  const hasWatchNftPendingApprovals = getSuggestedNfts(state).length > 0;
+
+  const hasAllowedPopupRedirectApprovals = hasPendingApprovals(state, [
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showSnapAccountRedirect,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
+
   return {
     forgottenPassword,
-    suggestedAssets,
+    hasWatchTokenPendingApprovals,
+    hasWatchNftPendingApprovals,
     swapsEnabled,
-    unconfirmedTransactionsCount: unconfirmedTransactionsCountSelector(state),
-    shouldShowSeedPhraseReminder:
-      seedPhraseBackedUp === false &&
-      (parseInt(accountBalance, 16) > 0 || tokens.length > 0) &&
-      dismissSeedBackUpReminder === false,
+    hasTransactionPendingApprovals: hasTransactionPendingApprovals(state),
+    shouldShowSeedPhraseReminder: getShouldShowSeedPhraseReminder(state),
     isPopup,
     isNotification,
-    threeBoxSynced,
-    showRestorePrompt,
     selectedAddress,
-    threeBoxLastUpdated,
     firstPermissionsRequestId,
     totalUnapprovedCount,
+    hasApprovalFlows: getApprovalFlows(state)?.length > 0,
     connectedStatusPopoverHasBeenShown,
     defaultHomeActiveTabName,
+    firstTimeFlowType,
+    completedOnboarding,
     haveSwapsQuotes: Boolean(Object.values(swapsState.quotes || {}).length),
     swapsFetchParams: swapsState.fetchParams,
     showAwaitingSwapScreen: swapsState.routeState === 'awaiting',
@@ -119,56 +162,87 @@ const mapStateToProps = (state) => {
     shouldShowWeb3ShimUsageNotification,
     pendingConfirmations,
     infuraBlocked: getInfuraBlocked(state),
-    notificationsToShow: getSortedNotificationsToShow(state).length > 0,
-    ///: BEGIN:ONLY_INCLUDE_IN(flask)
-    errorsToShow: metamask.snapErrors,
-    shouldShowErrors: Object.entries(metamask.snapErrors || []).length > 0,
-    ///: END:ONLY_INCLUDE_IN
+    announcementsToShow: getSortedAnnouncementsToShow(state).length > 0,
     showWhatsNewPopup: getShowWhatsNewPopup(state),
     showRecoveryPhraseReminder: getShowRecoveryPhraseReminder(state),
+    showTermsOfUsePopup: getShowTermsOfUse(state),
+    showOutdatedBrowserWarning:
+      getIsBrowserDeprecated() && getShowOutdatedBrowserWarning(state),
     seedPhraseBackedUp,
-    newNetworkAdded: getNewNetworkAdded(state),
+    newNetworkAddedName: getNewNetworkAdded(state),
     isSigningQRHardwareTransaction,
-    newCollectibleAddedMessage: getNewCollectibleAddedMessage(state),
+    newNftAddedMessage: getNewNftAddedMessage(state),
+    removeNftMessage: getRemoveNftMessage(state),
+    newTokensImported: getNewTokensImported(state),
+    newTokensImportedError: getNewTokensImportedError(state),
+    newNetworkAddedConfigurationId: appState.newNetworkAddedConfigurationId,
+    onboardedInThisUISession: appState.onboardedInThisUISession,
+    showSurveyToast: getShowSurveyToast(state),
+    hasAllowedPopupRedirectApprovals,
+    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+    waitForConfirmDeepLinkDialog: getWaitForConfirmDeepLinkDialog(state),
+    institutionalConnectRequests,
+    modalOpen: state.appState.modal.open,
+    mmiPortfolioUrl: getMmiPortfolioUrl(state),
+    mmiPortfolioEnabled: getMmiPortfolioEnabled(state),
+    notificationsToShow: getSortedAnnouncementsToShow(state).length > 0,
+    ///: END:ONLY_INCLUDE_IF
   };
 };
 
-const mapDispatchToProps = (dispatch) => ({
-  turnThreeBoxSyncingOn: () => dispatch(turnThreeBoxSyncingOn()),
-  setupThreeBox: () => {
-    dispatch(getThreeBoxLastUpdated()).then((lastUpdated) => {
-      if (lastUpdated) {
-        dispatch(setThreeBoxLastUpdated(lastUpdated));
-      } else {
-        dispatch(setShowRestorePromptToFalse());
-        dispatch(turnThreeBoxSyncingOn());
-      }
-    });
-  },
-  ///: BEGIN:ONLY_INCLUDE_IN(flask)
-  removeSnapError: async (id) => await removeSnapError(id),
-  ///: END:ONLY_INCLUDE_IN
-  restoreFromThreeBox: (address) => dispatch(restoreFromThreeBox(address)),
-  setShowRestorePromptToFalse: () => dispatch(setShowRestorePromptToFalse()),
-  setConnectedStatusPopoverHasBeenShown: () =>
-    dispatch(setConnectedStatusPopoverHasBeenShown()),
-  onTabClick: (name) => dispatch(setDefaultHomeActiveTabName(name)),
-  setWeb3ShimUsageAlertDismissed: (origin) =>
-    setWeb3ShimUsageAlertDismissed(origin),
-  disableWeb3ShimUsageAlert: () =>
-    setAlertEnabledness(ALERT_TYPES.web3ShimUsage, false),
-  hideWhatsNewPopup: () => dispatch(hideWhatsNewPopup()),
-  setRecoveryPhraseReminderHasBeenShown: () =>
-    dispatch(setRecoveryPhraseReminderHasBeenShown()),
-  setRecoveryPhraseReminderLastShown: (lastShown) =>
-    dispatch(setRecoveryPhraseReminderLastShown(lastShown)),
-  setNewNetworkAdded: (newNetwork) => {
-    dispatch(setNewNetworkAdded(newNetwork));
-  },
-  setNewCollectibleAddedMessage: (message) => {
-    dispatch(setNewCollectibleAddedMessage(message));
-  },
-});
+const mapDispatchToProps = (dispatch) => {
+  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+  const mmiActions = mmiActionsFactory();
+  ///: END:ONLY_INCLUDE_IF
+
+  return {
+    closeNotificationPopup: () => closeNotificationPopup(),
+    setConnectedStatusPopoverHasBeenShown: () =>
+      dispatch(setConnectedStatusPopoverHasBeenShown()),
+    onTabClick: (name) => dispatch(setDefaultHomeActiveTabName(name)),
+    setWeb3ShimUsageAlertDismissed: (origin) =>
+      setWeb3ShimUsageAlertDismissed(origin),
+    disableWeb3ShimUsageAlert: () =>
+      setAlertEnabledness(AlertTypes.web3ShimUsage, false),
+    hideWhatsNewPopup: () => dispatch(hideWhatsNewPopup()),
+    setRecoveryPhraseReminderHasBeenShown: () =>
+      dispatch(setRecoveryPhraseReminderHasBeenShown()),
+    setRecoveryPhraseReminderLastShown: (lastShown) =>
+      dispatch(setRecoveryPhraseReminderLastShown(lastShown)),
+    setTermsOfUseLastAgreed: (lastAgreed) => {
+      dispatch(setTermsOfUseLastAgreed(lastAgreed));
+    },
+    setOutdatedBrowserWarningLastShown: (lastShown) => {
+      dispatch(setOutdatedBrowserWarningLastShown(lastShown));
+    },
+    setNewNftAddedMessage: (message) => {
+      dispatch(setRemoveNftMessage(''));
+      dispatch(setNewNftAddedMessage(message));
+    },
+    setRemoveNftMessage: (message) => {
+      dispatch(setNewNftAddedMessage(''));
+      dispatch(setRemoveNftMessage(message));
+    },
+    setNewTokensImported: (newTokens) => {
+      dispatch(setNewTokensImported(newTokens));
+    },
+    setNewTokensImportedError: (msg) => {
+      dispatch(setNewTokensImportedError(msg));
+    },
+    clearNewNetworkAdded: () => {
+      dispatch(setNewNetworkAdded({}));
+    },
+    setActiveNetwork: (networkConfigurationId) => {
+      dispatch(setActiveNetwork(networkConfigurationId));
+    },
+    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+    setWaitForConfirmDeepLinkDialog: (wait) =>
+      dispatch(mmiActions.setWaitForConfirmDeepLinkDialog(wait)),
+    ///: END:ONLY_INCLUDE_IF
+    setSurveyLinkLastClickedOrClosed: (time) =>
+      dispatch(setSurveyLinkLastClickedOrClosed(time)),
+  };
+};
 
 export default compose(
   withRouter,

@@ -1,39 +1,48 @@
 const { Builder } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
-const proxy = require('selenium-webdriver/proxy');
+const { ThenableWebDriver } = require('selenium-webdriver'); // eslint-disable-line no-unused-vars -- this is imported for JSDoc
 
 /**
- * Proxy host to use for HTTP and HTTPS requests
+ * Proxy host to use for HTTPS requests
  *
  * @type {string}
  */
-const PROXY_HOST = '127.0.0.1:8000';
+const HTTPS_PROXY_HOST = '127.0.0.1:8000';
 
 /**
  * A wrapper around a {@code WebDriver} instance exposing Chrome-specific functionality
  */
 class ChromeDriver {
-  static async build({ responsive, port }) {
-    const args = [`load-extension=dist/chrome`];
-    if (responsive) {
+  static async build({ openDevToolsForTabs, port }) {
+    const args = [`--proxy-server=${HTTPS_PROXY_HOST}`]; // Set proxy in the way that doesn't interfere with Selenium Manager
+
+    if (process.env.MULTIPROVIDER) {
+      args.push(
+        `load-extension=${process.cwd()}/dist/chrome,${process.cwd()}/dist/chrome2`,
+      );
+    } else {
+      args.push(`load-extension=${process.cwd()}/dist/chrome`);
+    }
+    if (openDevToolsForTabs) {
       args.push('--auto-open-devtools-for-tabs');
     }
-    args.push('--log-level=3');
-    // Proxy localhost on Chrome
-    args.push('--proxy-bypass-list=<-loopback>');
+
+    if (process.env.ENABLE_MV3) {
+      args.push('--log-level=0');
+      args.push('--enable-logging');
+      args.push(`--user-data-dir=${process.cwd()}/test-artifacts/chrome`);
+    } else {
+      args.push('--log-level=3');
+    }
     const options = new chrome.Options().addArguments(args);
-    options.setProxy(proxy.manual({ http: PROXY_HOST, https: PROXY_HOST }));
     options.setAcceptInsecureCerts(true);
+    options.setUserPreferences({
+      'download.default_directory': `${process.cwd()}/test-artifacts/downloads`,
+    });
     const builder = new Builder()
       .forBrowser('chrome')
       .setChromeOptions(options);
-
-    // By default, ChromeDriver allows local connections over IPv4 and IPv6.
-    // When run in a Docker environment without IPv6 enabled (e.g. like on
-    // GitHub Actions), an error is thrown about failing to bind to a port.
-    // Setting the allowed IPs to just IPv4 localhost prevents it from trying
-    // and failing to allow connections on IPv6 localhost.
-    const service = new chrome.ServiceBuilder().setAllowedIps(['127.0.0.1']);
+    const service = new chrome.ServiceBuilder();
 
     // Enables Chrome logging. Default: enabled
     // Especially useful for discovering why Chrome has crashed, but can also

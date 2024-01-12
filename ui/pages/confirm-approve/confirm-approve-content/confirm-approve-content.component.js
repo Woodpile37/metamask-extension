@@ -2,49 +2,58 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import copyToClipboard from 'copy-to-clipboard';
-import { getTokenTrackerLink, getAccountLink } from '@metamask/etherscan-link';
+import { getTokenTrackerLink } from '@metamask/etherscan-link';
 import UrlIcon from '../../../components/ui/url-icon';
-import { addressSummary, getURLHostName } from '../../../helpers/utils/util';
+import { addressSummary } from '../../../helpers/utils/util';
 import { formatCurrency } from '../../../helpers/utils/confirm-tx.util';
-import { isBeta } from '../../../helpers/utils/build-types';
-import { ellipsify } from '../../send/send.utils';
-import Typography from '../../../components/ui/typography';
-import Box from '../../../components/ui/box';
 import Button from '../../../components/ui/button';
-import EditGasFeeButton from '../../../components/app/edit-gas-fee-button';
-import MetaFoxLogo from '../../../components/ui/metafox-logo';
-import Identicon from '../../../components/ui/identicon';
+import SimulationErrorMessage from '../../../components/ui/simulation-error-message';
 import MultiLayerFeeMessage from '../../../components/app/multilayer-fee-message';
-import CopyIcon from '../../../components/ui/icon/copy-icon.component';
+import SecurityProviderBannerMessage from '../../../components/app/security-provider-banner-message/security-provider-banner-message';
 import {
-  TYPOGRAPHY,
-  FONT_WEIGHT,
-  BLOCK_SIZES,
-  JUSTIFY_CONTENT,
-  COLORS,
   DISPLAY,
+  TextColor,
+  IconColor,
+  TextVariant,
+  AlignItems,
 } from '../../../helpers/constants/design-system';
-import { SECOND } from '../../../../shared/constants/time';
 import { ConfirmPageContainerWarning } from '../../../components/app/confirm-page-container/confirm-page-container-content';
-import GasDetailsItem from '../../../components/app/gas-details-item';
 import LedgerInstructionField from '../../../components/app/ledger-instruction-field';
+///: BEGIN:ONLY_INCLUDE_IF(blockaid)
+import BlockaidBannerAlert from '../../../components/app/security-provider-banner-alert/blockaid-banner-alert/blockaid-banner-alert';
+///: END:ONLY_INCLUDE_IF
+import { isSuspiciousResponse } from '../../../../shared/modules/security-provider.utils';
+
+import { TokenStandard } from '../../../../shared/constants/transaction';
+import { CHAIN_IDS, TEST_CHAINS } from '../../../../shared/constants/network';
+import ContractDetailsModal from '../../../components/app/modals/contract-details-modal/contract-details-modal';
+import {
+  ButtonIcon,
+  Icon,
+  IconName,
+  Text,
+  Box,
+} from '../../../components/component-library';
+import TransactionDetailItem from '../../../components/app/transaction-detail-item/transaction-detail-item.component';
+import UserPreferencedCurrencyDisplay from '../../../components/app/user-preferenced-currency-display';
+import { PRIMARY, SECONDARY } from '../../../helpers/constants/common';
+import { ConfirmGasDisplay } from '../../../components/app/confirm-gas-display';
+import CustomNonce from '../../../components/app/custom-nonce';
+import { COPY_OPTIONS } from '../../../../shared/constants/copy';
+import FeeDetailsComponent from '../../../components/app/fee-details-component/fee-details-component';
 
 export default class ConfirmApproveContent extends Component {
   static contextTypes = {
     t: PropTypes.func,
+    ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
+    trackEvent: PropTypes.func,
+    ///: END:ONLY_INCLUDE_IF
   };
 
   static propTypes = {
-    decimals: PropTypes.number,
-    tokenAmount: PropTypes.string,
-    customTokenAmount: PropTypes.string,
     tokenSymbol: PropTypes.string,
     siteImage: PropTypes.string,
-    showCustomizeGasModal: PropTypes.func,
-    showEditApprovalPermissionModal: PropTypes.func,
     origin: PropTypes.string,
-    setCustomAmount: PropTypes.func,
-    tokenBalance: PropTypes.string,
     data: PropTypes.string,
     toAddress: PropTypes.string,
     currentCurrency: PropTypes.string,
@@ -60,32 +69,43 @@ export default class ConfirmApproveContent extends Component {
     warning: PropTypes.string,
     txData: PropTypes.object,
     fromAddressIsLedger: PropTypes.bool,
-    tokenImage: PropTypes.string,
     chainId: PropTypes.string,
+    tokenAddress: PropTypes.string,
     rpcPrefs: PropTypes.object,
     isContract: PropTypes.bool,
     hexTransactionTotal: PropTypes.string,
+    hexMinimumTransactionFee: PropTypes.string,
     isMultiLayerFeeNetwork: PropTypes.bool,
-    supportsEIP1559V2: PropTypes.bool,
+    supportsEIP1559: PropTypes.bool,
+    assetName: PropTypes.string,
+    tokenId: PropTypes.string,
+    assetStandard: PropTypes.string,
+    isSetApproveForAll: PropTypes.bool,
+    isApprovalOrRejection: PropTypes.bool,
+    userAddress: PropTypes.string,
+    userAcknowledgedGasMissing: PropTypes.bool,
+    setUserAcknowledgedGasMissing: PropTypes.func,
+    renderSimulationFailureWarning: PropTypes.bool,
+    useCurrencyRateCheck: PropTypes.bool,
+    useNativeCurrencyAsPrimaryCurrency: PropTypes.bool,
   };
 
   state = {
     showFullTxDetails: false,
     copied: false,
+    setShowContractDetails: false,
   };
 
   renderApproveContentCard({
     showHeader = true,
     symbol,
     title,
-    showEdit,
-    showAdvanceGasFeeOptions = false,
-    onEditClick,
     content,
     footer,
     noBorder,
+    showFeeDetails = false,
   }) {
-    const { supportsEIP1559V2 } = this.props;
+    const { supportsEIP1559, txData, useCurrencyRateCheck } = this.props;
     const { t } = this.context;
     return (
       <div
@@ -96,7 +116,7 @@ export default class ConfirmApproveContent extends Component {
       >
         {showHeader && (
           <div className="confirm-approve-content__card-header">
-            {!supportsEIP1559V2 && (
+            {supportsEIP1559 && title === t('transactionFee') ? null : (
               <>
                 <div className="confirm-approve-content__card-header__symbol">
                   {symbol}
@@ -106,23 +126,19 @@ export default class ConfirmApproveContent extends Component {
                 </div>
               </>
             )}
-            {showEdit && (!showAdvanceGasFeeOptions || !supportsEIP1559V2) && (
-              <Box width={BLOCK_SIZES.ONE_SIXTH}>
-                <Button
-                  type="link"
-                  className="confirm-approve-content__small-blue-text"
-                  onClick={() => onEditClick()}
-                >
-                  {t('edit')}
-                </Button>
-              </Box>
-            )}
-            {showEdit && showAdvanceGasFeeOptions && supportsEIP1559V2 && (
-              <EditGasFeeButton />
-            )}
           </div>
         )}
         <div className="confirm-approve-content__card-content">{content}</div>
+
+        {showFeeDetails && (
+          <Box marginBottom={4}>
+            <FeeDetailsComponent
+              txData={txData}
+              useCurrencyRateCheck={useCurrencyRateCheck}
+            />
+          </Box>
+        )}
+
         {footer}
       </div>
     );
@@ -137,21 +153,51 @@ export default class ConfirmApproveContent extends Component {
       ethTransactionTotal,
       fiatTransactionTotal,
       hexTransactionTotal,
+      hexMinimumTransactionFee,
       txData,
       isMultiLayerFeeNetwork,
-      supportsEIP1559V2,
+      supportsEIP1559,
+      userAcknowledgedGasMissing,
+      renderSimulationFailureWarning,
+      useCurrencyRateCheck,
+      useNativeCurrencyAsPrimaryCurrency,
     } = this.props;
-    if (!isMultiLayerFeeNetwork && supportsEIP1559V2) {
-      return <GasDetailsItem />;
+    if (
+      !isMultiLayerFeeNetwork &&
+      supportsEIP1559 &&
+      !renderSimulationFailureWarning
+    ) {
+      return (
+        <ConfirmGasDisplay
+          userAcknowledgedGasMissing={userAcknowledgedGasMissing}
+        />
+      );
     }
     return (
       <div className="confirm-approve-content__transaction-details-content">
         {isMultiLayerFeeNetwork ? (
           <div className="confirm-approve-content__transaction-details-extra-content">
-            <div className="confirm-approve-content__transaction-details-content__labelled-fee">
-              <span>{t('transactionDetailLayer2GasHeading')}</span>
-              {`${ethTransactionTotal} ${nativeCurrency}`}
-            </div>
+            <TransactionDetailItem
+              key="confirm-approve-content-min-tx-fee"
+              detailTitle={t('transactionDetailLayer2GasHeading')}
+              detailTotal={
+                <UserPreferencedCurrencyDisplay
+                  type={PRIMARY}
+                  value={hexMinimumTransactionFee}
+                  hideLabel={!useNativeCurrencyAsPrimaryCurrency}
+                  numberOfDecimals={18}
+                />
+              }
+              detailText={
+                <UserPreferencedCurrencyDisplay
+                  type={SECONDARY}
+                  value={hexMinimumTransactionFee}
+                  hideLabel={Boolean(useNativeCurrencyAsPrimaryCurrency)}
+                />
+              }
+              noBold
+              flexWidthValues
+            />
             <MultiLayerFeeMessage
               transaction={txData}
               layer2fee={hexTransactionTotal}
@@ -166,7 +212,8 @@ export default class ConfirmApproveContent extends Component {
             </div>
             <div className="confirm-approve-content__transaction-details-content__fee">
               <div className="confirm-approve-content__transaction-details-content__primary-fee">
-                {formatCurrency(fiatTransactionTotal, currentCurrency)}
+                {useCurrencyRateCheck &&
+                  formatCurrency(fiatTransactionTotal, currentCurrency)}
               </div>
               <div className="confirm-approve-content__transaction-details-content__secondary-fee">
                 {`${ethTransactionTotal} ${nativeCurrency}`}
@@ -178,30 +225,30 @@ export default class ConfirmApproveContent extends Component {
     );
   }
 
-  renderPermissionContent() {
+  renderERC721OrERC1155PermissionContent() {
     const { t } = this.context;
-    const {
-      customTokenAmount,
-      tokenAmount,
-      tokenSymbol,
-      origin,
-      toAddress,
-      isContract,
-    } = this.props;
+    const { origin, toAddress, isContract, isSetApproveForAll, tokenSymbol } =
+      this.props;
+
+    const titleTokenDescription = this.getTitleTokenDescription();
+    const approvedAssetText = tokenSymbol
+      ? t('allOfYour', [titleTokenDescription])
+      : t('allYourNFTsOf', [titleTokenDescription]);
+
     const displayedAddress = isContract
       ? `${t('contract')} (${addressSummary(toAddress)})`
       : addressSummary(toAddress);
     return (
       <div className="flex-column">
         <div className="confirm-approve-content__small-text">
-          {t('accessAndSpendNotice', [origin])}
+          {t('accessAndSpendNoticeNFT', [origin])}
         </div>
         <div className="flex-row">
           <div className="confirm-approve-content__label">
-            {t('approvedAmountWithColon')}
+            {t('approvedAsset')}:
           </div>
           <div className="confirm-approve-content__medium-text">
-            {`${Number(customTokenAmount || tokenAmount)} ${tokenSymbol}`}
+            {isSetApproveForAll ? approvedAssetText : titleTokenDescription}
           </div>
         </div>
         <div className="flex-row">
@@ -209,28 +256,22 @@ export default class ConfirmApproveContent extends Component {
             {t('grantedToWithColon')}
           </div>
           <div className="confirm-approve-content__medium-text">
-            {`${displayedAddress}`}
+            {displayedAddress}
           </div>
           <div className="confirm-approve-content__medium-text">
-            <Button
-              type="link"
-              className="confirm-approve-content__copy-address"
-              onClick={() => {
-                this.setState({ copied: true });
-                this.copyTimeout = setTimeout(
-                  () => this.setState({ copied: false }),
-                  SECOND * 3,
-                );
-                copyToClipboard(toAddress);
-              }}
+            <ButtonIcon
+              ariaLabel="copy"
+              onClick={() => copyToClipboard(toAddress, COPY_OPTIONS)}
+              color={IconColor.iconDefault}
+              iconName={
+                this.state.copied ? IconName.CopySuccess : IconName.Copy
+              }
               title={
                 this.state.copied
                   ? t('copiedExclamation')
                   : t('copyToClipboard')
               }
-            >
-              <CopyIcon size={14} color="#6a737d" />
-            </Button>
+            />
           </div>
         </div>
       </div>
@@ -239,95 +280,266 @@ export default class ConfirmApproveContent extends Component {
 
   renderDataContent() {
     const { t } = this.context;
-    const { data } = this.props;
+    const { data, isSetApproveForAll, isApprovalOrRejection } = this.props;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+    const { tokenAddress } = this.props;
+    ///: END:ONLY_INCLUDE_IF
+
     return (
-      <div className="flex-column">
-        <div className="confirm-approve-content__small-text">
-          {t('functionApprove')}
-        </div>
-        <div className="confirm-approve-content__small-text confirm-approve-content__data__data-block">
+      <Box className="flex-column">
+        <Text className="confirm-approve-content__small-text">
+          {isSetApproveForAll
+            ? t('functionSetApprovalForAll')
+            : t('functionApprove')}
+        </Text>
+        {isSetApproveForAll && isApprovalOrRejection !== undefined ? (
+          <>
+            <Text className="confirm-approve-content__small-text">
+              {`${t('parameters')}: ${isApprovalOrRejection}`}
+            </Text>
+            {
+              ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+              <Text
+                variant={TextVariant.bodySm}
+                color={TextColor.textAlternative}
+              >
+                {`${t('tokenContractAddress')}: ${tokenAddress}`}
+              </Text>
+              ///: END:ONLY_INCLUDE_IF
+            }
+          </>
+        ) : null}
+        <Text className="confirm-approve-content__small-text confirm-approve-content__data__data-block">
           {data}
-        </div>
-      </div>
+        </Text>
+      </Box>
     );
   }
 
-  renderCustomNonceContent() {
+  renderFullDetails() {
     const { t } = this.context;
-    const {
-      useNonceField,
-      customNonceValue,
-      updateCustomNonce,
-      getNextNonce,
-      nextNonce,
-      showCustomizeNonceModal,
-    } = this.props;
+    const { assetStandard } = this.props;
+    if (
+      assetStandard === TokenStandard.ERC721 ||
+      assetStandard === TokenStandard.ERC1155
+    ) {
+      return (
+        <div className="confirm-approve-content__full-tx-content">
+          <div className="confirm-approve-content__permission">
+            {this.renderApproveContentCard({
+              symbol: <i className="fas fa-user-check" />,
+              title: t('permissionRequest'),
+              content: this.renderERC721OrERC1155PermissionContent(),
+              showEdit: false,
+            })}
+          </div>
+          <div className="confirm-approve-content__data">
+            {this.renderApproveContentCard({
+              symbol: <i className="fa fa-file" />,
+              title: t('data'),
+              content: this.renderDataContent(),
+              noBorder: true,
+            })}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  getTokenName() {
+    const { tokenId, assetName, assetStandard, tokenSymbol } = this.props;
+    const { t } = this.context;
+
+    let titleTokenDescription = t('token');
+    if (
+      assetStandard === TokenStandard.ERC721 ||
+      assetStandard === TokenStandard.ERC1155 ||
+      // if we don't have an asset standard but we do have either both an assetname and a tokenID or both a tokenSymbol and tokenId we assume its an NFT
+      (assetName && tokenId) ||
+      (tokenSymbol && tokenId)
+    ) {
+      if (assetName || tokenSymbol) {
+        titleTokenDescription = `${assetName ?? tokenSymbol}`;
+      } else {
+        titleTokenDescription = t('thisCollection');
+      }
+    }
+
+    return titleTokenDescription;
+  }
+
+  getTitleTokenDescription() {
+    const { tokenId, tokenAddress, rpcPrefs, chainId, userAddress } =
+      this.props;
+    const useBlockExplorer =
+      rpcPrefs?.blockExplorerUrl ||
+      [...TEST_CHAINS, CHAIN_IDS.MAINNET, CHAIN_IDS.LINEA_MAINNET].includes(
+        chainId,
+      );
+
+    const titleTokenDescription = this.getTokenName();
+    const tokenIdWrapped = tokenId ? ` (#${tokenId})` : '';
+
+    if (useBlockExplorer) {
+      const blockExplorerLink = getTokenTrackerLink(
+        tokenAddress,
+        chainId,
+        null,
+        userAddress,
+        {
+          blockExplorerUrl: rpcPrefs?.blockExplorerUrl ?? null,
+        },
+      );
+      const blockExplorerElement = (
+        <>
+          <a
+            href={blockExplorerLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={tokenAddress}
+            className="confirm-approve-content__approval-asset-link"
+          >
+            {titleTokenDescription}
+          </a>
+          {tokenIdWrapped && <span>{tokenIdWrapped}</span>}
+        </>
+      );
+      return blockExplorerElement;
+    }
+
     return (
       <>
-        {useNonceField && (
-          <div className="confirm-approve-content__custom-nonce-content">
-            <Box
-              className="confirm-approve-content__custom-nonce-header"
-              justifyContent={JUSTIFY_CONTENT.FLEX_START}
-            >
-              <Typography
-                variant={TYPOGRAPHY.H6}
-                fontWeight={FONT_WEIGHT.NORMAL}
-              >
-                {t('nonce')}
-              </Typography>
-              <Button
-                type="link"
-                className="confirm-approve-content__custom-nonce-edit"
-                onClick={() =>
-                  showCustomizeNonceModal({
-                    nextNonce,
-                    customNonceValue,
-                    updateCustomNonce,
-                    getNextNonce,
-                  })
-                }
-              >
-                {t('edit')}
-              </Button>
-            </Box>
-            <Typography
-              className="confirm-approve-content__custom-nonce-value"
-              variant={TYPOGRAPHY.H6}
-              fontWeight={FONT_WEIGHT.BOLD}
-            >
-              {customNonceValue || nextNonce}
-            </Typography>
-          </div>
-        )}
+        <span
+          className="confirm-approve-content__approval-asset-title"
+          onClick={() => {
+            copyToClipboard(tokenAddress, COPY_OPTIONS);
+          }}
+          title={tokenAddress}
+        >
+          {titleTokenDescription}
+        </span>
+        {tokenIdWrapped && <span>{tokenIdWrapped}</span>}
       </>
     );
+  }
+
+  renderTitle() {
+    const { t } = this.context;
+    const {
+      assetName,
+      tokenId,
+      tokenSymbol,
+      assetStandard,
+      isSetApproveForAll,
+      isApprovalOrRejection,
+    } = this.props;
+    const titleTokenDescription = this.getTitleTokenDescription();
+
+    let title;
+
+    if (isSetApproveForAll) {
+      if (tokenSymbol) {
+        title = t('approveAllTokensTitle', [titleTokenDescription]);
+        if (isApprovalOrRejection === false) {
+          title = t('revokeAllTokensTitle', [titleTokenDescription]);
+        }
+      } else {
+        title = t('approveAllTokensTitleWithoutSymbol', [
+          titleTokenDescription,
+        ]);
+        if (isApprovalOrRejection === false) {
+          title = t('revokeAllTokensTitleWithoutSymbol', [
+            titleTokenDescription,
+          ]);
+        }
+      }
+    } else if (
+      assetStandard === TokenStandard.ERC721 ||
+      assetStandard === TokenStandard.ERC1155 ||
+      // if we don't have an asset standard but we do have either both an assetname and a tokenID or both a tokenSymbol and tokenId we assume its an NFT
+      (assetName && tokenId) ||
+      (tokenSymbol && tokenId)
+    ) {
+      title = t('approveTokenTitle', [titleTokenDescription]);
+    }
+    return title || t('allowSpendToken', [titleTokenDescription]);
+  }
+
+  renderDescription() {
+    const { t } = this.context;
+    const {
+      assetStandard,
+      assetName,
+      tokenId,
+      tokenSymbol,
+      isContract,
+      isSetApproveForAll,
+      isApprovalOrRejection,
+    } = this.props;
+    const grantee = isContract
+      ? t('contract').toLowerCase()
+      : t('account').toLowerCase();
+
+    let description = t('trustSiteApprovePermission', [grantee]);
+
+    if (isSetApproveForAll && isApprovalOrRejection === false) {
+      if (tokenSymbol) {
+        description = t('revokeApproveForAllDescription', [
+          this.getTitleTokenDescription(),
+        ]);
+      } else {
+        description = t('revokeApproveForAllDescriptionWithoutSymbol', [
+          this.getTitleTokenDescription(),
+        ]);
+      }
+    } else if (
+      isSetApproveForAll ||
+      assetStandard === TokenStandard.ERC721 ||
+      assetStandard === TokenStandard.ERC1155 ||
+      // if we don't have an asset standard but we do have either both an assetname and a tokenID or both a tokenSymbol and tokenId we assume its an NFT
+      (assetName && tokenId) ||
+      (tokenSymbol && tokenId)
+    ) {
+      if (tokenSymbol) {
+        description = t('approveTokenDescription');
+      } else {
+        description = t('approveTokenDescriptionWithoutSymbol', [
+          this.getTitleTokenDescription(),
+        ]);
+      }
+    }
+    return description;
   }
 
   render() {
     const { t } = this.context;
     const {
-      decimals,
       siteImage,
-      tokenAmount,
-      customTokenAmount,
       origin,
       tokenSymbol,
-      showCustomizeGasModal,
-      showEditApprovalPermissionModal,
-      setCustomAmount,
-      tokenBalance,
       useNonceField,
       warning,
       txData,
       fromAddressIsLedger,
-      tokenImage,
       toAddress,
       chainId,
       rpcPrefs,
-      isContract,
+      assetStandard,
+      tokenId,
+      tokenAddress,
+      assetName,
+      userAcknowledgedGasMissing,
+      setUserAcknowledgedGasMissing,
+      renderSimulationFailureWarning,
+      nextNonce,
+      getNextNonce,
+      customNonceValue,
+      updateCustomNonce,
+      showCustomizeNonceModal,
     } = this.props;
-    const { showFullTxDetails } = this.state;
+    const { showFullTxDetails, setShowContractDetails } = this.state;
 
     return (
       <div
@@ -335,6 +547,16 @@ export default class ConfirmApproveContent extends Component {
           'confirm-approve-content--full': showFullTxDetails,
         })}
       >
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
+          <BlockaidBannerAlert txData={txData} margin={4} />
+          ///: END:ONLY_INCLUDE_IF
+        }
+        {isSuspiciousResponse(txData?.securityProviderResponse) && (
+          <SecurityProviderBannerMessage
+            securityProviderResponse={txData.securityProviderResponse}
+          />
+        )}
         {warning && (
           <div className="confirm-approve-content__custom-nonce-warning">
             <ConfirmPageContainerWarning warning={warning} />
@@ -344,125 +566,76 @@ export default class ConfirmApproveContent extends Component {
           display={DISPLAY.FLEX}
           className="confirm-approve-content__icon-display-content"
         >
-          <Box className="confirm-approve-content__metafoxlogo">
-            <MetaFoxLogo useDark={isBeta()} />
-          </Box>
-          <Box
-            display={DISPLAY.FLEX}
-            className="confirm-approve-content__siteinfo"
-          >
+          <Box display={DISPLAY.FLEX} alignItems={AlignItems.center}>
             <UrlIcon
               className="confirm-approve-content__siteimage-identicon"
               fallbackClassName="confirm-approve-content__siteimage-identicon"
-              name={getURLHostName(origin)}
+              name={origin}
               url={siteImage}
             />
-            <Typography
-              variant={TYPOGRAPHY.H6}
-              fontWeight={FONT_WEIGHT.NORMAL}
-              color={COLORS.TEXT_ALTERNATIVE}
-              boxProps={{ marginLeft: 1, marginTop: 2 }}
+            <Text
+              variant={TextVariant.bodySm}
+              as="h6"
+              color={TextColor.textAlternative}
+              marginLeft={1}
             >
-              {getURLHostName(origin)}
-            </Typography>
+              {origin}
+            </Text>
           </Box>
         </Box>
-        <div className="confirm-approve-content__title">
-          {t('allowSpendToken', [tokenSymbol])}
+        <div
+          className="confirm-approve-content__title"
+          data-testid="confirm-approve-title"
+        >
+          {this.renderTitle()}
         </div>
         <div className="confirm-approve-content__description">
-          {t('trustSiteApprovePermission', [
-            isContract
-              ? t('contract').toLowerCase()
-              : t('account').toLowerCase(),
-          ])}
+          {this.renderDescription()}
         </div>
-        <Box className="confirm-approve-content__address-display-content">
-          <Box display={DISPLAY.FLEX}>
-            <Identicon
-              className="confirm-approve-content__address-identicon"
-              diameter={20}
-              address={toAddress}
-              image={tokenImage}
-            />
-            <Typography
-              variant={TYPOGRAPHY.H6}
-              fontWeight={FONT_WEIGHT.NORMAL}
-              color={COLORS.TEXT_ALTERNATIVE}
-              boxProps={{ marginBottom: 0 }}
-            >
-              {ellipsify(toAddress)}
-            </Typography>
-            <Button
-              type="link"
-              className="confirm-approve-content__copy-address"
-              onClick={() => {
-                this.setState({ copied: true });
-                this.copyTimeout = setTimeout(
-                  () => this.setState({ copied: false }),
-                  SECOND * 3,
-                );
-                copyToClipboard(toAddress);
-              }}
-              title={
-                this.state.copied
-                  ? t('copiedExclamation')
-                  : t('copyToClipboard')
-              }
-            >
-              <CopyIcon size={9} color="#6a737d" />
-            </Button>
-            <Button
-              type="link"
-              className="confirm-approve-content__etherscan-link"
-              onClick={() => {
-                const blockExplorerTokenLink = isContract
-                  ? getTokenTrackerLink(toAddress, chainId, null, null, {
-                      blockExplorerUrl: rpcPrefs?.blockExplorerUrl ?? null,
-                    })
-                  : getAccountLink(
-                      toAddress,
-                      chainId,
-                      { blockExplorerUrl: rpcPrefs?.blockExplorerUrl ?? null },
-                      null,
-                    );
-                global.platform.openTab({
-                  url: blockExplorerTokenLink,
-                });
-              }}
-              target="_blank"
-              rel="noopener noreferrer"
-              title={t('etherscanView')}
-            >
-              <img src="images/popout.svg" alt={t('etherscanView')} />
-            </Button>
-          </Box>
-        </Box>
-        <div className="confirm-approve-content__edit-submission-button-container">
-          <div
-            className="confirm-approve-content__medium-link-text cursor-pointer"
-            onClick={() =>
-              showEditApprovalPermissionModal({
-                customTokenAmount,
-                decimals,
-                origin,
-                setCustomAmount,
-                tokenAmount,
-                tokenSymbol,
-                tokenBalance,
-              })
-            }
+        <Box marginBottom={4} marginTop={2}>
+          <Button
+            type="link"
+            className="confirm-approve-content__verify-contract-details"
+            onClick={() => this.setState({ setShowContractDetails: true })}
           >
-            {t('editPermission')}
-          </div>
-        </div>
+            {t('verifyContractDetails')}
+          </Button>
+          {setShowContractDetails && (
+            <ContractDetailsModal
+              onClose={() => this.setState({ setShowContractDetails: false })}
+              tokenName={tokenSymbol}
+              tokenAddress={tokenAddress}
+              toAddress={toAddress}
+              chainId={chainId}
+              rpcPrefs={rpcPrefs}
+              tokenId={tokenId}
+              assetName={assetName}
+              assetStandard={assetStandard}
+            />
+          )}
+        </Box>
         <div className="confirm-approve-content__card-wrapper">
+          {renderSimulationFailureWarning && (
+            <Box
+              paddingTop={0}
+              paddingRight={6}
+              paddingBottom={4}
+              paddingLeft={6}
+            >
+              <SimulationErrorMessage
+                userAcknowledgedGasMissing={userAcknowledgedGasMissing}
+                setUserAcknowledgedGasMissing={() =>
+                  setUserAcknowledgedGasMissing(true)
+                }
+              />
+            </Box>
+          )}
           {this.renderApproveContentCard({
-            symbol: <i className="fa fa-tag" />,
+            symbol: <Icon name={IconName.Tag} />,
             title: t('transactionFee'),
             showEdit: true,
             showAdvanceGasFeeOptions: true,
-            onEditClick: showCustomizeGasModal,
+            showFeeDetails: true,
             content: this.renderTransactionDetailsContent(),
             noBorder: useNonceField || !showFullTxDetails,
             footer: !useNonceField && (
@@ -476,7 +649,9 @@ export default class ConfirmApproveContent extends Component {
               >
                 <div className="confirm-approve-content__view-full-tx-button cursor-pointer">
                   <div className="confirm-approve-content__small-blue-text">
-                    {t('viewFullTransactionDetails')}
+                    {this.state.showFullTxDetails
+                      ? t('hideFullTransactionDetails')
+                      : t('viewFullTransactionDetails')}
                   </div>
                   <i
                     className={classnames({
@@ -488,10 +663,24 @@ export default class ConfirmApproveContent extends Component {
               </div>
             ),
           })}
+
           {useNonceField &&
             this.renderApproveContentCard({
               showHeader: false,
-              content: this.renderCustomNonceContent(),
+              content: (
+                <CustomNonce
+                  nextNonce={nextNonce}
+                  customNonceValue={customNonceValue}
+                  showCustomizeNonceModal={() => {
+                    showCustomizeNonceModal({
+                      nextNonce,
+                      customNonceValue,
+                      updateCustomNonce,
+                      getNextNonce,
+                    });
+                  }}
+                />
+              ),
               useNonceField,
               noBorder: !showFullTxDetails,
               footer: (
@@ -505,7 +694,9 @@ export default class ConfirmApproveContent extends Component {
                 >
                   <div className="confirm-approve-content__view-full-tx-button cursor-pointer">
                     <div className="confirm-approve-content__small-blue-text">
-                      {t('viewFullTransactionDetails')}
+                      {this.state.showFullTxDetails
+                        ? t('hideFullTransactionDetails')
+                        : t('viewFullTransactionDetails')}
                     </div>
                     <i
                       className={classnames({
@@ -527,36 +718,7 @@ export default class ConfirmApproveContent extends Component {
           </div>
         ) : null}
 
-        {showFullTxDetails ? (
-          <div className="confirm-approve-content__full-tx-content">
-            <div className="confirm-approve-content__permission">
-              {this.renderApproveContentCard({
-                symbol: <img src="./images/user-check.svg" alt="" />,
-                title: t('permissionRequest'),
-                content: this.renderPermissionContent(),
-                showEdit: true,
-                onEditClick: () =>
-                  showEditApprovalPermissionModal({
-                    customTokenAmount,
-                    decimals,
-                    origin,
-                    setCustomAmount,
-                    tokenAmount,
-                    tokenSymbol,
-                    tokenBalance,
-                  }),
-              })}
-            </div>
-            <div className="confirm-approve-content__data">
-              {this.renderApproveContentCard({
-                symbol: <i className="fa fa-file" />,
-                title: 'Data',
-                content: this.renderDataContent(),
-                noBorder: true,
-              })}
-            </div>
-          </div>
-        ) : null}
+        {showFullTxDetails ? this.renderFullDetails() : null}
       </div>
     );
   }
