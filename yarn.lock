@@ -9604,12 +9604,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sass@npm:^1.45.0":
-  version: 1.45.0
-  resolution: "@types/sass@npm:1.45.0"
+"@types/sass@npm:^1.43.1":
+  version: 1.43.1
+  resolution: "@types/sass@npm:1.43.1"
   dependencies:
-    sass: "npm:*"
-  checksum: 806b5ade9b331b838b41648e0f60aed5b7706f9d1ff5745ba7f244d4a8bfff45e64187be89952982d5d73af599c878baaeda45009d61773eb530b811970b1255
+    "@types/node": "npm:*"
+  checksum: 8d0e839e29e7127013d14a24e1f97c7535cc8ac193dd00e14b035ccdda13c619f15bf3872aa8fc84b267eb65a984f0a45911b29ccd8c46a0e47834640b958212
   languageName: node
   linkType: hard
 
@@ -25256,7 +25256,7 @@ __metadata:
     "@types/react-router-dom": "npm:^5.3.3"
     "@types/readable-stream": "npm:^4.0.4"
     "@types/remote-redux-devtools": "npm:^0.5.5"
-    "@types/sass": "npm:^1.45.0"
+    "@types/sass": "npm:^1.43.1"
     "@types/selenium-webdriver": "npm:^4.1.19"
     "@types/sinon": "npm:^10.0.13"
     "@types/sprintf-js": "npm:^1"
@@ -31592,19 +31592,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:*":
-  version: 1.69.7
-  resolution: "sass@npm:1.69.7"
-  dependencies:
-    chokidar: "npm:>=3.0.0 <4.0.0"
-    immutable: "npm:^4.0.0"
-    source-map-js: "npm:>=0.6.2 <2.0.0"
-  bin:
-    sass: sass.js
-  checksum: 9c6d3fe468a267949e8dd766085351f59988caf5d3d5c13eb041d370366f869ad3704b5046586fd3584b2cbf59c03650d237b62a4c6ed26a0c003e27f9ef4e89
-  languageName: node
-  linkType: hard
-
 "sass@npm:1.35.2":
   version: 1.35.2
   resolution: "sass@npm:1.35.2"
@@ -32386,7 +32373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map-js@npm:>=0.6.2 <2.0.0, source-map-js@npm:^1.0.2":
+"source-map-js@npm:^1.0.2":
   version: 1.0.2
   resolution: "source-map-js@npm:1.0.2"
   checksum: 38e2d2dd18d2e331522001fc51b54127ef4a5d473f53b1349c5cca2123562400e0986648b52e9407e348eaaed53bce49248b6e2641e6d793ca57cb2c360d6d51
