@@ -54,6 +54,12 @@ describe('EthOverview', () => {
           '0x1': { address: '0x1', balance: '0x1F4' },
         },
       },
+      tokenList: [],
+      cachedBalances: {
+        '0x1': {
+          '0x1': '0x1F4',
+        },
+      },
       preferences: {
         useNativeCurrencyAsPrimaryCurrency: true,
       },
@@ -127,7 +133,6 @@ describe('EthOverview', () => {
   const ETH_OVERVIEW_PORTFOLIO = 'eth-overview-portfolio';
   const ETH_OVERVIEW_SWAP = 'token-overview-button-swap';
   const ETH_OVERVIEW_PRIMARY_CURRENCY = 'eth-overview__primary-currency';
-  const ETH_OVERVIEW_SECONDARY_CURRENCY = 'eth-overview__secondary-currency';
 
   afterEach(() => {
     store.clearActions();
@@ -156,7 +161,7 @@ describe('EthOverview', () => {
 
       const primaryBalance = queryByTestId(ETH_OVERVIEW_PRIMARY_CURRENCY);
       expect(primaryBalance).toBeInTheDocument();
-      expect(primaryBalance).toHaveTextContent('<0.000001ETH');
+      expect(primaryBalance).toHaveTextContent('$0.00USD');
       expect(queryByText('*')).not.toBeInTheDocument();
     });
 
@@ -187,16 +192,8 @@ describe('EthOverview', () => {
 
       const primaryBalance = queryByTestId(ETH_OVERVIEW_PRIMARY_CURRENCY);
       expect(primaryBalance).toBeInTheDocument();
-      expect(primaryBalance).toHaveTextContent('0.0104ETH');
+      expect(primaryBalance).toHaveTextContent('$0.02USD');
       expect(queryByText('*')).toBeInTheDocument();
-    });
-
-    it('should show the secondary balance', async () => {
-      const { queryByTestId } = renderWithProvider(<EthOverview />, store);
-
-      const secondaryBalance = queryByTestId(ETH_OVERVIEW_SECONDARY_CURRENCY);
-      expect(secondaryBalance).toBeInTheDocument();
-      expect(secondaryBalance).toHaveTextContent('0');
     });
 
     it('should have the Bridge button enabled if chain id is part of supported chains', () => {

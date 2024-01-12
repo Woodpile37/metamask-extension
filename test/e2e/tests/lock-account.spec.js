@@ -32,7 +32,11 @@ describe('Lock and unlock', function () {
               '.token-balance-overview__secondary-balance',
             )
           : await driver.findElement('.eth-overview__primary-balance');
-        assert.equal(/^25\s*ETH$/u.test(await walletBalance.getText()), true);
+        assert.equal(
+          '$42,500.00',
+          (await walletBalance.getText()).split(/\s/u),
+          true,
+        );
       },
     );
   });

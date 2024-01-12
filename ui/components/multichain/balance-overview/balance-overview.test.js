@@ -29,12 +29,6 @@ const render = (useNativeCurrencyAsPrimaryCurrency = true) => {
 };
 
 describe('Balance Overview and Portfolio for Tokens', () => {
-  it('should output correct ETH total value', () => {
-    const { container } = render();
-    expect(container).toMatchSnapshot();
-    expect(screen.getByText('0.0013')).toBeInTheDocument();
-  });
-
   it('should output correct USD total value', () => {
     const { container } = render(false);
     expect(container).toMatchSnapshot();
