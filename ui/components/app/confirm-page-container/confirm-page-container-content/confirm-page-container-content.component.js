@@ -2,29 +2,39 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { Tabs, Tab } from '../../../ui/tabs';
-import ErrorMessage from '../../../ui/error-message';
-import ActionableMessage from '../../../ui/actionable-message/actionable-message';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
+  Button,
+  BUTTON_SIZES,
+  BUTTON_VARIANT,
+  ///: END:ONLY_INCLUDE_IF
+  BannerAlert,
+} from '../../../component-library';
 import { PageContainerFooter } from '../../../ui/page-container';
+import { INSUFFICIENT_FUNDS_ERROR_KEY } from '../../../../helpers/constants/error-keys';
+import { Severity } from '../../../../helpers/constants/design-system';
+
 import { ConfirmPageContainerSummary, ConfirmPageContainerWarning } from '.';
 
 export default class ConfirmPageContainerContent extends Component {
   static contextTypes = {
     t: PropTypes.func.isRequired,
+    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+    trackEvent: PropTypes.func,
+    ///: END:ONLY_INCLUDE_IF
   };
 
   static propTypes = {
     action: PropTypes.string,
-    dataComponent: PropTypes.node,
     dataHexComponent: PropTypes.node,
     detailsComponent: PropTypes.node,
+    insightComponent: PropTypes.node,
     errorKey: PropTypes.string,
     errorMessage: PropTypes.string,
-    hasSimulationError: PropTypes.bool,
-    hideSubtitle: PropTypes.bool,
-    identiconAddress: PropTypes.string,
+    tokenAddress: PropTypes.string,
     nonce: PropTypes.string,
     subtitleComponent: PropTypes.node,
-    title: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    image: PropTypes.string,
     titleComponent: PropTypes.node,
     warning: PropTypes.string,
     origin: PropTypes.string.isRequired,
@@ -34,46 +44,104 @@ export default class ConfirmPageContainerContent extends Component {
     onCancel: PropTypes.func,
     cancelText: PropTypes.string,
     onSubmit: PropTypes.func,
-    setUserAcknowledgedGasMissing: PropTypes.func,
     submitText: PropTypes.string,
     disabled: PropTypes.bool,
-    hideUserAcknowledgedGasMissing: PropTypes.bool,
     unapprovedTxCount: PropTypes.number,
     rejectNText: PropTypes.string,
-    hideTitle: PropTypes.bool,
-    supportsEIP1559V2: PropTypes.bool,
+    supportsEIP1559: PropTypes.bool,
+    hasTopBorder: PropTypes.bool,
+    nativeCurrency: PropTypes.string,
+    networkName: PropTypes.string,
+    toAddress: PropTypes.string,
+    transactionType: PropTypes.string,
+    isBuyableChain: PropTypes.bool,
+    ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
+    openBuyCryptoInPdapp: PropTypes.func,
+    ///: END:ONLY_INCLUDE_IF
+    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+    noteComponent: PropTypes.node,
+    ///: END:ONLY_INCLUDE_IF
   };
 
   renderContent() {
-    const { detailsComponent, dataComponent } = this.props;
+    const { detailsComponent, dataHexComponent, insightComponent } = this.props;
 
-    if (detailsComponent && dataComponent) {
+    if (insightComponent && (detailsComponent || dataHexComponent)) {
       return this.renderTabs();
     }
-    return detailsComponent || dataComponent;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+    const { noteComponent } = this.props;
+
+    if (noteComponent) {
+      return this.renderTabs();
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    if (detailsComponent && dataHexComponent) {
+      return this.renderTabs();
+    }
+
+    return detailsComponent || insightComponent;
   }
 
   renderTabs() {
     const { t } = this.context;
-    const { detailsComponent, dataComponent, dataHexComponent } = this.props;
+    const {
+      detailsComponent,
+      dataHexComponent,
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      insightComponent,
+      ///: END:ONLY_INCLUDE_IF
+      ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+      noteComponent,
+      ///: END:ONLY_INCLUDE_IF
+    } = this.props;
 
     return (
-      <Tabs>
+      <Tabs defaultActiveTabKey="details">
         <Tab
           className="confirm-page-container-content__tab"
           name={t('details')}
+          tabKey="details"
         >
           {detailsComponent}
         </Tab>
-        <Tab className="confirm-page-container-content__tab" name={t('data')}>
-          {dataComponent}
-        </Tab>
-        <Tab
-          className="confirm-page-container-content__tab"
-          name={t('dataHex')}
-        >
-          {dataHexComponent}
-        </Tab>
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+          noteComponent && (
+            <Tab
+              data-testid="note-tab"
+              className="confirm-page-container-content__tab"
+              name={t('note')}
+              tabKey="note"
+              onClick={() => {
+                this.context.trackEvent({
+                  category: 'Note to trader',
+                  event: 'Clicked on Notes tab on a transaction window',
+                });
+              }}
+            >
+              {noteComponent}
+            </Tab>
+          )
+          ///: END:ONLY_INCLUDE_IF
+        }
+        {dataHexComponent && (
+          <Tab
+            className="confirm-page-container-content__tab"
+            name={t('dataHex')}
+            tabKey="dataHex"
+          >
+            {dataHexComponent}
+          </Tab>
+        )}
+
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+          insightComponent
+          ///: END:ONLY_INCLUDE_IF
+        }
       </Tabs>
     );
   }
@@ -83,15 +151,12 @@ export default class ConfirmPageContainerContent extends Component {
       action,
       errorKey,
       errorMessage,
-      hasSimulationError,
-      title,
+      image,
       titleComponent,
       subtitleComponent,
-      hideSubtitle,
-      identiconAddress,
+      tokenAddress,
       nonce,
       detailsComponent,
-      dataComponent,
       warning,
       onCancelAll,
       onCancel,
@@ -103,57 +168,89 @@ export default class ConfirmPageContainerContent extends Component {
       rejectNText,
       origin,
       ethGasPriceWarning,
-      hideTitle,
-      setUserAcknowledgedGasMissing,
-      hideUserAcknowledgedGasMissing,
-      supportsEIP1559V2,
+      supportsEIP1559,
+      hasTopBorder,
+      nativeCurrency,
+      networkName,
+      toAddress,
+      transactionType,
+      isBuyableChain,
+      ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
+      openBuyCryptoInPdapp,
+      ///: END:ONLY_INCLUDE_IF
     } = this.props;
 
-    const primaryAction = hideUserAcknowledgedGasMissing
-      ? null
-      : {
-          label: this.context.t('tryAnywayOption'),
-          onClick: setUserAcknowledgedGasMissing,
-        };
+    const { t } = this.context;
+
+    const showInsuffienctFundsError =
+      (errorKey || errorMessage) && errorKey === INSUFFICIENT_FUNDS_ERROR_KEY;
 
     return (
-      <div className="confirm-page-container-content">
+      <div
+        className={classnames('confirm-page-container-content', {
+          'confirm-page-container-content--with-top-border': hasTopBorder,
+        })}
+      >
         {warning ? <ConfirmPageContainerWarning warning={warning} /> : null}
         {ethGasPriceWarning && (
           <ConfirmPageContainerWarning warning={ethGasPriceWarning} />
         )}
-        {hasSimulationError && (
-          <div className="confirm-page-container-content__error-container">
-            <ActionableMessage
-              type="danger"
-              primaryAction={primaryAction}
-              message={this.context.t('simulationErrorMessage')}
-            />
-          </div>
-        )}
         <ConfirmPageContainerSummary
           className={classnames({
-            'confirm-page-container-summary--border':
-              !detailsComponent || !dataComponent,
+            'confirm-page-container-summary--border': !detailsComponent,
           })}
           action={action}
-          title={title}
+          image={image}
           titleComponent={titleComponent}
           subtitleComponent={subtitleComponent}
-          hideSubtitle={hideSubtitle}
-          identiconAddress={identiconAddress}
+          tokenAddress={tokenAddress}
           nonce={nonce}
           origin={origin}
-          hideTitle={hideTitle}
+          toAddress={toAddress}
+          transactionType={transactionType}
+          networkName={networkName}
         />
         {this.renderContent()}
-        {!supportsEIP1559V2 &&
-          !hasSimulationError &&
+        {!supportsEIP1559 &&
+          !showInsuffienctFundsError &&
           (errorKey || errorMessage) && (
-            <div className="confirm-page-container-content__error-container">
-              <ErrorMessage errorMessage={errorMessage} errorKey={errorKey} />
-            </div>
+            <BannerAlert
+              severity={Severity.Danger}
+              description={errorKey ? t(errorKey) : errorMessage}
+              marginBottom={4}
+              marginLeft={4}
+              marginRight={4}
+            />
           )}
+        {showInsuffienctFundsError && (
+          <BannerAlert
+            severity={Severity.Danger}
+            marginBottom={4}
+            marginLeft={4}
+            marginRight={4}
+            description={
+              isBuyableChain
+                ? t('insufficientCurrencyBuyOrDeposit', [
+                    nativeCurrency,
+                    networkName,
+                    ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
+                    <Button
+                      variant={BUTTON_VARIANT.LINK}
+                      size={BUTTON_SIZES.INHERIT}
+                      onClick={openBuyCryptoInPdapp}
+                      key={`${nativeCurrency}-buy-button`}
+                    >
+                      {t('buyAsset', [nativeCurrency])}
+                    </Button>,
+                    ///: END:ONLY_INCLUDE_IF
+                  ])
+                : t('insufficientCurrencyDeposit', [
+                    nativeCurrency,
+                    networkName,
+                  ])
+            }
+          />
+        )}
         <PageContainerFooter
           onCancel={onCancel}
           cancelText={cancelText}
