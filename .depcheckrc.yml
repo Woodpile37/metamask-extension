@@ -7,8 +7,6 @@ ignores:
   - '@lavamoat/snow'
   - '@lavamoat/allow-scripts'
   - '@babel/runtime'
-  - '@babel/plugin-transform-logical-assignment-operators'
-  - 'eslint-import-resolver-node' # TODO(WEBPACK): remove this when we fix eslint
   - '@fortawesome/fontawesome-free'
   - 'punycode'
 
@@ -60,18 +58,8 @@ ignores:
   - 'resolve-url-loader'
   # jest environments
   - 'jest-environment-jsdom'
-  # webpack
-  - '@pmmmwh/react-refresh-webpack-plugin'
-  - '@swc/helpers'
-  - 'buffer'
-  - 'crypto-browserify'
-  - 'html-bundler-webpack-plugin'
-  - 'json-schema-to-ts'
-  - 'postcss-loader'
-  - 'process'
-  - 'stream-http'
-  - 'webpack-dev-server'
-  - 'sass-embedded'
+  # babel
+  - '@babel/plugin-transform-logical-assignment-operators'
 
 # files depcheck should not parse
 ignorePatterns:

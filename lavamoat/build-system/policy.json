@@ -242,6 +242,13 @@
         "@babel/preset-env>@babel/plugin-syntax-logical-assignment-operators": true
       }
     },
+    "@babel/plugin-transform-logical-assignment-operators": {
+      "packages": {
+        "@babel/core": true,
+        "@babel/preset-env>@babel/helper-plugin-utils": true,
+        "@babel/preset-env>@babel/plugin-syntax-logical-assignment-operators": true
+      }
+    },
     "@babel/preset-env": {
       "globals": {
         "console.log": true,
