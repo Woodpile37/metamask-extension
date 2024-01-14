@@ -1,0 +1,25 @@
+{
+  "resources": {
+    "web3": {
+      "globals": {
+        "XMLHttpRequest": true
+      }
+    },
+    "browser-passworder": {
+      "globals": {
+        "crypto.subtle": true
+      }
+    },
+    "@sentry/utils": {
+      "globals": {
+        "console": true
+      }
+    },
+    "@sentry/browser": {
+      "environment": "unfrozen"
+    },
+    "@sentry/core": {
+      "environment": "unfrozen"
+    }
+  }
+}
