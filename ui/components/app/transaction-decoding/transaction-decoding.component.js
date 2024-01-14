@@ -1,36 +1,42 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import Spinner from '../../ui/spinner';
-import ErrorMessage from '../../ui/error-message';
-import fetchWithCache from '../../../helpers/utils/fetch-with-cache';
+import inspect from 'browser-util-inspect';
+import { forAddress } from '@truffle/decoder';
 import { useSelector } from 'react-redux';
 import * as Codec from '@truffle/codec';
-import { forAddress } from '@truffle/decoder';
-import inspect from 'browser-util-inspect';
+import Spinner from '../../ui/spinner';
+import ErrorMessage from '../../ui/error-message';
+import fetchWithCache from '../../../../shared/lib/fetch-with-cache';
 import { getSelectedAccount, getCurrentChainId } from '../../../selectors';
+import { I18nContext } from '../../../contexts/i18n';
+import { toChecksumHexAddress } from '../../../../shared/modules/hexstring-utils';
+import { hexToDecimal } from '../../../../shared/modules/conversion.utils';
+import { transformTxDecoding } from './transaction-decoding.util';
 import {
   FETCH_PROJECT_INFO_URI,
   FETCH_SUPPORTED_NETWORKS_URI,
 } from './constants';
-import { hexToDecimal } from '../../../helpers/utils/conversions.util';
-import { I18nContext } from '../../../contexts/i18n';
-import { transformTxDecoding } from './transaction-decoding.util';
-import { toChecksumHexAddress } from '../../../../shared/modules/hexstring-utils';
 
 import Address from './components/decoding/address';
-import CopyRawData from './components/ui/copy-raw-data/';
+import CopyRawData from './components/ui/copy-raw-data';
+import Accreditation from './components/ui/accreditation';
 
 export default function TransactionDecoding({ to = '', inputData: data = '' }) {
   const t = useContext(I18nContext);
   const [tx, setTx] = useState([]);
+  const [sourceAddress, setSourceAddress] = useState('');
+  const [sourceFetchedVia, setSourceFetchedVia] = useState('');
+
   const { address: from } = useSelector(getSelectedAccount);
   const network = hexToDecimal(useSelector(getCurrentChainId));
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [hasError, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     (async () => {
       setLoading(true);
       try {
@@ -48,17 +54,23 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
           );
         }
 
-        const request_url =
-          FETCH_PROJECT_INFO_URI +
-          '?' +
-          new URLSearchParams({
-            to,
-            ['network-id']: network,
-          });
+        const requestUrl = `${FETCH_PROJECT_INFO_URI}?${new URLSearchParams({
+          to,
+          'network-id': network,
+        })}`;
 
-        const response = await fetchWithCache(request_url, { method: 'GET' });
+        const response = await fetchWithCache(requestUrl, { method: 'GET' });
 
-        const { info: projectInfo } = response;
+        const { info: projectInfo, fetchedVia, address } = response;
+
+        // update source information
+        if (address) {
+          setSourceAddress(address);
+        }
+
+        if (fetchedVia) {
+          setSourceFetchedVia(fetchedVia);
+        }
 
         // creating instance of the truffle decoder
         const decoder = await forAddress(to, {
@@ -74,10 +86,9 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
           blockNumber: null,
         });
 
-        // fake await
-        await new Promise((resolve) => {
-          setTimeout(() => resolve(true), 500);
-        });
+        if (!mounted) {
+          return;
+        }
 
         // transform tx decoding arguments into tree data
         const params = transformTxDecoding(decoding?.arguments);
@@ -85,12 +96,20 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
 
         setLoading(false);
       } catch (error) {
+        if (!mounted) {
+          return;
+        }
         setLoading(false);
         setError(true);
-        setErrorMessage(error?.message);
+        if (error?.message.match('400')) {
+          setErrorMessage(t('txInsightsNotSupported'));
+        } else {
+          setErrorMessage(error?.message);
+        }
       }
     })();
-  }, [to, network, data]);
+    return () => setMounted(false);
+  }, [t, from, to, network, data]);
 
   // ***********************************************************
   // component rendering methods
@@ -100,7 +119,7 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
       case 'error':
         return (
           <span className="sol-item solidity-error">
-            <span>Malformed data</span>
+            <span>{t('malformedData')}</span>
           </span>
         );
 
@@ -120,9 +139,17 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
               </span>
             );
 
+          case 'bool':
+            return <span className="sol-item">{String(value.asBoolean)}</span>;
+
           case 'bytes':
             return (
               <span className="sol-item solidity-bytes">{value.asHex}</span>
+            );
+
+          case 'string':
+            return (
+              <span className="sol-item solidity-string">{value.asString}</span>
             );
 
           case 'array':
@@ -145,15 +172,15 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
               </details>
             );
 
-          case 'address':
+          case 'address': {
             const address = value?.asAddress;
             return (
               <Address
-                addressOnly={true}
+                addressOnly
                 checksummedRecipientAddress={toChecksumHexAddress(address)}
               />
             );
-
+          }
           default:
             return (
               <pre className="sol-item solidity-raw">
@@ -176,7 +203,7 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
         </details>
       </li>
     ) : (
-      <li className="solidity-value">
+      <li className="solidity-value" key={`solidity-value-${index}`}>
         <div className="solidity-named-item solidity-item">
           {typeClass !== 'array' && !Array.isArray(value) ? (
             <span className="param-name typography--color-black">{name}: </span>
@@ -190,15 +217,23 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
   };
 
   const renderTransactionDecoding = () => {
-    return loading ? (
-      <div className="tx-insight-loading">
-        <Spinner color="#F7C06C" />
-      </div>
-    ) : error ? (
-      <div className="tx-insight-error">
-        <ErrorMessage errorMessage={errorMessage} />
-      </div>
-    ) : (
+    if (loading) {
+      return (
+        <div className="tx-insight-loading">
+          <Spinner color="var(--color-warning-default)" />
+        </div>
+      );
+    }
+
+    if (hasError) {
+      return (
+        <div className="tx-insight-error">
+          <ErrorMessage errorMessage={errorMessage} />
+        </div>
+      );
+    }
+
+    return (
       <div className="tx-insight-content">
         <div className="tx-insight-content__tree-component">
           <ol>{tx.map(renderTree)}</ol>
@@ -206,6 +241,14 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
         <div className="tx-insight-content__copy-raw-tx">
           <CopyRawData data={data} />
         </div>
+        {sourceFetchedVia && sourceAddress ? (
+          <div className="tx-insight-content__accreditation">
+            <Accreditation
+              address={sourceAddress}
+              fetchVia={sourceFetchedVia}
+            />
+          </div>
+        ) : null}
       </div>
     );
   };
@@ -214,6 +257,6 @@ export default function TransactionDecoding({ to = '', inputData: data = '' }) {
 }
 
 TransactionDecoding.propTypes = {
-  to: PropTypes.string.isRequired,
+  to: PropTypes.string,
   inputData: PropTypes.string.isRequired,
 };

@@ -2,38 +2,37 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { Tabs, Tab } from '../../../ui/tabs';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
-  Button,
-  BUTTON_SIZES,
-  BUTTON_VARIANT,
-  ///: END:ONLY_INCLUDE_IF
-  BannerAlert,
-} from '../../../component-library';
+import Button from '../../../ui/button';
+import ActionableMessage from '../../../ui/actionable-message/actionable-message';
 import { PageContainerFooter } from '../../../ui/page-container';
+import ErrorMessage from '../../../ui/error-message';
 import { INSUFFICIENT_FUNDS_ERROR_KEY } from '../../../../helpers/constants/error-keys';
-import { Severity } from '../../../../helpers/constants/design-system';
+import Typography from '../../../ui/typography';
+import { TypographyVariant } from '../../../../helpers/constants/design-system';
+import DepositPopover from '../../deposit-popover/deposit-popover';
 
 import { ConfirmPageContainerSummary, ConfirmPageContainerWarning } from '.';
 
 export default class ConfirmPageContainerContent extends Component {
   static contextTypes = {
     t: PropTypes.func.isRequired,
-    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-    trackEvent: PropTypes.func,
-    ///: END:ONLY_INCLUDE_IF
   };
 
   static propTypes = {
     action: PropTypes.string,
+    dataComponent: PropTypes.node,
     dataHexComponent: PropTypes.node,
     detailsComponent: PropTypes.node,
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
     insightComponent: PropTypes.node,
+    ///: END:ONLY_INCLUDE_IN
     errorKey: PropTypes.string,
     errorMessage: PropTypes.string,
+    hideSubtitle: PropTypes.bool,
     tokenAddress: PropTypes.string,
     nonce: PropTypes.string,
     subtitleComponent: PropTypes.node,
+    title: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     image: PropTypes.string,
     titleComponent: PropTypes.node,
     warning: PropTypes.string,
@@ -48,6 +47,7 @@ export default class ConfirmPageContainerContent extends Component {
     disabled: PropTypes.bool,
     unapprovedTxCount: PropTypes.number,
     rejectNText: PropTypes.string,
+    hideTitle: PropTypes.bool,
     supportsEIP1559: PropTypes.bool,
     hasTopBorder: PropTypes.bool,
     nativeCurrency: PropTypes.string,
@@ -55,51 +55,50 @@ export default class ConfirmPageContainerContent extends Component {
     toAddress: PropTypes.string,
     transactionType: PropTypes.string,
     isBuyableChain: PropTypes.bool,
-    ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
-    openBuyCryptoInPdapp: PropTypes.func,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-    noteComponent: PropTypes.node,
-    ///: END:ONLY_INCLUDE_IF
+    isSendWithApproval: PropTypes.bool,
+  };
+
+  state = {
+    setShowDepositPopover: false,
   };
 
   renderContent() {
-    const { detailsComponent, dataHexComponent, insightComponent } = this.props;
+    const { detailsComponent, dataComponent } = this.props;
 
-    if (insightComponent && (detailsComponent || dataHexComponent)) {
+    ///: BEGIN:ONLY_INCLUDE_IN(flask)
+    const { insightComponent } = this.props;
+
+    if (insightComponent && (detailsComponent || dataComponent)) {
+      return this.renderTabs();
+    }
+    ///: END:ONLY_INCLUDE_IN
+
+    if (detailsComponent && dataComponent) {
       return this.renderTabs();
     }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-    const { noteComponent } = this.props;
-
-    if (noteComponent) {
-      return this.renderTabs();
-    }
-    ///: END:ONLY_INCLUDE_IF
-
-    if (detailsComponent && dataHexComponent) {
-      return this.renderTabs();
-    }
-
-    return detailsComponent || insightComponent;
+    return (
+      detailsComponent ||
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
+      insightComponent ||
+      ///: END:ONLY_INCLUDE_IN
+      dataComponent
+    );
   }
 
   renderTabs() {
     const { t } = this.context;
     const {
       detailsComponent,
+      dataComponent,
       dataHexComponent,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      ///: BEGIN:ONLY_INCLUDE_IN(flask)
       insightComponent,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-      noteComponent,
-      ///: END:ONLY_INCLUDE_IF
+      ///: END:ONLY_INCLUDE_IN
     } = this.props;
 
     return (
-      <Tabs defaultActiveTabKey="details">
+      <Tabs>
         <Tab
           className="confirm-page-container-content__tab"
           name={t('details')}
@@ -107,26 +106,15 @@ export default class ConfirmPageContainerContent extends Component {
         >
           {detailsComponent}
         </Tab>
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
-          noteComponent && (
-            <Tab
-              data-testid="note-tab"
-              className="confirm-page-container-content__tab"
-              name={t('note')}
-              tabKey="note"
-              onClick={() => {
-                this.context.trackEvent({
-                  category: 'Note to trader',
-                  event: 'Clicked on Notes tab on a transaction window',
-                });
-              }}
-            >
-              {noteComponent}
-            </Tab>
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
+        {dataComponent && (
+          <Tab
+            className="confirm-page-container-content__tab"
+            name={t('data')}
+            tabKey="data"
+          >
+            {dataComponent}
+          </Tab>
+        )}
         {dataHexComponent && (
           <Tab
             className="confirm-page-container-content__tab"
@@ -138,9 +126,9 @@ export default class ConfirmPageContainerContent extends Component {
         )}
 
         {
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+          ///: BEGIN:ONLY_INCLUDE_IN(flask)
           insightComponent
-          ///: END:ONLY_INCLUDE_IF
+          ///: END:ONLY_INCLUDE_IN
         }
       </Tabs>
     );
@@ -151,12 +139,15 @@ export default class ConfirmPageContainerContent extends Component {
       action,
       errorKey,
       errorMessage,
+      title,
       image,
       titleComponent,
       subtitleComponent,
+      hideSubtitle,
       tokenAddress,
       nonce,
       detailsComponent,
+      dataComponent,
       warning,
       onCancelAll,
       onCancel,
@@ -168,6 +159,7 @@ export default class ConfirmPageContainerContent extends Component {
       rejectNText,
       origin,
       ethGasPriceWarning,
+      hideTitle,
       supportsEIP1559,
       hasTopBorder,
       nativeCurrency,
@@ -175,15 +167,17 @@ export default class ConfirmPageContainerContent extends Component {
       toAddress,
       transactionType,
       isBuyableChain,
-      ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
-      openBuyCryptoInPdapp,
-      ///: END:ONLY_INCLUDE_IF
+      isSendWithApproval,
     } = this.props;
 
     const { t } = this.context;
 
     const showInsuffienctFundsError =
-      (errorKey || errorMessage) && errorKey === INSUFFICIENT_FUNDS_ERROR_KEY;
+      supportsEIP1559 &&
+      (errorKey || errorMessage) &&
+      errorKey === INSUFFICIENT_FUNDS_ERROR_KEY;
+
+    const { setShowDepositPopover } = this.state;
 
     return (
       <div
@@ -197,58 +191,69 @@ export default class ConfirmPageContainerContent extends Component {
         )}
         <ConfirmPageContainerSummary
           className={classnames({
-            'confirm-page-container-summary--border': !detailsComponent,
+            'confirm-page-container-summary--border':
+              !detailsComponent || !dataComponent,
           })}
           action={action}
+          title={title}
           image={image}
           titleComponent={titleComponent}
           subtitleComponent={subtitleComponent}
+          hideSubtitle={hideSubtitle}
           tokenAddress={tokenAddress}
           nonce={nonce}
           origin={origin}
+          hideTitle={hideTitle}
           toAddress={toAddress}
           transactionType={transactionType}
-          networkName={networkName}
+          isSendWithApproval={isSendWithApproval}
         />
         {this.renderContent()}
-        {!supportsEIP1559 &&
-          !showInsuffienctFundsError &&
-          (errorKey || errorMessage) && (
-            <BannerAlert
-              severity={Severity.Danger}
-              description={errorKey ? t(errorKey) : errorMessage}
-              marginBottom={4}
-              marginLeft={4}
-              marginRight={4}
-            />
-          )}
+        {!supportsEIP1559 && (errorKey || errorMessage) && (
+          <div className="confirm-page-container-content__error-container">
+            <ErrorMessage errorMessage={errorMessage} errorKey={errorKey} />
+          </div>
+        )}
         {showInsuffienctFundsError && (
-          <BannerAlert
-            severity={Severity.Danger}
-            marginBottom={4}
-            marginLeft={4}
-            marginRight={4}
-            description={
-              isBuyableChain
-                ? t('insufficientCurrencyBuyOrDeposit', [
-                    nativeCurrency,
-                    networkName,
-                    ///: BEGIN:ONLY_INCLUDE_IF(build-main,build-beta,build-flask)
-                    <Button
-                      variant={BUTTON_VARIANT.LINK}
-                      size={BUTTON_SIZES.INHERIT}
-                      onClick={openBuyCryptoInPdapp}
-                      key={`${nativeCurrency}-buy-button`}
-                    >
-                      {t('buyAsset', [nativeCurrency])}
-                    </Button>,
-                    ///: END:ONLY_INCLUDE_IF
-                  ])
-                : t('insufficientCurrencyDeposit', [
-                    nativeCurrency,
-                    networkName,
-                  ])
-            }
+          <div className="confirm-page-container-content__error-container">
+            <ActionableMessage
+              className="actionable-message--warning"
+              message={
+                isBuyableChain ? (
+                  <Typography variant={TypographyVariant.H7} align="left">
+                    {t('insufficientCurrencyBuyOrDeposit', [
+                      nativeCurrency,
+                      networkName,
+                      <Button
+                        type="inline"
+                        className="confirm-page-container-content__link"
+                        onClick={() =>
+                          this.setState({ setShowDepositPopover: true })
+                        }
+                        key={`${nativeCurrency}-buy-button`}
+                      >
+                        {t('buyAsset', [nativeCurrency])}
+                      </Button>,
+                    ])}
+                  </Typography>
+                ) : (
+                  <Typography variant={TypographyVariant.H7} align="left">
+                    {t('insufficientCurrencyDeposit', [
+                      nativeCurrency,
+                      networkName,
+                    ])}
+                  </Typography>
+                )
+              }
+              useIcon
+              iconFillColor="var(--color-error-default)"
+              type="danger"
+            />
+          </div>
+        )}
+        {setShowDepositPopover && (
+          <DepositPopover
+            onClose={() => this.setState({ setShowDepositPopover: false })}
           />
         )}
         <PageContainerFooter

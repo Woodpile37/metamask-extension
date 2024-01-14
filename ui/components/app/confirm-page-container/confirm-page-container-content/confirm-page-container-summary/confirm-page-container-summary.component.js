@@ -1,132 +1,46 @@
 /* eslint-disable no-negated-condition */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 
-import { TransactionType } from '@metamask/transaction-controller';
+import { TransactionType } from '../../../../../../shared/constants/transaction';
 import { toChecksumHexAddress } from '../../../../../../shared/modules/hexstring-utils';
 import { useI18nContext } from '../../../../../hooks/useI18nContext';
 import useAddressDetails from '../../../../../hooks/useAddressDetails';
-import { getIpfsGateway, txDataSelector } from '../../../../../selectors';
+import { getIpfsGateway } from '../../../../../selectors';
 
 import Identicon from '../../../../ui/identicon';
 import InfoTooltip from '../../../../ui/info-tooltip';
 import NicknamePopovers from '../../../modals/nickname-popovers';
+import Typography from '../../../../ui/typography';
+import { TypographyVariant } from '../../../../../helpers/constants/design-system';
 import { ORIGIN_METAMASK } from '../../../../../../shared/constants/app';
 import SiteOrigin from '../../../../ui/site-origin';
 import { getAssetImageURL } from '../../../../../helpers/utils/util';
-import PulseLoader from '../../../../ui/pulse-loader/pulse-loader';
-import { getSymbolAndDecimalsAndName } from '../../../../../helpers/utils/token-util';
-import { Numeric } from '../../../../../../shared/modules/Numeric';
 
 const ConfirmPageContainerSummary = (props) => {
   const {
     action,
+    title,
     titleComponent,
     subtitleComponent,
+    hideSubtitle,
     className,
     tokenAddress,
+    toAddress,
     nonce,
     origin,
+    hideTitle,
     image,
     transactionType,
-    networkName,
+    isSendWithApproval,
   } = props;
 
   const [showNicknamePopovers, setShowNicknamePopovers] = useState(false);
-  const [transactionDecodeResult, setTransactionDecodeResult] =
-    useState(undefined);
-  const [transactionDecodeFetching, setTransactionDecodeFetching] =
-    useState(false);
-  const [tokenIn, setTokenIn] = useState(undefined);
-  const [tokenOut, setTokenOut] = useState(undefined);
-
   const t = useI18nContext();
   const ipfsGateway = useSelector(getIpfsGateway);
-
-  const txData = useSelector(txDataSelector);
-  const { txParams = {} } = txData;
-  const { to: txParamsToAddress } = txParams;
-
-  useEffect(() => {
-    const fetchData = async (url) => {
-      setTransactionDecodeFetching(true);
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(response.statusText);
-        }
-        const json = await response.json();
-
-        setTransactionDecodeResult(json);
-        setTransactionDecodeFetching(false);
-      } catch (err) {
-        setTransactionDecodeFetching(false);
-      }
-    };
-    if (transactionType === TransactionType.contractInteraction) {
-      const { to, data, value } = txParams;
-      const url = `http://localhost:3000/transaction?${new URLSearchParams({
-        address: to,
-        data,
-        network: networkName,
-        ...(value ? { value } : {}),
-      }).toString()}`;
-
-      setTransactionDecodeFetching(true);
-      fetchData(url);
-    }
-  }, [transactionType, txParams, networkName]);
-
-  useEffect(() => {
-    const decodeResult = async () => {
-      const [x, y] = await Promise.all([
-        getSymbolAndDecimalsAndName(transactionDecodeResult.tokenIn),
-        getSymbolAndDecimalsAndName(transactionDecodeResult.tokenOut),
-      ]);
-
-      const amountOut = new Numeric(
-        transactionDecodeResult.amountOutMin,
-        10,
-        'WEI',
-      )
-        .toDenomination('ETH')
-        .toString();
-      const amountIn = new Numeric(transactionDecodeResult.amountIn, 10, 'WEI')
-        .toDenomination('ETH')
-        .toString();
-
-      setTokenIn({ ...x, amount: amountIn });
-      setTokenOut({ ...y, amount: amountOut });
-      if (
-        transactionDecodeResult.tokenIn ===
-        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-      ) {
-        setTokenIn({
-          symbol: 'ETH',
-          decimals: 18,
-          amount: amountIn,
-        });
-      }
-
-      if (
-        transactionDecodeResult.tokenOut ===
-        '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-      ) {
-        setTokenOut({
-          symbol: 'ETH',
-          decimals: 18,
-          amount: amountOut,
-        });
-      }
-    };
-
-    if (transactionDecodeResult) {
-      decodeResult();
-    }
-  }, [transactionDecodeResult]);
 
   const contractInitiatedTransactionType = [
     TransactionType.contractInteraction,
@@ -135,20 +49,20 @@ const ConfirmPageContainerSummary = (props) => {
     TransactionType.tokenMethodSafeTransferFrom,
   ];
   const isContractTypeTransaction =
-    contractInitiatedTransactionType.includes(transactionType);
+    contractInitiatedTransactionType.includes(transactionType) ||
+    isSendWithApproval;
   let contractAddress;
   if (isContractTypeTransaction) {
     // If the transaction is TOKEN_METHOD_TRANSFER or TOKEN_METHOD_TRANSFER_FROM
     // the contract address is passed down as tokenAddress, if it is anyother
-    // type of contract interaction it is "to" from txParams
-
+    // type of contract interaction it is passed as toAddress
     contractAddress =
       transactionType === TransactionType.tokenMethodTransfer ||
       transactionType === TransactionType.tokenMethodTransferFrom ||
       transactionType === TransactionType.tokenMethodSafeTransferFrom ||
       transactionType === TransactionType.tokenMethodSetApprovalForAll
         ? tokenAddress
-        : txParamsToAddress;
+        : toAddress;
   }
 
   const { toName, isTrusted } = useAddressDetails(contractAddress);
@@ -177,8 +91,6 @@ const ConfirmPageContainerSummary = (props) => {
     return null;
   };
 
-  console.log('transactionDecodeResult', transactionDecodeResult);
-  console.log('transactionDecodeFetching', transactionDecodeFetching);
   return (
     <div className={classnames('confirm-page-container-summary', className)}>
       {origin === ORIGIN_METAMASK ? null : (
@@ -217,42 +129,28 @@ const ConfirmPageContainerSummary = (props) => {
           </div>
         )}
       </div>
-
-      {isContractTypeTransaction && transactionDecodeFetching && (
-        <div className="confirm-page-container-summary__action-row">
-          <PulseLoader />
-        </div>
-      )}
-      {isContractTypeTransaction &&
-        !transactionDecodeFetching &&
-        transactionDecodeResult &&
-        transactionDecodeResult.amountIn &&
-        transactionDecodeResult.amountOutMin &&
-        tokenIn &&
-        tokenOut && (
-          <div>
-            <div className="confirm-page-container-summary__action-row">
-              <div className="confirm-page-container-summary__action">
-                <span>
-                  Pay {tokenIn.amount} {tokenIn.symbol}
-                </span>
-              </div>
-            </div>
-            <div className="confirm-page-container-summary__action-row">
-              <div className="confirm-page-container-summary__action">
-                <span>
-                  Receive minimum {tokenOut.amount} {tokenOut.symbol}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
       <>
         <div className="confirm-page-container-summary__title">
           {renderImage()}
-          {titleComponent}
+          {!hideTitle ? (
+            <Typography
+              className="confirm-page-container-summary__title-text"
+              variant={
+                title && title.length < 10
+                  ? TypographyVariant.H1
+                  : TypographyVariant.H3
+              }
+              title={title}
+            >
+              {titleComponent || title}
+            </Typography>
+          ) : null}
         </div>
-        {subtitleComponent}
+        {hideSubtitle ? null : (
+          <div className="confirm-page-container-summary__subtitle">
+            {subtitleComponent}
+          </div>
+        )}
       </>
       {showNicknamePopovers && (
         <NicknamePopovers
@@ -266,15 +164,19 @@ const ConfirmPageContainerSummary = (props) => {
 
 ConfirmPageContainerSummary.propTypes = {
   action: PropTypes.string,
+  title: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   image: PropTypes.string,
   titleComponent: PropTypes.node,
   subtitleComponent: PropTypes.node,
+  hideSubtitle: PropTypes.bool,
   className: PropTypes.string,
   tokenAddress: PropTypes.string,
+  toAddress: PropTypes.string,
   nonce: PropTypes.string,
   origin: PropTypes.string.isRequired,
+  hideTitle: PropTypes.bool,
   transactionType: PropTypes.string,
-  networkName: PropTypes.string,
+  isSendWithApproval: PropTypes.bool,
 };
 
 export default ConfirmPageContainerSummary;

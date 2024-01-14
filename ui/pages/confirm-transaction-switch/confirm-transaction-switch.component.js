@@ -17,6 +17,7 @@ import {
   CONFIRM_SAFE_TRANSFER_FROM_PATH,
   CONFIRM_SET_APPROVAL_FOR_ALL_PATH,
 } from '../../helpers/constants/routes';
+import { isSendWithApprove } from '../../helpers/utils/transactions.util';
 import { MESSAGE_TYPE } from '../../../shared/constants/app';
 
 export default class ConfirmTransactionSwitch extends Component {
@@ -45,6 +46,10 @@ export default class ConfirmTransactionSwitch extends Component {
           return <Redirect to={{ pathname }} />;
         }
         case TransactionType.tokenMethodApprove: {
+          if (isSendWithApprove(txData)) {
+            const pathname = `${CONFIRM_TRANSACTION_ROUTE}/${id}${CONFIRM_SEND_ETHER_PATH}`;
+            return <Redirect to={{ pathname }} />;
+          }
           const pathname = `${CONFIRM_TRANSACTION_ROUTE}/${id}${CONFIRM_APPROVE_PATH}`;
           return <Redirect to={{ pathname }} />;
         }
