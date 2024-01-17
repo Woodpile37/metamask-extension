@@ -2,183 +2,99 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { ObjectInspector } from 'react-inspector';
+import { ethErrors, serializeError } from 'eth-rpc-errors';
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import { SubjectType } from '@metamask/permission-controller';
+///: END:ONLY_INCLUDE_IF
 import LedgerInstructionField from '../ledger-instruction-field';
+import { MESSAGE_TYPE } from '../../../../shared/constants/app';
 import {
-  ENVIRONMENT_TYPE_NOTIFICATION,
-  MESSAGE_TYPE,
-} from '../../../../shared/constants/app';
-import { getEnvironmentType } from '../../../../app/scripts/lib/util';
-import Identicon from '../../ui/identicon';
-import AccountListItem from '../account-list-item';
-import { conversionUtil } from '../../../../shared/modules/conversion.utils';
+  getURLHostName,
+  sanitizeString,
+  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+  shortenAddress,
+  ///: END:ONLY_INCLUDE_IF
+} from '../../../helpers/utils/util';
 import { stripHexPrefix } from '../../../../shared/modules/hexstring-utils';
-import Button from '../../ui/button';
-import SiteIcon from '../../ui/site-icon';
+import { isSuspiciousResponse } from '../../../../shared/modules/security-provider.utils';
 import SiteOrigin from '../../ui/site-origin';
+import Typography from '../../ui/typography/typography';
+import { PageContainerFooter } from '../../ui/page-container';
+import {
+  TypographyVariant,
+  FontWeight,
+  TextAlign,
+  TextColor,
+  Size,
+  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+  IconColor,
+  Display,
+  BlockSize,
+  TextVariant,
+  BackgroundColor,
+  ///: END:ONLY_INCLUDE_IF
+} from '../../../helpers/constants/design-system';
+import {
+  ButtonLink,
+  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+  Box,
+  Icon,
+  IconName,
+  Text,
+  ///: END:ONLY_INCLUDE_IF
+} from '../../component-library';
+
+///: BEGIN:ONLY_INCLUDE_IF(blockaid)
+import {
+  MetaMetricsEventCategory,
+  MetaMetricsEventName,
+} from '../../../../shared/constants/metametrics';
+import BlockaidBannerAlert from '../security-provider-banner-alert/blockaid-banner-alert/blockaid-banner-alert';
+///: END:ONLY_INCLUDE_IF
+
+import ConfirmPageContainerNavigation from '../confirm-page-container/confirm-page-container-navigation';
+import SecurityProviderBannerMessage from '../security-provider-banner-message/security-provider-banner-message';
+
+import SignatureRequestHeader from '../signature-request-header';
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import SnapLegacyAuthorshipHeader from '../snaps/snap-legacy-authorship-header';
+///: END:ONLY_INCLUDE_IF
+import SignatureRequestOriginalWarning from './signature-request-original-warning';
 
 export default class SignatureRequestOriginal extends Component {
   static contextTypes = {
     t: PropTypes.func.isRequired,
-    metricsEvent: PropTypes.func.isRequired,
+    trackEvent: PropTypes.func,
   };
 
   static propTypes = {
     fromAccount: PropTypes.shape({
       address: PropTypes.string.isRequired,
-      balance: PropTypes.string,
       name: PropTypes.string,
     }).isRequired,
-    cancel: PropTypes.func.isRequired,
-    clearConfirmTransaction: PropTypes.func.isRequired,
-    conversionRate: PropTypes.number,
-    history: PropTypes.object.isRequired,
-    mostRecentOverviewPage: PropTypes.string.isRequired,
-    requesterAddress: PropTypes.string,
-    sign: PropTypes.func.isRequired,
     txData: PropTypes.object.isRequired,
-    domainMetadata: PropTypes.object,
+    subjectMetadata: PropTypes.object,
     hardwareWalletRequiresConnection: PropTypes.bool,
     isLedgerWallet: PropTypes.bool,
+    messagesCount: PropTypes.number,
+    showRejectTransactionsConfirmationModal: PropTypes.func.isRequired,
+    cancelAllApprovals: PropTypes.func.isRequired,
+    rejectPendingApproval: PropTypes.func.isRequired,
+    clearConfirmTransaction: PropTypes.func.isRequired,
+    history: PropTypes.object.isRequired,
+    mostRecentOverviewPage: PropTypes.string.isRequired,
+    resolvePendingApproval: PropTypes.func.isRequired,
+    completedTx: PropTypes.func.isRequired,
+    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+    // Used to show a warning if the signing account is not the selected account
+    // Largely relevant for contract wallet custodians
+    selectedAccount: PropTypes.object,
+    mmiOnSignCallback: PropTypes.func,
+    ///: END:ONLY_INCLUDE_IF
   };
 
   state = {
-    fromAccount: this.props.fromAccount,
-  };
-
-  componentDidMount = () => {
-    if (getEnvironmentType() === ENVIRONMENT_TYPE_NOTIFICATION) {
-      window.addEventListener('beforeunload', this._beforeUnload);
-    }
-  };
-
-  componentWillUnmount = () => {
-    this._removeBeforeUnload();
-  };
-
-  _beforeUnload = (event) => {
-    const { clearConfirmTransaction, cancel } = this.props;
-    const { metricsEvent } = this.context;
-    metricsEvent({
-      eventOpts: {
-        category: 'Transactions',
-        action: 'Sign Request',
-        name: 'Cancel Sig Request Via Notification Close',
-      },
-    });
-    clearConfirmTransaction();
-    cancel(event);
-  };
-
-  _removeBeforeUnload = () => {
-    if (getEnvironmentType() === ENVIRONMENT_TYPE_NOTIFICATION) {
-      window.removeEventListener('beforeunload', this._beforeUnload);
-    }
-  };
-
-  renderHeader = () => {
-    return (
-      <div className="request-signature__header">
-        <div className="request-signature__header-background" />
-
-        <div className="request-signature__header__text">
-          {this.context.t('sigRequest')}
-        </div>
-
-        <div className="request-signature__header__tip-container">
-          <div className="request-signature__header__tip" />
-        </div>
-      </div>
-    );
-  };
-
-  renderAccount = () => {
-    const { fromAccount } = this.state;
-
-    return (
-      <div className="request-signature__account">
-        <div className="request-signature__account-text">
-          {`${this.context.t('account')}:`}
-        </div>
-
-        <div className="request-signature__account-item">
-          <AccountListItem account={fromAccount} />
-        </div>
-      </div>
-    );
-  };
-
-  renderBalance = () => {
-    const { conversionRate } = this.props;
-    const {
-      fromAccount: { balance },
-    } = this.state;
-
-    const balanceInEther = conversionUtil(balance, {
-      fromNumericBase: 'hex',
-      toNumericBase: 'dec',
-      fromDenomination: 'WEI',
-      numberOfDecimals: 6,
-      conversionRate,
-    });
-
-    return (
-      <div className="request-signature__balance">
-        <div className="request-signature__balance-text">
-          {`${this.context.t('balance')}:`}
-        </div>
-        <div className="request-signature__balance-value">
-          {`${balanceInEther} ETH`}
-        </div>
-      </div>
-    );
-  };
-
-  renderRequestIcon = () => {
-    const { requesterAddress } = this.props;
-
-    return (
-      <div className="request-signature__request-icon">
-        <Identicon diameter={40} address={requesterAddress} />
-      </div>
-    );
-  };
-
-  renderAccountInfo = () => {
-    return (
-      <div className="request-signature__account-info">
-        {this.renderAccount()}
-        {this.renderRequestIcon()}
-        {this.renderBalance()}
-      </div>
-    );
-  };
-
-  renderOriginInfo = () => {
-    const { txData, domainMetadata } = this.props;
-    const { t } = this.context;
-
-    const originMetadata = txData.msgParams.origin
-      ? domainMetadata?.[txData.msgParams.origin]
-      : null;
-
-    return (
-      <div className="request-signature__origin-row">
-        <div className="request-signature__origin-label">
-          {`${t('origin')}:`}
-        </div>
-        {originMetadata?.icon ? (
-          <SiteIcon
-            icon={originMetadata.icon}
-            name={originMetadata.hostname}
-            size={24}
-          />
-        ) : null}
-        <SiteOrigin
-          className="request-signature__origin"
-          siteOrigin={txData.msgParams.origin}
-        />
-      </div>
-    );
+    showSignatureRequestWarning: false,
   };
 
   msgHexToText = (hex) => {
@@ -218,9 +134,9 @@ export default class SignatureRequestOriginal extends Component {
 
   renderBody = () => {
     let rows;
-    let notice = `${this.context.t('youSign')}:`;
+    const notice = `${this.context.t('youSign')}:`;
 
-    const { txData } = this.props;
+    const { txData, subjectMetadata } = this.props;
     const {
       type,
       msgParams: { data },
@@ -234,33 +150,114 @@ export default class SignatureRequestOriginal extends Component {
       rows = data;
     } else if (type === MESSAGE_TYPE.ETH_SIGN) {
       rows = [{ name: this.context.t('message'), value: data }];
-      notice = this.context.t('signNotice');
     }
+
+    ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
+    const onClickSupportLink = () => {
+      this.context.trackEvent({
+        category: MetaMetricsEventCategory.Transactions,
+        event: MetaMetricsEventName.ExternalLinkClicked,
+        properties: {
+          action: 'Sign Request',
+          origin: txData?.origin,
+          external_link_clicked: 'security_alert_support_link',
+        },
+      });
+    };
+    ///: END:ONLY_INCLUDE_IF
+
+    const targetSubjectMetadata = txData.msgParams.origin
+      ? subjectMetadata?.[txData.msgParams.origin]
+      : null;
 
     return (
       <div className="request-signature__body">
-        {this.renderAccountInfo()}
-        {this.renderOriginInfo()}
-        <div
-          className={classnames('request-signature__notice', {
-            'request-signature__warning': type === MESSAGE_TYPE.ETH_SIGN,
-          })}
-        >
-          {notice}
-          {type === MESSAGE_TYPE.ETH_SIGN ? (
-            <span
-              className="request-signature__help-link"
-              onClick={() => {
-                global.platform.openTab({
-                  url:
-                    'https://metamask.zendesk.com/hc/en-us/articles/360015488751',
-                });
-              }}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
+          <BlockaidBannerAlert
+            txData={txData}
+            margin={4}
+            onClickSupportLink={onClickSupportLink}
+          />
+          ///: END:ONLY_INCLUDE_IF
+        }
+        {isSuspiciousResponse(txData?.securityProviderResponse) && (
+          <SecurityProviderBannerMessage
+            securityProviderResponse={txData.securityProviderResponse}
+          />
+        )}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+          this.props.selectedAccount.address ===
+          this.props.fromAccount.address ? null : (
+            <Box
+              className="request-signature__mismatch-info"
+              Display={Display.Flex}
+              width={BlockSize.Full}
+              padding={4}
+              marginBottom={4}
+              backgroundColor={BackgroundColor.primaryMuted}
             >
-              {this.context.t('learnMore')}
-            </span>
-          ) : null}
+              <Icon
+                name={IconName.Info}
+                color={IconColor.infoDefault}
+                marginRight={2}
+              />
+              <Text variant={TextVariant.bodyXs} color={TextColor.textDefault}>
+                {this.context.t('mismatchAccount', [
+                  shortenAddress(this.props.selectedAccount.address),
+                  shortenAddress(this.props.fromAccount.address),
+                ])}
+              </Text>
+            </Box>
+          )
+          ///: END:ONLY_INCLUDE_IF
+        }
+        <div className="request-signature__origin">
+          {
+            // Use legacy authorship header for snaps
+            ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+            targetSubjectMetadata?.subjectType === SubjectType.Snap ? (
+              <SnapLegacyAuthorshipHeader
+                snapId={targetSubjectMetadata.origin}
+                marginLeft={4}
+                marginRight={4}
+              />
+            ) : (
+              ///: END:ONLY_INCLUDE_IF
+              <SiteOrigin
+                title={txData.msgParams.origin}
+                siteOrigin={txData.msgParams.origin}
+                iconSrc={targetSubjectMetadata?.iconUrl}
+                iconName={
+                  getURLHostName(targetSubjectMetadata?.origin) ||
+                  targetSubjectMetadata?.origin
+                }
+                chip
+              />
+              ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
         </div>
+        <Typography
+          className="request-signature__content__title"
+          variant={TypographyVariant.H3}
+          fontWeight={FontWeight.Bold}
+        >
+          {this.context.t('sigRequest')}
+        </Typography>
+        <Typography
+          className="request-signature__content__subtitle"
+          variant={TypographyVariant.H7}
+          color={TextColor.textAlternative}
+          align={TextAlign.Center}
+          margin={12}
+          marginTop={3}
+        >
+          {this.context.t('signatureRequestGuidance')}
+        </Typography>
+        <div className={classnames('request-signature__notice')}>{notice}</div>
         <div className="request-signature__rows">
           {rows.map(({ name, value }, index) => {
             if (typeof value === 'boolean') {
@@ -272,8 +269,12 @@ export default class SignatureRequestOriginal extends Component {
                 className="request-signature__row"
                 key={`request-signature-row-${index}`}
               >
-                <div className="request-signature__row-title">{`${name}:`}</div>
-                <div className="request-signature__row-value">{value}</div>
+                <div className="request-signature__row-title">
+                  {sanitizeString(`${name}:`)}
+                </div>
+                <div className="request-signature__row-value">
+                  {sanitizeString(value)}
+                </div>
               </div>
             );
           })}
@@ -282,83 +283,159 @@ export default class SignatureRequestOriginal extends Component {
     );
   };
 
-  renderFooter = () => {
+  onSubmit = async () => {
     const {
-      cancel,
+      resolvePendingApproval,
+      completedTx,
       clearConfirmTransaction,
       history,
       mostRecentOverviewPage,
-      sign,
-      txData: { type },
-      hardwareWalletRequiresConnection,
+      txData,
     } = this.props;
-    const { metricsEvent, t } = this.context;
+    ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+    if (this.props.mmiOnSignCallback) {
+      await this.props.mmiOnSignCallback(txData);
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    await resolvePendingApproval(txData.id);
+    completedTx(txData.id);
+    clearConfirmTransaction();
+    history.push(mostRecentOverviewPage);
+  };
+
+  onCancel = async () => {
+    const {
+      clearConfirmTransaction,
+      history,
+      mostRecentOverviewPage,
+      rejectPendingApproval,
+      txData: { id },
+    } = this.props;
+
+    await rejectPendingApproval(
+      id,
+      serializeError(ethErrors.provider.userRejectedRequest()),
+    );
+    clearConfirmTransaction();
+    history.push(mostRecentOverviewPage);
+  };
+
+  renderFooter = () => {
+    const {
+      clearConfirmTransaction,
+      history,
+      mostRecentOverviewPage,
+      txData,
+      hardwareWalletRequiresConnection,
+      rejectPendingApproval,
+      resolvePendingApproval,
+    } = this.props;
+    const { t } = this.context;
 
     return (
-      <div className="request-signature__footer">
-        <Button
-          type="secondary"
-          large
-          className="request-signature__footer__cancel-button"
-          onClick={async (event) => {
-            this._removeBeforeUnload();
-            await cancel(event);
-            metricsEvent({
-              eventOpts: {
-                category: 'Transactions',
-                action: 'Sign Request',
-                name: 'Cancel',
-              },
-              customVariables: {
-                type,
-              },
-            });
+      <PageContainerFooter
+        cancelText={t('reject')}
+        submitText={t('sign')}
+        onCancel={async () => {
+          await rejectPendingApproval(
+            txData.id,
+            serializeError(ethErrors.provider.userRejectedRequest()),
+          );
+          clearConfirmTransaction();
+          history.push(mostRecentOverviewPage);
+        }}
+        onSubmit={async () => {
+          if (txData.type === MESSAGE_TYPE.ETH_SIGN) {
+            this.setState({ showSignatureRequestWarning: true });
+          } else {
+            ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+            if (this.props.mmiOnSignCallback) {
+              await this.props.mmiOnSignCallback(txData);
+              return;
+            }
+            ///: END:ONLY_INCLUDE_IF
+
+            await resolvePendingApproval(txData.id);
             clearConfirmTransaction();
             history.push(mostRecentOverviewPage);
-          }}
-        >
-          {t('cancel')}
-        </Button>
-        <Button
-          data-testid="request-signature__sign"
-          type="primary"
-          large
-          className="request-signature__footer__sign-button"
-          disabled={hardwareWalletRequiresConnection}
-          onClick={async (event) => {
-            this._removeBeforeUnload();
-            await sign(event);
-            metricsEvent({
-              eventOpts: {
-                category: 'Transactions',
-                action: 'Sign Request',
-                name: 'Confirm',
-              },
-              customVariables: {
-                type,
-              },
-            });
-            clearConfirmTransaction();
-            history.push(mostRecentOverviewPage);
-          }}
-        >
-          {t('sign')}
-        </Button>
-      </div>
+          }
+        }}
+        disabled={
+          ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+          Boolean(txData?.custodyId) ||
+          ///: END:ONLY_INCLUDE_IF
+          hardwareWalletRequiresConnection
+        }
+      />
     );
   };
 
+  handleCancelAll = () => {
+    const {
+      clearConfirmTransaction,
+      history,
+      mostRecentOverviewPage,
+      showRejectTransactionsConfirmationModal,
+      messagesCount,
+      cancelAllApprovals,
+    } = this.props;
+    const unapprovedTxCount = messagesCount;
+
+    showRejectTransactionsConfirmationModal({
+      unapprovedTxCount,
+      onSubmit: async () => {
+        await cancelAllApprovals();
+        clearConfirmTransaction();
+        history.push(mostRecentOverviewPage);
+      },
+    });
+  };
+
   render = () => {
+    const {
+      messagesCount,
+      fromAccount: { address, name },
+      txData,
+    } = this.props;
+    const { showSignatureRequestWarning } = this.state;
+    const { t } = this.context;
+
+    const rejectNText = t('rejectRequestsN', [messagesCount]);
+
     return (
       <div className="request-signature__container">
-        {this.renderHeader()}
+        <div className="request-signature__navigation">
+          <ConfirmPageContainerNavigation />
+        </div>
+        <div className="request-signature__account">
+          <SignatureRequestHeader txData={txData} />
+        </div>
         {this.renderBody()}
         {this.props.isLedgerWallet ? (
           <div className="confirm-approve-content__ledger-instruction-wrapper">
             <LedgerInstructionField showDataInstruction />
           </div>
         ) : null}
+        {showSignatureRequestWarning && (
+          <SignatureRequestOriginalWarning
+            senderAddress={address}
+            name={name}
+            onSubmit={async (event) => await this.onSubmit(event)}
+            onCancel={async (event) => await this.onCancel(event)}
+          />
+        )}
         {this.renderFooter()}
+        {messagesCount > 1 ? (
+          <ButtonLink
+            size={Size.inherit}
+            className="request-signature__container__reject"
+            onClick={() => this.handleCancelAll()}
+          >
+            {rejectNText}
+          </ButtonLink>
+        ) : null}
       </div>
     );
   };
