@@ -1,52 +1,37 @@
 import { connect } from 'react-redux';
-import { getAccountsWithLabels, getAddressBookEntry } from '../../../selectors';
-import * as actions from '../../../store/actions';
+import {
+  getAddressBookEntry,
+  getIsBuyableChain,
+  getNetworkIdentifier,
+  getSwapsDefaultToken,
+  getMetadataContractName,
+  getAccountName,
+  getInternalAccounts,
+} from '../../../selectors';
 import ConfirmPageContainer from './confirm-page-container.component';
 
 function mapStateToProps(state, ownProps) {
   const to = ownProps.toAddress;
-
+  const isBuyableChain = getIsBuyableChain(state);
   const contact = getAddressBookEntry(state, to);
+  const networkIdentifier = getNetworkIdentifier(state);
+  const defaultToken = getSwapsDefaultToken(state);
+  const accountBalance = defaultToken.string;
+  const accounts = getInternalAccounts(state);
+  const ownedAccountName = getAccountName(accounts, to);
+  const toName = ownedAccountName || contact?.name;
+  const toMetadataName = getMetadataContractName(state, to);
+
   return {
+    isBuyableChain,
     contact,
-    toName: contact?.name || ownProps.toName,
-    isOwnedAccount: getAccountsWithLabels(state)
-      .map((accountWithLabel) => accountWithLabel.address)
-      .includes(to),
+    toName,
+    toMetadataName,
+    recipientIsOwnedAccount: Boolean(ownedAccountName),
     to,
+    networkIdentifier,
+    accountBalance,
   };
 }
 
-function mapDispatchToProps(dispatch) {
-  return {
-    showAddToAddressBookModal: (recipient) =>
-      dispatch(
-        actions.showModal({
-          name: 'ADD_TO_ADDRESSBOOK',
-          recipient,
-        }),
-      ),
-    addNicknameModal: (address) =>
-      dispatch(
-        actions.showModal({
-          name: 'ADD_UPDATE_NICKNAME_MODAL',
-          address,
-        }),
-      ),
-  };
-}
-
-function mergeProps(stateProps, dispatchProps, ownProps) {
-  const { to, ...restStateProps } = stateProps;
-  return {
-    ...ownProps,
-    ...restStateProps,
-    addNicknameModal: () => dispatchProps.addNicknameModal(to),
-  };
-}
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-)(ConfirmPageContainer);
+export default connect(mapStateToProps)(ConfirmPageContainer);

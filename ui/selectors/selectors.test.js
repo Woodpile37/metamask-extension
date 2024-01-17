@@ -11,6 +11,7 @@ import {
 } from '../../shared/constants/network';
 import { SURVEY_DATE, SURVEY_GMT } from '../helpers/constants/survey';
 import * as selectors from './selectors';
+import { getAccountByAddress } from '../helpers/utils/util';
 
 jest.mock('../../shared/modules/network.utils', () => {
   const actual = jest.requireActual('../../shared/modules/network.utils');

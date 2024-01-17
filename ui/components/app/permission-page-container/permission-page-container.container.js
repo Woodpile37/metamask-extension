@@ -1,23 +1,30 @@
 import { connect } from 'react-redux';
 import {
-  getMetaMaskIdentities,
-  getPermissionsDescriptions,
+  getInternalAccounts,
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  getPermissions,
+  ///: END:ONLY_INCLUDE_IN
 } from '../../../selectors';
 import PermissionPageContainer from './permission-page-container.component';
 
 const mapStateToProps = (state, ownProps) => {
-  const { selectedIdentities } = ownProps;
-
-  const allIdentities = getMetaMaskIdentities(state);
-  const allIdentitiesSelected =
-    Object.keys(selectedIdentities).length ===
-      Object.keys(allIdentities).length && selectedIdentities.length > 1;
-
-  const permissionsDescriptions = getPermissionsDescriptions(state);
+  const { selectedAccounts } = ownProps;
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  const currentPermissions = getPermissions(
+    state,
+    ownProps.request.metadata?.origin,
+  );
+  ///: END:ONLY_INCLUDE_IN
+  const allAccounts = getInternalAccounts(state);
+  const allAccountsSelected =
+    Object.keys(selectedAccounts).length === Object.keys(allAccounts).length &&
+    selectedAccounts.length > 1;
 
   return {
-    allIdentitiesSelected,
-    permissionsDescriptions,
+    allAccountsSelected,
+    ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+    currentPermissions,
+    ///: END:ONLY_INCLUDE_IN
   };
 };
 

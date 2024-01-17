@@ -1,10 +1,10 @@
 import { head, last } from 'lodash';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import { CHAIN_IDS } from '../../shared/constants/network';
 import {
   TransactionStatus,
   TransactionType,
-} from '@metamask/transaction-controller';
-import { CHAIN_IDS } from '../../shared/constants/network';
+} from '../../shared/constants/transaction';
 import { nonceSortedTransactionsSelector } from './transactions';
 
 const RECIPIENTS = {

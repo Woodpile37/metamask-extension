@@ -1,12 +1,5 @@
 {
-  "AccountOrderController": {
-    "pinnedAccountList": {},
-    "hiddenAccountList": {}
-  },
-  "AccountTracker": {
-    "accounts": "object",
-    "accountsByChainId": "object"
-  },
+  "AccountTracker": { "accounts": "object" },
   "AccountsController": {
     "internalAccounts": { "accounts": "object", "selectedAccount": "string" }
   },
@@ -37,32 +30,29 @@
     "showTestnetMessageInDropdown": true,
     "showBetaHeader": false,
     "showProductTour": true,
-    "showNetworkBanner": true,
-    "showAccountBanner": true,
     "trezorModel": null,
     "hadAdvancedGasFeesSetPriorToMigration92_3": false,
     "nftsDropdownState": {},
     "termsOfUseLastAgreed": "number",
     "qrHardware": {},
     "usedNetworks": { "0x1": true, "0x5": true, "0x539": true },
-    "snapsInstallPrivacyWarningShown": true,
-    "surveyLinkLastClickedOrClosed": "object"
+    "snapsInstallPrivacyWarningShown": true
   },
   "ApprovalController": {
     "pendingApprovals": "object",
     "pendingApprovalCount": "number",
     "approvalFlows": "object"
   },
+  "CachedBalancesController": { "cachedBalances": "object" },
   "CronjobController": { "jobs": "object" },
   "CurrencyController": {
+    "conversionDate": "number",
+    "conversionRate": 1700,
+    "nativeCurrency": "ETH",
     "currentCurrency": "usd",
-    "currencyRates": {
-      "ETH": {
-        "conversionDate": "number",
-        "conversionRate": 1700,
-        "usdConversionRate": 1700
-      }
-    }
+    "pendingCurrentCurrency": null,
+    "pendingNativeCurrency": null,
+    "usdConversionRate": 1700
   },
   "DecryptMessageController": {
     "unapprovedDecryptMsgs": "object",
@@ -75,7 +65,6 @@
   "EnsController": { "ensResolutionsByAddress": "object" },
   "GasFeeController": {
     "gasFeeEstimates": {},
-    "gasFeeEstimatesByChainId": {},
     "estimatedGasFeeTimeBounds": {},
     "gasEstimateType": "none"
   },
@@ -113,9 +102,6 @@
     },
     "networkConfigurations": "object"
   },
-  "NetworkOrderController": {
-    "orderedNetworkList": { "0": "string", "1": "string", "2": "string" }
-  },
   "NftController": {
     "allNftContracts": "object",
     "allNfts": "object",
@@ -133,8 +119,7 @@
     "storageMetadata": {},
     "chainStatus": {
       "0x539": { "chainId": "0x539", "dataFetched": false, "versionInfo": [] }
-    },
-    "versionFileETag": "string"
+    }
   },
   "PermissionController": { "subjects": "object" },
   "PermissionLogController": {
@@ -167,7 +152,6 @@
     "forgottenPassword": false,
     "preferences": {
       "hideZeroBalanceTokens": false,
-      "showExtensionInFullSizeView": false,
       "showFiatInTestnets": false,
       "showTestNetworks": false,
       "useNativeCurrencyAsPrimaryCurrency": true
@@ -203,15 +187,11 @@
       "smartTransactions": "object"
     }
   },
-  "SnapController": {
-    "snaps": "object",
-    "snapStates": "object",
-    "unencryptedSnapStates": "object"
-  },
+  "SnapController": { "snaps": "object", "snapStates": "object" },
   "SnapsRegistry": { "database": "object", "lastUpdated": "object" },
   "SubjectMetadataController": { "subjectMetadata": "object" },
   "SwapsController": {
-    "singleChainSwapsState": {
+    "swapsState": {
       "quotes": "object",
       "quotesPollingLimitEnabled": false,
       "fetchParams": null,
@@ -243,10 +223,7 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": true
   },
-  "TokenRatesController": {
-    "contractExchangeRates": "object",
-    "contractExchangeRatesByChainId": "object"
-  },
+  "TokenRatesController": { "contractExchangeRates": "object" },
   "TokensController": {
     "tokens": "object",
     "ignoredTokens": "object",
@@ -255,9 +232,5 @@
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
   },
-  "TxController": {
-    "lastFetchedBlockNumbers": "object",
-    "methodData": "object",
-    "transactions": "object"
-  }
+  "TxController": { "transactions": "object" }
 }
