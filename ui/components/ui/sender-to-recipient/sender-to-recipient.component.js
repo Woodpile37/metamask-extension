@@ -104,7 +104,6 @@ SenderAddress.propTypes = {
 };
 
 export function RecipientWithAddress({
-  recipientAddress,
   checksummedRecipientAddress,
   onRecipientClick,
   addressOnly,
@@ -134,23 +133,19 @@ export function RecipientWithAddress({
   }
 >>>>>>> upstream/develop
 
-  let displayName;
-  if (petnamesEnabled) {
-    displayName = (
-      <Name value={recipientAddress} type={NameType.ETHEREUM_ADDRESS} />
-    );
-  } else {
-    displayName =
-      recipientName ||
+  const displayName = petnamesEnabled ? (
+    <Name
+      value={checksummedRecipientAddress}
+      type={NameType.ETHEREUM_ADDRESS}
+    />
+  ) : (
+    (recipientName ||
       recipientNickname ||
       recipientMetadataName ||
       recipientEns ||
-      shortenAddress(checksummedRecipientAddress);
-
-    if (addressOnly && !displayName) {
-      displayName = t('newContract');
-    }
-  }
+      shortenAddress(checksummedRecipientAddress)) ??
+    (!addressOnly && t('newContract'))
+  );
 
   return (
 <<<<<<< HEAD
@@ -228,7 +223,6 @@ export function RecipientWithAddress({
 }
 
 RecipientWithAddress.propTypes = {
-  recipientAddress: PropTypes.string,
   checksummedRecipientAddress: PropTypes.string,
   recipientName: PropTypes.string,
   recipientEns: PropTypes.string,
@@ -287,7 +281,6 @@ export default function SenderToRecipient({
       <Arrow variant={variant} />
       {recipientAddress ? (
         <RecipientWithAddress
-          recipientAddress={recipientAddress}
           checksummedRecipientAddress={checksummedRecipientAddress}
           onRecipientClick={onRecipientClick}
           addressOnly={addressOnly}

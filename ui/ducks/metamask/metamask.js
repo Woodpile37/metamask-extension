@@ -68,6 +68,7 @@ const initialState = {
     showFiatInTestnets: false,
     showTestNetworks: false,
     useNativeCurrencyAsPrimaryCurrency: true,
+    petnamesEnabled: true,
   },
   firstTimeFlowType: null,
   completedOnboarding: false,
