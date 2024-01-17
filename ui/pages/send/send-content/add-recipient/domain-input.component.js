@@ -72,10 +72,7 @@ export default class DomainInput extends Component {
       return null;
     }
 
-    let isFlask = false;
-    ///: BEGIN:ONLY_INCLUDE_IF(build-flask)
-    isFlask = true;
-    ///: END:ONLY_INCLUDE_IF
+    const isFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
 
     if ((isFlask && !isHexString(input)) || isValidDomainName(input)) {
       lookupDomainName(input);
@@ -98,6 +95,7 @@ export default class DomainInput extends Component {
     const { className, selectedAddress, selectedName, userInput } = this.props;
 
     const hasSelectedAddress = Boolean(selectedAddress);
+    const isFlask = process.env.METAMASK_BUILD_TYPE === 'flask';
 
     return (
       <div className={classnames('ens-input', className)}>
@@ -134,7 +132,11 @@ export default class DomainInput extends Component {
                 className="ens-input__wrapper__input"
                 type="text"
                 dir="auto"
-                placeholder={t('recipientAddressPlaceholder')}
+                placeholder={
+                  isFlask
+                    ? t('recipientAddressPlaceholderFlask')
+                    : t('recipientAddressPlaceholder')
+                }
                 onChange={this.onChange}
                 onPaste={this.onPaste}
                 spellCheck="false"

@@ -161,6 +161,11 @@ const baseStore = {
   },
 };
 
+let placeholderText = 'Enter public address (0x) or ENS name';
+///: BEGIN:ONLY_INCLUDE_IF(build-flask)
+placeholderText = 'Enter public address (0x) or domain name';
+///: END:ONLY_INCLUDE_IF
+
 describe('Send Page', () => {
   describe('Send Flow Initialization', () => {
     it('should initialize the ENS slice on render', () => {
@@ -206,9 +211,7 @@ describe('Send Page', () => {
     it('should render the DomainInput field', () => {
       const store = configureMockStore(middleware)(baseStore);
       const { getByPlaceholderText } = renderWithProvider(<Send />, store);
-      expect(
-        getByPlaceholderText('Enter public address (0x) or ENS name'),
-      ).toBeTruthy();
+      expect(getByPlaceholderText(placeholderText)).toBeTruthy();
     });
 
     it('should not render the footer', () => {
@@ -230,9 +233,7 @@ describe('Send Page', () => {
       const { getByPlaceholderText } = renderWithProvider(<Send />, store);
       // Ensure that the send flow renders on the add recipient screen when
       // there is no draft transaction.
-      expect(
-        getByPlaceholderText('Enter public address (0x) or ENS name'),
-      ).toBeTruthy();
+      expect(getByPlaceholderText(placeholderText)).toBeTruthy();
       // Ensure we start a new draft transaction when its missing.
       expect(startNewDraftTransaction).toHaveBeenCalledTimes(1);
     });
@@ -279,9 +280,7 @@ describe('Send Page', () => {
     it('should render the DomainInput field', () => {
       const store = configureMockStore(middleware)(baseStore);
       const { getByPlaceholderText } = renderWithProvider(<Send />, store);
-      expect(
-        getByPlaceholderText('Enter public address (0x) or ENS name'),
-      ).toBeTruthy();
+      expect(getByPlaceholderText(placeholderText)).toBeTruthy();
     });
 
     it('should render the footer', () => {
