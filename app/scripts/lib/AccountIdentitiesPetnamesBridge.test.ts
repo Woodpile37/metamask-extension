@@ -3,6 +3,7 @@ import {
   NameController,
   NameControllerState,
   NameType,
+  NameOrigin,
 } from '@metamask/name-controller';
 import {
   PreferencesController,
@@ -20,13 +21,17 @@ const NAME_MOCK = 'name1';
  * @param address
  * @param name
  */
-function createPetnameEntry(address: string, name: string): PetnameEntry {
+function createAccountIdentityPetnameEntry(
+  address: string,
+  name: string,
+): PetnameEntry {
   return {
     value: address,
     name,
     type: NameType.ETHEREUM_ADDRESS,
     sourceId: undefined,
     variation: FALLBACK_VARIATION,
+    origin: NameOrigin.ACCOUNT_IDENTITY,
   };
 }
 
@@ -44,10 +49,14 @@ const EMPTY_NAME_STATE: NameControllerState = {
  *
  * @param address
  * @param name
+ * @param sourceId
+ * @param origin
  */
 function createNameStateWithPetname(
   address: string,
   name: string,
+  sourceId: string | null = null,
+  origin: NameOrigin | null = null,
 ): NameControllerState {
   return {
     ...EMPTY_NAME_STATE,
@@ -56,8 +65,9 @@ function createNameStateWithPetname(
         [address]: {
           [FALLBACK_VARIATION]: {
             name,
-            sourceId: null,
             proposedNames: {},
+            sourceId,
+            origin,
           },
         },
       },
@@ -141,7 +151,7 @@ describe('AccountIdentitiesPetnamesBridge', () => {
 
     expect(nameController.setName).toHaveBeenCalledTimes(1);
     expect(nameController.setName).toHaveBeenCalledWith(
-      createPetnameEntry(ADDRESS_MOCK, NAME_MOCK),
+      createAccountIdentityPetnameEntry(ADDRESS_MOCK, NAME_MOCK),
     );
   });
 
@@ -167,7 +177,7 @@ describe('AccountIdentitiesPetnamesBridge', () => {
 
     expect(nameController.setName).toHaveBeenCalledTimes(1);
     expect(nameController.setName).toHaveBeenCalledWith(
-      createPetnameEntry(ADDRESS_MOCK, UPDATED_NAME),
+      createAccountIdentityPetnameEntry(ADDRESS_MOCK, UPDATED_NAME),
     );
   });
 

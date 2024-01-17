@@ -162,8 +162,9 @@ export abstract class AbstractPetnamesBridge {
             value,
             type,
             name: entry.name,
-            sourceId: entry.sourceId ?? undefined,
             variation,
+            sourceId: entry.sourceId ?? undefined,
+            origin: entry.origin ?? undefined,
           });
         }
       }
@@ -179,7 +180,12 @@ export abstract class AbstractPetnamesBridge {
    */
   #updatePetnameEntry(type: ChangeType, entry: PetnameEntry): void {
     if (type === ChangeType.DELETED) {
-      this.#nameController.setName({ ...entry, name: null });
+      delete entry.sourceId;
+      delete entry.origin;
+      this.#nameController.setName({
+        ...entry,
+        name: null,
+      });
     } else {
       // ADDED or UPDATED
       this.#nameController.setName(entry);
