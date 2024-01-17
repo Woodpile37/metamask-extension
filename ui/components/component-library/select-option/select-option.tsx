@@ -49,10 +49,10 @@ export const SelectOption: SelectOptionComponent = React.forwardRef(
       <Box
         className={classnames('mm-select-option', className)}
         ref={ref}
+        {...(props as BoxProps<C>)}
         onClick={handleClick}
         as="button"
         display={Display.Block}
-        {...(props as BoxProps<C>)}
       >
         {children}
       </Box>

@@ -1,4 +1,5 @@
 .mm-select-wrapper {
+  // TODO: to check if the select is being used within a modal and the z-index might need to support
   &__popover {
     overflow: hidden;
     z-index: $dropdown-z-index;

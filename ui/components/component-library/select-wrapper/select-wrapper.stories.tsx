@@ -1,6 +1,5 @@
 import React from 'react';
 import { StoryFn, Meta } from '@storybook/react';
-import { actions } from '@storybook/addon-actions';
 import { SelectButton } from '../select-button';
 import { SelectOption } from '../select-option';
 import { Button } from '../button';
@@ -8,7 +7,7 @@ import { Text } from '../text';
 import { BackgroundColor } from '../../../helpers/constants/design-system';
 import README from './README.mdx';
 
-import { SelectWrapper, useSelectContext } from '.';
+import { SelectWrapper, useSelectContext } from './select-wrapper';
 
 export default {
   title: 'Components/ComponentLibrary/SelectWrapper',
@@ -21,50 +20,7 @@ export default {
       },
     },
   },
-  argTypes: {
-    placeholder: {
-      control: {
-        type: 'text',
-      },
-    },
-    defaultValue: {
-      control: {
-        type: 'text',
-      },
-    },
-    value: {
-      control: {
-        type: 'text',
-      },
-    },
-    isUncontrolledOpen: {
-      control: {
-        type: 'boolean',
-      },
-    },
-    isDanger: {
-      control: {
-        type: 'boolean',
-      },
-    },
-    isDisabled: {
-      control: {
-        type: 'boolean',
-      },
-    },
-    isMultiSelect: {
-      control: {
-        type: 'boolean',
-      },
-    },
-    onBlur: {
-      action: 'onBlur',
-    },
-  },
-  args: {
-    placeholder: 'Select an option',
-    triggerComponent: <SelectButton>Select an option</SelectButton>,
-  },
+  argTypes: {},
 } as Meta<typeof SelectWrapper>;
 
 const Template: StoryFn<typeof SelectWrapper> = (args) => {
@@ -79,11 +35,22 @@ const Template: StoryFn<typeof SelectWrapper> = (args) => {
 
 export const DefaultStory = Template.bind({});
 DefaultStory.storyName = 'Default';
+DefaultStory.args = {
+  placeholder: 'Select an option',
+  triggerComponent: <SelectButton />,
+};
 
-export const TriggerComponent = Template.bind({});
-TriggerComponent.args = {
-  placeholder: '',
-  triggerComponent: <SelectButton>Trigger component</SelectButton>,
+export const TriggerComponent: StoryFn<typeof SelectWrapper> = (args) => {
+  return (
+    <>
+      <SelectWrapper
+        {...args}
+        triggerComponent={<SelectButton>Trigger Component</SelectButton>}
+      >
+        <SelectOption value="Value">Value</SelectOption>
+      </SelectWrapper>
+    </>
+  );
 };
 
 TriggerComponent.storyName = 'triggerComponent';
@@ -135,14 +102,24 @@ export const ControlledOpen: StoryFn<typeof SelectWrapper> = (args) => {
   );
 };
 
-export const UncontrolledOpen = Template.bind({});
-
-UncontrolledOpen.args = {
-  placeholder: 'Uncontrolled Open Demo',
+export const UncontrolledOpen: StoryFn<typeof SelectWrapper> = (args) => {
+  return (
+    <>
+      <SelectWrapper
+        {...args}
+        placeholder="Uncontrolled Open Demo"
+        triggerComponent={<SelectButton>Uncontrolled Open Demo</SelectButton>}
+      >
+        <SelectOption value="Option 1">Option 1</SelectOption>
+        <SelectOption value="Option 2">Option 2</SelectOption>
+        <SelectOption value="Option 3">Option 3</SelectOption>
+      </SelectWrapper>
+    </>
+  );
 };
 
 export const ControlledValue: StoryFn<typeof SelectWrapper> = (args) => {
-  const [controlledValue, setControlledValue] = React.useState<string>('');
+  const [controlledValue, setControlledValue] = React.useState<string>();
 
   return (
     <>
@@ -165,14 +142,23 @@ export const ControlledValue: StoryFn<typeof SelectWrapper> = (args) => {
   );
 };
 
-export const UncontrolledValue = Template.bind({});
-UncontrolledValue.args = {
-  triggerComponent: <SelectButton>Uncontrolled Value Demo</SelectButton>,
-  placeholder: 'Uncontrolled Value Demo',
+export const UncontrolledValue: StoryFn<typeof SelectWrapper> = (args) => {
+  return (
+    <>
+      <SelectWrapper
+        {...args}
+        triggerComponent={<SelectButton>Uncontrolled Example</SelectButton>}
+      >
+        <SelectOption value="Option 1">Option 1</SelectOption>
+        <SelectOption value="Option 2">Option 2</SelectOption>
+        <SelectOption value="Option 3">Option 3</SelectOption>
+      </SelectWrapper>
+    </>
+  );
 };
 
 export const UseSelectContext: StoryFn<typeof SelectWrapper> = (args) => {
-  // Note that the SelectContext is being used inside a component, because the SelectContext needs to be called within the SelectWrapper component and not before
+  // Note thaty the SelectContext is being used inside a component, because the SelectContext needs to be called within the SelectWrapper component and not before
   const CustomClose = () => {
     const { toggleUncontrolledOpen } = useSelectContext();
 
@@ -229,30 +215,75 @@ IsMultiSelect.args = {
 
 IsMultiSelect.storyName = 'isMultiSelect';
 
-export const Placeholder = Template.bind({});
-Placeholder.args = {
-  placeholder: 'Placeholder demo',
+export const Placeholder: StoryFn<typeof SelectWrapper> = (args) => {
+  return (
+    <SelectWrapper
+      placeholder={'This is a placeholder'}
+      {...args}
+      triggerComponent={<SelectButton>Demo</SelectButton>}
+    >
+      <SelectOption value="Option 1">Option 1</SelectOption>
+      <SelectOption value="Option 2">Option 2</SelectOption>
+      <SelectOption value="Option 3">Option 3</SelectOption>
+    </SelectWrapper>
+  );
 };
 
-export const IsDisabled = Template.bind({});
+export const IsDisabled: StoryFn<typeof SelectWrapper> = (args) => {
+  return (
+    <SelectWrapper
+      {...args}
+      triggerComponent={<SelectButton>Demo</SelectButton>}
+    >
+      <SelectOption value="Option 1">Option 1</SelectOption>
+      <SelectOption value="Option 2">Option 2</SelectOption>
+      <SelectOption value="Option 3">Option 3</SelectOption>
+    </SelectWrapper>
+  );
+};
 
 IsDisabled.args = {
+  placeholder: 'Select Option',
   isDisabled: true,
 };
 
 IsDisabled.storyName = 'isDisabled';
 
-export const IsDanger = Template.bind({});
+export const IsDanger: StoryFn<typeof SelectWrapper> = (args) => {
+  return (
+    <SelectWrapper
+      {...args}
+      triggerComponent={<SelectButton>Demo</SelectButton>}
+    >
+      <SelectOption value="Option 1">Option 1</SelectOption>
+      <SelectOption value="Option 2">Option 2</SelectOption>
+      <SelectOption value="Option 3">Option 3</SelectOption>
+    </SelectWrapper>
+  );
+};
 
 IsDanger.args = {
+  placeholder: 'Select Option',
   isDanger: true,
 };
 
 IsDanger.storyName = 'isDanger';
 
-export const PopoverProps = Template.bind({});
+export const PopoverProps: StoryFn<typeof SelectWrapper> = (args) => {
+  return (
+    <SelectWrapper
+      {...args}
+      triggerComponent={<SelectButton>Demo</SelectButton>}
+    >
+      <SelectOption value="Option 1">Option 1</SelectOption>
+      <SelectOption value="Option 2">Option 2</SelectOption>
+      <SelectOption value="Option 3">Option 3</SelectOption>
+    </SelectWrapper>
+  );
+};
 
 PopoverProps.args = {
+  placeholder: 'Select Option',
   popoverProps: {
     backgroundColor: BackgroundColor.goerli,
     padding: 4,
@@ -262,23 +293,20 @@ PopoverProps.args = {
 
 PopoverProps.storyName = 'popoverProps';
 
-export const OnBlur: StoryFn<typeof SelectWrapper> = (args) => {
-  const [onBlur, setOnBlur] = React.useState(0);
+// popoverProps,
+
+export const WIP: StoryFn<typeof SelectWrapper> = (args) => {
   return (
     <>
       <SelectWrapper
         {...args}
-        onBlur={() => {
-          setOnBlur(onBlur + 1);
-          actions('onBlur');
-        }}
-        placeholder=""
-        triggerComponent={<SelectButton>onBlur Count: {onBlur}</SelectButton>}
+        onBlur={() => console.log('blur')}
+        triggerComponent={<SelectButton>Uncontrolled Example</SelectButton>}
       >
-        <Text>This is a demo of controlled onBlur.</Text>
+        <SelectOption value="Option 1">Option 1</SelectOption>
+        <SelectOption value="Option 2">Option 2</SelectOption>
+        <SelectOption value="Option 3">Option 3</SelectOption>
       </SelectWrapper>
     </>
   );
 };
-
-OnBlur.storyName = 'onBlur';

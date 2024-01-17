@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useContext, createContext } from 'react';
 import classnames from 'classnames';
 import type { PolymorphicRef, BoxProps } from '../box';
 import { Box, Popover, PopoverPosition } from '..';
@@ -6,7 +6,49 @@ import {
   SelectWrapperComponent,
   SelectWrapperProps,
 } from './select-wrapper.types';
-import { SelectContext } from './select-wrapper.context';
+
+// Should go in the types file
+type SelectContextType = {
+  isOpen: boolean | undefined;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean | undefined>>; // Double check this is correct type
+  isUncontrolledOpen: boolean;
+  setIsUncontrolledOpen: React.Dispatch<React.SetStateAction<any | null>>;
+  toggleUncontrolledOpen: () => void; // Function to quickly toggle the open state
+  isDisabled: boolean;
+  isMultiSelect: boolean;
+  value: any | null;
+  onValueChange?: any;
+  uncontrolledValue: any | null;
+  setUncontrolledValue: React.Dispatch<React.SetStateAction<any | null>>;
+  defaultValue: any | null;
+  placeholder: any;
+  isDanger: boolean;
+  // onBlur?: React.FocusEventHandler;
+  // onFocus?: React.FocusEventHandler;
+};
+
+export const SelectContext = createContext<SelectContextType | undefined>(
+  undefined,
+);
+
+export const useSelectContext = () => {
+  const context = useContext(SelectContext);
+
+  if (!context) {
+    throw new Error('useSelectContext must be used within a SelectWrapper');
+  }
+
+  return context;
+};
+
+// Custom hook to access the uncontrolledValue
+export function useUncontrolledValue() {
+  const context = useContext(SelectContext);
+  if (!context) {
+    throw new Error('useUncontrolledValue must be used within a SelectWrapper');
+  }
+  return context.uncontrolledValue;
+}
 
 export const SelectWrapper: SelectWrapperComponent = React.forwardRef(
   <C extends React.ElementType = 'div'>(
@@ -20,11 +62,14 @@ export const SelectWrapper: SelectWrapperComponent = React.forwardRef(
       isDisabled,
       isOpen,
       onOpenChange,
-      isMultiSelect,
+      isMultiSelect, // Prevents from the uncontrolled open state from being toggled
       triggerComponent,
       popoverProps,
       children,
-      onBlur,
+      // To Do: Figure out the below props
+      // onBlur,
+      // onFocus,
+      // onChange,
       ...props
     }: SelectWrapperProps<C>,
     ref?: PolymorphicRef<C>,
@@ -34,28 +79,13 @@ export const SelectWrapper: SelectWrapperComponent = React.forwardRef(
       useState<boolean>(false);
     const [referenceElement, setReferenceElement] =
       useState<HTMLElement | null>();
-    const popoverRef = useRef<HTMLDivElement | null>(null);
-    const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-    const setBoxRef = (anchorRef: HTMLElement | null) => {
-      setReferenceElement(anchorRef);
+    const setBoxRef = (popoverRef: HTMLElement | null) => {
+      setReferenceElement(popoverRef);
     };
 
     const toggleUncontrolledOpen = () => {
-      if (isUncontrolledOpen && onBlur) {
-        onBlur();
-      }
       setIsUncontrolledOpen(!isUncontrolledOpen);
-    };
-
-    const handleClickOutside = () => {
-      setIsUncontrolledOpen(false);
-      if (onOpenChange) {
-        onOpenChange(false);
-      }
-      if (onBlur) {
-        onBlur();
-      }
     };
 
     return (
@@ -79,22 +109,20 @@ export const SelectWrapper: SelectWrapperComponent = React.forwardRef(
       >
         <Box
           className={classnames('mm-select-wrapper', className)}
-          ref={wrapperRef && ref}
+          // onBlur={onBlur}
+          onChange={onValueChange}
+          ref={ref}
           {...(props as BoxProps<C>)}
         >
-          {triggerComponent &&
-            React.cloneElement(triggerComponent, {
-              ref: setBoxRef,
-            })}
+          {React.cloneElement(triggerComponent, {
+            ref: setBoxRef,
+          })}
           <Popover
             isOpen={isOpen || isUncontrolledOpen}
             position={PopoverPosition.Bottom}
-            onClickOutside={handleClickOutside}
             matchWidth
             referenceElement={referenceElement}
-            referenceHidden={false}
             padding={0}
-            ref={popoverRef}
             {...popoverProps}
             className={classnames(
               'mm-select-wrapper__popover',
