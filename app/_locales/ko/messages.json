@@ -153,6 +153,9 @@
   "accountSelectionRequired": {
     "message": "계정을 선택해야 합니다!"
   },
+  "accountsConnected": {
+    "message": "계정 연결됨"
+  },
   "active": {
     "message": "활성"
   },
@@ -243,6 +246,9 @@
   "addIPFSGateway": {
     "message": "선호하는 IPFS 게이트웨이를 추가하세요"
   },
+  "addImportAccount": {
+    "message": "계정 또는 하드웨어 지갑 추가"
+  },
   "addMemo": {
     "message": "메모 추가"
   },
@@ -256,6 +262,9 @@
     "message": "이 네트워크 연결은 타사 서비스를 이용합니다. 연결의 보안이 취약하거나 타사에 연결 내용이 노출될 수 있습니다. $1",
     "description": "$1 is Learn more link"
   },
+  "addNewAccount": {
+    "message": "새 계정 추가"
+  },
   "addNewToken": {
     "message": "신규 토큰 추가"
   },
@@ -264,6 +273,12 @@
   },
   "addNfts": {
     "message": "NFT 추가"
+  },
+  "addSnapAccountToggle": {
+    "message": "\"계정 Snap 추가(베타)\" 활성화"
+  },
+  "addSnapAccountsDescription": {
+    "message": "이 기능을 사용하면 계정 목록에서 바로 새 베타 계정 Snap을 추가할 수 있습니다. 설치하는 계정 Snap은 타사 서비스라는 점을 명심하세요."
   },
   "addSuggestedNFTs": {
     "message": "추천 NFT 추가"
@@ -334,6 +349,9 @@
   "alerts": {
     "message": "경고"
   },
+  "allConnections": {
+    "message": "모든 연결"
+  },
   "allCustodianAccountsConnectedSubtitle": {
     "message": "현재 모든 수탁 계정이 연결되어 있거나 MetaMask Institutional에 연결할 계정이 없습니다."
   },
@@ -348,8 +366,14 @@
     "message": "$1의 모든 내 NFT",
     "description": "$1 is a link to contract on the block explorer when we're not able to retrieve a erc721 or erc1155 name"
   },
+  "allow": {
+    "message": "허용"
+  },
   "allowExternalExtensionTo": {
     "message": "이 외부 확장을 다음에 허용:"
+  },
+  "allowMmiToConnectToCustodian": {
+    "message": "허용할 경우, MMI가 $1에 연결하여 계정을 가져올 수 있습니다."
   },
   "allowSpendToken": {
     "message": "$1에 액세스할 수 있는 권한을 부여하시겠습니까?",
@@ -367,6 +391,14 @@
   },
   "amount": {
     "message": "금액"
+  },
+  "andForListItems": {
+    "message": "$1, 그리고 $2",
+    "description": "$1 is the first item, $2 is the last item in a list of items. Used in Snap Install Warning modal."
+  },
+  "andForTwoItems": {
+    "message": "$1 및 $2",
+    "description": "$1 is the first item, $2 is the second item. Used in Snap Install Warning modal."
   },
   "appDescription": {
     "message": "브라우저의 이더리움 지갑",
@@ -439,11 +471,18 @@
   "attemptSendingAssets": {
     "message": "한 네트워크에서 다른 네트워크로 자산을 직접 전송하면 자산이 영구적으로 손실될 수 있습니다. 반드시 브릿지를 이용하세요."
   },
+  "attemptToCancelSwapForFree": {
+    "message": "무료 스왑 취소 시도"
+  },
   "attemptingConnect": {
     "message": "블록체인에 연결 중입니다."
   },
   "attributions": {
     "message": "속성"
+  },
+  "auroraDeprecationWarning": {
+    "message": "MetaMask는 $1 네트워크에 대한 지원을 중단할 예정입니다",
+    "description": "$1 is name of deprecated network"
   },
   "authorizedPermissions": {
     "message": "다음 권한을 승인했습니다."
@@ -479,6 +518,9 @@
   "backupApprovalNotice": {
     "message": "비밀복구구문을 백업하여 지갑과 자금을 안전하게 보호하세요."
   },
+  "backupKeyringSnapReminder": {
+    "message": "제거하기 전에 이 Snap에서 생성한 계정에 직접 액세스할 수 있는지 확인하세요"
+  },
   "backupNow": {
     "message": "지금 백업"
   },
@@ -486,7 +528,7 @@
     "message": "데이터를 백업하세요"
   },
   "backupUserDataDescription": {
-    "message": "기본 설정과 계정 주소가 포함된 사용자 설정을 JSON 파일로 백업할 수 있습니다."
+    "message": "기본 설정과 계약이 포함된 사용자 설정을 JSON 파일로 백업할 수 있습니다."
   },
   "balance": {
     "message": "잔액"
@@ -571,6 +613,9 @@
   "blockaidDescriptionTransferFarming": {
     "message": "이 요청을 승인하면 스캠과 같은 타사가 회원님의 모든 자산을 가져갈 수 있습니다."
   },
+  "blockaidMessage": {
+    "message": "개인정보 보호 - 제삼자와 데이터를 공유하지 않습니다. 이더리움 메인넷에서 사용할 수 있습니다."
+  },
   "blockaidTitleDeceptive": {
     "message": "사기성 요청입니다"
   },
@@ -603,6 +648,18 @@
   },
   "busy": {
     "message": "바쁨"
+  },
+  "buy": {
+    "message": "매수"
+  },
+  "buyAndSell": {
+    "message": "매수 및 매도"
+  },
+  "buyAndSellDescription": {
+    "message": "암호화폐를 매수 또는 매도하세요"
+  },
+  "buyAndSellDisabled": {
+    "message": "이 네트워크에서는 매수 및 매도를 할 수 없습니다"
   },
   "buyAsset": {
     "message": "$1 구매",
@@ -654,7 +711,7 @@
     "message": "이 체인 ID는 현재 $1 네트워크에서 사용됩니다."
   },
   "chainListReturnedDifferentTickerSymbol": {
-    "message": "체인 ID $1의 네트워크는 입력한 것과 다른 통화 기호($2)를 사용할 수 있습니다. 확인 후 진행하세요.",
+    "message": "이 네트워크는 연결된 체인 ID 또는 이름이 일치하지 않습니다. 여러 인기 토큰이 $1(이)라는 이름을 사용하기 때문에 사기의 표적이 되고 있습니다. 사기꾼은 더 가격이 높은 암호화폐를 주겠다고 속일 수 있습니다. 계속하기 전에 모든 사항을 확인하세요.",
     "description": "$1 is the symbol of the network that was returned by the chain list"
   },
   "chooseYourNetwork": {
@@ -695,6 +752,10 @@
   "coingecko": {
     "message": "CoinGecko"
   },
+  "comboNoOptions": {
+    "message": "옵션을 찾을 수 없습니다",
+    "description": "Default text shown in the combo field dropdown if no options."
+  },
   "configureSnapPopupDescription": {
     "message": "이제 이 스냅 구성을 위해 MetaMask 페이지를 떠나게 됩니다."
   },
@@ -712,6 +773,15 @@
   },
   "confirm": {
     "message": "컨펌"
+  },
+  "confirmConnectCustodianRedirect": {
+    "message": "계속을 클릭하면 $1(으)로 리디렉션됩니다."
+  },
+  "confirmConnectCustodianText": {
+    "message": "계정을 연결하려면 $1에 로그인하여 'MMI에 연결' 버튼을 클릭하세요."
+  },
+  "confirmConnectionTitle": {
+    "message": "$1에 연결 확인"
   },
   "confirmPassword": {
     "message": "비밀번호 컨펌"
@@ -745,6 +815,9 @@
   },
   "connectCustodialAccountTitle": {
     "message": "수탁 계정"
+  },
+  "connectCustodianAccounts": {
+    "message": "$1 계정 연결"
   },
   "connectManually": {
     "message": "현재 사이트에 직접 연결"
@@ -797,11 +870,23 @@
     "message": "$1 계정은 어떤 사이트에도 연결되어 있지 않습니다.",
     "description": "$1 is the account name"
   },
+  "connectedSnapAndNoAccountDescription": {
+    "message": "MetaMask는 이 사이트와 연결되어 있지만, 아직 연결된 계정이 없습니다"
+  },
+  "connectedaccount": {
+    "message": "계정"
+  },
+  "connectedaccounts": {
+    "message": "계정"
+  },
   "connecting": {
     "message": "연결 중..."
   },
   "connectingTo": {
     "message": "$1에 연결 중"
+  },
+  "connectingToDeprecatedNetwork": {
+    "message": "'$1' 네트워크는 단계적으로 지원 중단되므로 작동하지 않을 수 있습니다. 다른 네트워크를 사용해 보세요."
   },
   "connectingToGoerli": {
     "message": "Goerli 테스트 네트워크에 연결 중"
@@ -843,6 +928,12 @@
   },
   "continue": {
     "message": "계속"
+  },
+  "continueMmiOnboarding": {
+    "message": "MetaMask Institutional 온보딩 계속"
+  },
+  "continueToWallet": {
+    "message": "지갑으로 계속"
   },
   "contract": {
     "message": "계약"
@@ -913,6 +1004,12 @@
   "createPassword": {
     "message": "비밀번호 생성"
   },
+  "createSnapAccountDescription": {
+    "message": "$1에서 MetaMask에 새로운 계정을 추가하려고 합니다."
+  },
+  "createSnapAccountTitle": {
+    "message": "계정 생성"
+  },
   "cryptoCompare": {
     "message": "CryptoCompare"
   },
@@ -963,10 +1060,10 @@
     "message": "수탁자"
   },
   "custodianAccountAddedDesc": {
-    "message": "이제 MetaMask Institutional에서 수탁 계정을 사용할 수 있습니다."
+    "message": "이제 MetaMask Institutional에서 계정을 사용할 수 있습니다."
   },
   "custodianAccountAddedTitle": {
-    "message": "선택한 수탁 계정을 추가했습니다."
+    "message": "선택한 $1 계정을 추가했습니다."
   },
   "custodianReplaceRefreshTokenChangedFailed": {
     "message": "계정을 MMI에 다시 연결하려면 $1에서 해당 사용자 인터페이스를 찾아 'MMI로 연결' 버튼을 클릭하면 됩니다."
@@ -1033,7 +1130,7 @@
     "message": "이 네트워크에서는 아직 토큰 감지 기능을 사용할 수 없습니다. 토큰을 직접 가져오고 해당 토큰을 신뢰할 수 있는지 반드시 확인하세요. $1에 대해 알아보기"
   },
   "customTokenWarningInTokenDetectionNetwork": {
-    "message": "토큰을 직접 가져오기 전에 해당 토큰을 신뢰할 수 있는지 반드시 확인하세요. $1에 대해 알아보기."
+    "message": "토큰을 생성하기 전에 해당 토큰을 신뢰할 수 있는지 반드시 확인하세요. $1에 대해 알아보기."
   },
   "customTokenWarningInTokenDetectionNetworkWithTDOFF": {
     "message": "불러오기 전에 토큰의 신뢰성을 확인하세요. $1 상황을 피하는 방법을 알아보세요. 또한 $2 토큰 감지 기능을 활성화할 수 있습니다."
@@ -1123,6 +1220,12 @@
   },
   "deposit": {
     "message": "예치"
+  },
+  "deprecatedAuroraNetworkMsg": {
+    "message": "MetaMask는 Aurora 네트워크에 대한 지원을 중단할 예정입니다. 계속 사용하고 싶으시면 사용자 지정 네트워크에 추가하세요"
+  },
+  "deprecatedGoerliNtwrkMsg": {
+    "message": "이더리움 시스템 업데이트로 인해 Goerli 테스트 네트워크는 곧 단계적으로 지원 중단될 예정입니다."
   },
   "description": {
     "message": "설명"
@@ -1255,6 +1358,10 @@
   "disconnectThisAccount": {
     "message": "이 계정 연결 해제"
   },
+  "discoverSnaps": {
+    "message": "Snap 알아보기",
+    "description": "Text that links to the Snaps website. Displayed in a banner on Snaps list page in settings."
+  },
   "dismiss": {
     "message": "해지"
   },
@@ -1264,8 +1371,20 @@
   "dismissReminderField": {
     "message": "비밀복구구문 백업 알림 해지"
   },
+  "displayNftMedia": {
+    "message": "NFT 미디어 표시"
+  },
+  "displayNftMediaDescription": {
+    "message": "NFT 미디어와 데이터를 표시하면 IP 주소가 OpenSea나 기타 제삼자에게 노출될 수 있습니다. 공격자는 이를 통해 회원님의 IP 주소와 이더리움 주소를 연결할 수 있습니다. NFT 자동 감지는 이 설정을 사용하며, 이 설정이 꺼져 있는 경우 사용할 수 없습니다."
+  },
+  "doNotShare": {
+    "message": "누구와도 공유하지 마세요"
+  },
   "domain": {
     "message": "도메인"
+  },
+  "domainNotSupportedOnNetwork": {
+    "message": "네트워크에서 도메인 조회를 지원하지 않음"
   },
   "done": {
     "message": "완료"
@@ -1389,6 +1508,9 @@
   "enableFromSettings": {
     "message": " 설정에서 이 기능을 활성화합니다."
   },
+  "enableSmartSwaps": {
+    "message": "스마트 스왑 활성화"
+  },
   "enableSnap": {
     "message": "활성화"
   },
@@ -1412,6 +1534,18 @@
   },
   "enhancedTokenDetectionAlertMessage": {
     "message": "$1에서 향상된 토큰 감지 기능을 사용할 수 있습니다. $2"
+  },
+  "ensDomainsSettingDescriptionIntroduction": {
+    "message": "MetaMask를 사용하면 브라우저의 주소창에서 ENS 도메인을 바로 볼 수 있습니다. 방법은 다음과 같습니다."
+  },
+  "ensDomainsSettingDescriptionOutroduction": {
+    "message": "이 기능을 사용하면 IPFS 제삼자 서비스에 회원님의 IP 주소가 노출된다는 사실을 명심하세요."
+  },
+  "ensDomainsSettingDescriptionPart1": {
+    "message": "MetaMask에서는 이더리움의 ENS 계약을 확인하여 해당 ENS 이름과 연결되어 있는 코드를 찾습니다."
+  },
+  "ensDomainsSettingDescriptionPart2": {
+    "message": "해당 코드가 IPFS와 링크되어 있으면 관련 콘텐츠(주로 웹사이트)를 볼 수 있습니다."
   },
   "ensDomainsSettingTitle": {
     "message": "주소창에 ENS 도메인 표시하기"
@@ -1454,6 +1588,9 @@
     "message": "오류 세부 정보",
     "description": "Title for collapsible section that displays error details for debugging purposes"
   },
+  "errorGettingSafeChainList": {
+    "message": "안전 체인 목록을 가져오는 동안 오류가 발생했습니다. 주의하여 계속 진행하세요."
+  },
   "errorMessage": {
     "message": "메시지: $1",
     "description": "Displayed error message for debugging purposes. $1 is the error message"
@@ -1485,6 +1622,9 @@
     "message": "$1 오류",
     "description": "$1 represents the name of the snap"
   },
+  "estimatedFee": {
+    "message": "예상 수수료"
+  },
   "ethGasPriceFetchWarning": {
     "message": "현재 주요 가스 견적 서비스를 사용할 수 없으므로 백업 가스 가격을 제공합니다."
   },
@@ -1511,11 +1651,23 @@
     "message": "실험적"
   },
   "extendWalletWithSnaps": {
-    "message": "지갑 경험을 개인 맞춤하세요.",
+    "message": "커뮤니티에서 만들어진 Snap을 알아보고 웹3 경험을 개인 맞춤하세요.",
     "description": "Banner description displayed on Snaps list page in Settings when less than 6 Snaps is installed."
+  },
+  "extensionInsallCompleteDescription": {
+    "message": "MetaMask Institutional 제품 온보딩으로 돌아가 수탁 또는 자기 수탁 계정을 연결합니다."
+  },
+  "extensionInsallCompleteTitle": {
+    "message": "확장 설치 완료"
   },
   "externalExtension": {
     "message": "외부 확장"
+  },
+  "externalNameSourcesSetting": {
+    "message": "주소 이름 제안"
+  },
+  "externalNameSourcesSettingDescription": {
+    "message": "당사는 서명 요청에 대한 주소 이름을 제안하기 위해 Etherscan, Infura, Lens Protocol 같은 타사로부터 데이터를 가져옵니다. 이름 제안 기능을 활성화하면 이러한 타사에 IP 주소가 노출됩니다."
   },
   "failed": {
     "message": "실패"
@@ -1529,11 +1681,17 @@
   "failureMessage": {
     "message": "문제가 발생했습니다. 작업을 완료할 수 없습니다."
   },
+  "faqAndRiskDisclosures": {
+    "message": "자주 묻는 질문 및 위험 고지"
+  },
   "fast": {
     "message": "빠름"
   },
   "feeAssociatedRequest": {
     "message": "수수료가 이 요청과 연결되어 있습니다."
+  },
+  "feeDetails": {
+    "message": "수수료 세부 정보"
   },
   "fiat": {
     "message": "명목",
@@ -1566,6 +1724,9 @@
   "flaskWelcomeWarningAcceptButton": {
     "message": "본인은 이 위험을 감수합니다",
     "description": "this text is shown on a button, which the user presses to confirm they understand the risks of using Flask"
+  },
+  "floatAmountToken": {
+    "message": "토큰 금액은 정수여야 합니다"
   },
   "followUsOnTwitter": {
     "message": "트위터에서 팔로우하세요"
@@ -1652,6 +1813,9 @@
     "message": "$1 시간",
     "description": "$1 represents a number of hours"
   },
+  "gasTimingLow": {
+    "message": "느림"
+  },
   "gasTimingMinutesShort": {
     "message": "$1 분",
     "description": "$1 represents a number of minutes"
@@ -1666,6 +1830,12 @@
   "general": {
     "message": "일반"
   },
+  "generalCameraError": {
+    "message": "카메라에 액세스할 수 없습니다. 다시 시도하세요."
+  },
+  "generalCameraErrorTitle": {
+    "message": "오류가 발생했습니다...."
+  },
   "globalTitle": {
     "message": "글로벌 메뉴"
   },
@@ -1674,6 +1844,9 @@
   },
   "goBack": {
     "message": "뒤로 가기"
+  },
+  "goToSite": {
+    "message": "사이트로 이동"
   },
   "goerli": {
     "message": "Goerli 테스트 네트워크"
@@ -1716,14 +1889,23 @@
   "hexData": {
     "message": "헥스 데이터"
   },
+  "hiddenAccounts": {
+    "message": "숨긴 계정"
+  },
   "hide": {
     "message": "숨기기"
+  },
+  "hideAccount": {
+    "message": "계정 숨기기"
   },
   "hideFullTransactionDetails": {
     "message": "전체 트랜잭션 세부 정보 숨기기"
   },
   "hideSeedPhrase": {
     "message": "시드 구문 숨기기"
+  },
+  "hideSentitiveInfo": {
+    "message": "민감한 정보 숨기기"
   },
   "hideToken": {
     "message": "토큰 숨기기"
@@ -1864,6 +2046,9 @@
   "importTokensCamelCase": {
     "message": "토큰 가져오기"
   },
+  "importTokensError": {
+    "message": "토큰을 가져올 수 없습니다. 나중에 다시 시도하세요."
+  },
   "importWithCount": {
     "message": "$1 불러오기",
     "description": "$1 will the number of detected tokens that are selected for importing, if all of them are selected then $1 will be all"
@@ -1899,8 +2084,17 @@
   "install": {
     "message": "설치"
   },
+  "installExtension": {
+    "message": "확장 설치"
+  },
+  "installExtensionDescription": {
+    "message": "기관의 규정을 준수하는 세계 최고의 웹3 지갑, MetaMask입니다."
+  },
   "installOrigin": {
     "message": "출처 설치"
+  },
+  "installRequest": {
+    "message": "설치 요청"
   },
   "installedOn": {
     "message": "$1에 설치됨",
@@ -2015,6 +2209,24 @@
     "message": "JSON 파일",
     "description": "format for importing an account"
   },
+  "keyringAccountName": {
+    "message": "계정 이름"
+  },
+  "keyringAccountPublicAddress": {
+    "message": "공개 주소"
+  },
+  "keyringSnapRemovalResult1": {
+    "message": "$1 제거 $2",
+    "description": "Displays the result after removal of a keyring snap. $1 is the snap name, $2 is whether it is successful or not"
+  },
+  "keyringSnapRemovalResultNotSuccessful": {
+    "message": "실패 ",
+    "description": "Displays the `not` word in $2."
+  },
+  "keyringSnapRemoveConfirmation": {
+    "message": "$1을(를) 입력하여 이 스냅을 제거할지 확인합니다:",
+    "description": "Asks user to input the name nap prior to deleting the snap. $1 is the snap name"
+  },
   "keystone": {
     "message": "Keystone"
   },
@@ -2056,6 +2268,12 @@
   "learnScamRisk": {
     "message": "사기 및 보안 위험"
   },
+  "leaveMetaMask": {
+    "message": "MetaMask를 나가시겠습니까?"
+  },
+  "leaveMetaMaskDesc": {
+    "message": "MetaMask 외부의 사이트를 방문하려고 합니다. 계속하기 전에 URL을 다시 한번 확인하세요."
+  },
   "ledgerAccountRestriction": {
     "message": "새 계정을 추가하려면 먼저 기존의 최종 계정을 사용해야 합니다."
   },
@@ -2093,6 +2311,9 @@
   "lightTheme": {
     "message": "라이트"
   },
+  "likeToImportToken": {
+    "message": "이 토큰을 가져올까요?"
+  },
   "likeToImportTokens": {
     "message": "이 토큰을 추가하시겠습니까?"
   },
@@ -2116,6 +2337,12 @@
   },
   "loadingNFTs": {
     "message": "NFT 불러오는 중..."
+  },
+  "loadingScreenHardwareWalletMessage": {
+    "message": "하드웨어 지갑에서 트랜잭션을 완료하세요."
+  },
+  "loadingScreenSnapMessage": {
+    "message": "Snap에서 트랜잭션을 완료하세요."
   },
   "loadingTokens": {
     "message": "토큰 불러오는 중..."
@@ -2161,6 +2388,9 @@
   "makeSureNoOneWatching": {
     "message": "다른 사람이 이 화면을 보고 있지는 않은지 확인하세요.",
     "description": "Warning to users to be care while creating and saving their new Secret Recovery Phrase"
+  },
+  "manageInSettings": {
+    "message": "설정에서 관리"
   },
   "max": {
     "message": "최대"
@@ -2240,6 +2470,12 @@
   "mmiBuiltAroundTheWorld": {
     "message": "MetaMask Institutional은 전 세계적으로 설계 및 구축되었습니다."
   },
+  "mmiNewNFTDetectedInNFTsTabMessage": {
+    "message": "MetaMask Institutional을 통해 자동으로 NFT를 감지하여 지갑에 표시할 수 있습니다."
+  },
+  "mmiPasswordSetupDetails": {
+    "message": "이 비밀번호는 MetaMask Institutional 확장만 잠금 해제합니다."
+  },
   "more": {
     "message": "그 외"
   },
@@ -2253,9 +2489,47 @@
   "name": {
     "message": "이름"
   },
+  "nameAddressLabel": {
+    "message": "주소",
+    "description": "Label above address field in name component modal."
+  },
+  "nameInstructionsNew": {
+    "message": "알 수 없는 계약 주소와 상호작용 중입니다. 이 개발자를 신뢰하는 경우 앞으로 식별할 수 있도록 개인 디스플레이 이름을 설정하세요.",
+    "description": "Instruction text in name component modal when value is not recognised."
+  },
+  "nameInstructionsSaved": {
+    "message": "이 주소와 상호작용할 때는 항상 이 개인 디스플레이 이름을 사용하여 식별됩니다.",
+    "description": "Instruction text in name component modal when value is saved."
+  },
+  "nameLabel": {
+    "message": "디스플레이 이름",
+    "description": "Label above name input field in name component modal."
+  },
+  "nameModalTitleNew": {
+    "message": "알 수 없는 주소",
+    "description": "Title of the modal created by the name component when value is not recognised."
+  },
+  "nameModalTitleSaved": {
+    "message": "저장된 주소",
+    "description": "Title of the modal created by the name component when value is saved."
+  },
+  "nameSetPlaceholder": {
+    "message": "개인 디스플레이 이름을 설정하세요...",
+    "description": "Placeholder text for name input field in name component modal."
+  },
   "nativeToken": {
     "message": "이 네트워크의 네이티브 토큰은 $1입니다. 이는 가스비 지불에 사용하는 토큰입니다.",
     "description": "$1 represents the name of the native token on the current network"
+  },
+  "nativeTokenScamWarningConversion": {
+    "message": "네트워크 세부 정보 편집"
+  },
+  "nativeTokenScamWarningDescription": {
+    "message": "이 네트워크는 연결된 체인 ID 또는 이름이 일치하지 않습니다. 여러 인기 토큰이 $1(이)라는 이름을 사용하기 때문에 사기의 표적이 되고 있습니다. 사기꾼은 더 가격이 높은 암호화폐를 주겠다고 속일 수 있습니다. 계속하기 전에 모든 사항을 확인하세요.",
+    "description": "$1 represents the currency name"
+  },
+  "nativeTokenScamWarningTitle": {
+    "message": "사기일 수 있습니다"
   },
   "needHelp": {
     "message": "도움이 필요하신가요? $1에 문의하세요.",
@@ -2276,6 +2550,9 @@
   },
   "negativeETH": {
     "message": "음수 ETH 양은 전송할 수 없습니다."
+  },
+  "negativeOrZeroAmountToken": {
+    "message": "음수 또는 0인 토큰은 보낼 수 없습니다"
   },
   "network": {
     "message": "네트워크:"
@@ -2316,11 +2593,20 @@
   "networkNameGoerli": {
     "message": "Goerli"
   },
+  "networkNameLinea": {
+    "message": "Linea"
+  },
+  "networkNameOpMainnet": {
+    "message": "OP 메인넷"
+  },
   "networkNamePolygon": {
     "message": "Polygon"
   },
   "networkNameTestnet": {
     "message": "테스트넷"
+  },
+  "networkNameZkSyncEra": {
+    "message": "zkSync Era"
   },
   "networkProvider": {
     "message": "네트워크 공급업체"
@@ -2374,6 +2660,19 @@
   "newContract": {
     "message": "새 계약"
   },
+  "newNFTDetectedInImportNFTsMessageStrongText": {
+    "message": "설정 > 보안 및 개인정보"
+  },
+  "newNFTDetectedInImportNFTsMsg": {
+    "message": "OpenSea를 사용하여 NFT를 확인하려면 $1에서 ‘NFT 미디어 표시’를 켜세요.",
+    "description": "$1 is used for newNFTDetectedInImportNFTsMessageStrongText"
+  },
+  "newNFTDetectedInNFTsTabMessage": {
+    "message": "MetaMask를 통해 자동으로 NFT를 감지하여 지갑에 표시할 수 있습니다."
+  },
+  "newNFTsAutodetected": {
+    "message": "NFT 자동 감지"
+  },
   "newNetworkAdded": {
     "message": "“$1”(을)를 성공적으로 추가했습니다!"
   },
@@ -2404,8 +2703,14 @@
     "message": "이 토큰은 NFT입니다. $1에 추가하세요",
     "description": "$1 is a clickable link with text defined by the 'importNFTPage' key"
   },
+  "nftAlreadyAdded": {
+    "message": "NFT가 이미 추가되었습니다."
+  },
   "nftDisclaimer": {
     "message": "면책 조항: MetaMask는 소스 URL에서 미디어 파일을 가져옵니다. 이러한 URL은 때때로 NFT가 민팅된 마켓플레이스에서 변경되기도 합니다."
+  },
+  "nftLearnMore": {
+    "message": "NFT에 관해 더 자세히 알아보기"
   },
   "nftOptions": {
     "message": "NFT 옵션"
@@ -2755,6 +3060,30 @@
   "notifications9Title": {
     "message": "👓 사용자가 트랜잭션을 이해하기 쉽게 도와드립니다."
   },
+  "notificationsBlockaidDefaultDescriptionOne": {
+    "message": "Blockaid가 제공하는 보안 경고를 통해 개인정보를 보호하는 동시에 사기를 방지하세요. 이 기능은 이제 모든 MetaMask 사용자에게 기본적으로 적용됩니다."
+  },
+  "notificationsBlockaidDefaultDescriptionThree": {
+    "message": "이더리움 메인넷에서만 사용할 수 있습니다. 곧 더 많은 네트워크에서 사용할 수 있습니다."
+  },
+  "notificationsBlockaidDefaultDescriptionThreeActionText": {
+    "message": "확인"
+  },
+  "notificationsBlockaidDefaultDescriptionTwo": {
+    "message": "요청을 승인하기 전에 항상 직접 확인하세요."
+  },
+  "notificationsBlockaidDefaultTitle": {
+    "message": "보안 경고로 안전성을 유지하세요"
+  },
+  "notificationsBuySellActionText": {
+    "message": "MetaMask Portfolio에서 사용해 보기"
+  },
+  "notificationsBuySellDescription": {
+    "message": "최신 기능에 쉽게 액세스할 수 있는 '매수 및 매도' 버튼을 소개합니다: 매도. 버튼을 클릭하면 MetaMask Portfolio로 리디렉션되어 빠르세 암호화폐를 현금으로 환전할 수 있습니다. 처음에는 미국(주별 제한이 적용됨), 영국, 유럽 일부 지역의 메인넷에서 ETH로 사용할 수 있습니다."
+  },
+  "notificationsBuySellTitle": {
+    "message": "암호화폐를 현금으로 환전하세요"
+  },
   "notificationsDropLedgerFirefoxDescription": {
     "message": "Firefox에서 더 이상 U2F를 지원하지 않아 Firefox를 이용한 MetaMask에서 Ledger를 이용할 수 없습니다. 대신 Google Chrome에서 MetaMask를 이용해 보세요.",
     "description": "Description of a notification in the 'See What's New' popup. Describes that ledger will not longer be supported for firefox users and they should use MetaMask on chrome for ledger support instead."
@@ -2790,6 +3119,26 @@
   },
   "notificationsOpenBetaSnapsTitle": {
     "message": "MetaMask Snaps 소개"
+  },
+  "notificationsStakingPortfolioActionText": {
+    "message": "확인",
+    "description": "Action text for a notification in the 'See What's New' popup. Tells users that staking is now available in the portfolio app."
+  },
+  "notificationsStakingPortfolioDescription": {
+    "message": "이제 ETH을 스테이킹하고 보상을 한 곳에서 관리할 수 있습니다.",
+    "description": "Description for a notification in the 'See What's New' popup. Tells users that staking is now available in the portfolio app."
+  },
+  "notificationsStakingPortfolioTitle": {
+    "message": "Portfolio에서 더 스마트하게 스테이킹하세요",
+    "description": "Title for a notification in the 'See What's New' popup. Tells users that staking is now available in the portfolio app."
+  },
+  "notificationsU2FLedgerLiveDescription": {
+    "message": "Chrome에서 U2F와 Ledger Live를 더 이상 사용할 수 없습니다. Webhid를 사용하면 여전히 Chrome에서 Ledger 기기를 사용할 수 있습니다.",
+    "description": "Description of a notification in the 'See What's New' popup. Describes the U2F and Ledger Live connection modes are now deprecated"
+  },
+  "notificationsU2FLedgerLiveTitle": {
+    "message": "U2F 및 Ledger Live 지원 중단",
+    "description": "Title for a notification in the 'See What's New' popup. Tells ledger and chrome users that U2F and Ledger Live options are now deprecated."
   },
   "numberOfNewTokensDetectedPlural": {
     "message": "계정에서 $1개의 새로운 토큰이 발견됨",
@@ -2928,6 +3277,9 @@
   "onboardingPinExtensionTitle": {
     "message": "MetaMask 설치가 완료되었습니다!"
   },
+  "onboardingPinMmiExtensionLabel": {
+    "message": "MetaMask Institutional 고정"
+  },
   "onboardingUsePhishingDetectionDescription": {
     "message": "피싱 감지 경고는 $1과(와)의 통신에 의존합니다. jsDeliver는 회원님의 IP 주소에 액세스할 수 있습니다. $2 보기.",
     "description": "The $1 is the word 'jsDeliver', from key 'jsDeliver' and $2 is the words Privacy Policy from key 'privacyMsg', both separated here so that it can be wrapped as a link"
@@ -2938,6 +3290,10 @@
   "onlyConnectTrust": {
     "message": "신뢰하는 사이트만 연결하세요."
   },
+  "openCustodianApp": {
+    "message": "$1 앱 열기",
+    "description": "The $1 is the name of the Custodian that will be open"
+  },
   "openFullScreenForLedgerWebHid": {
     "message": "전체 화면으로 이동하여 Ledger를 연결하세요.",
     "description": "Shown to the user on the confirm screen when they are viewing MetaMask in a popup window but need to connect their ledger via webhid."
@@ -2945,11 +3301,20 @@
   "openInBlockExplorer": {
     "message": "블록 탐색기 열기"
   },
+  "openSeaLabel": {
+    "message": "OpenSea + Blockaid"
+  },
+  "openSeaMessage": {
+    "message": "제삼자와 데이터가 공유됩니다. 보안 제공업체는 미서명 트랜젝션과 서명 요청을 받게 됩니다. $1"
+  },
   "openSeaNew": {
     "message": "OpenSea"
   },
   "operationFailed": {
     "message": "작업에 실패했습니다"
+  },
+  "optimismFees": {
+    "message": "Optimism 수수료"
   },
   "optional": {
     "message": "옵션"
@@ -2990,6 +3355,9 @@
   },
   "password": {
     "message": "비밀번호"
+  },
+  "passwordMmiTermsWarning": {
+    "message": "MetaMask Institutional이 이 비밀번호를 복구할 수 없음을 이해합니다. $1"
   },
   "passwordNotLongEnough": {
     "message": "비밀번호가 짧습니다."
@@ -3050,6 +3418,10 @@
     "message": "인터넷에 액세스합니다.",
     "description": "The description of the `endowment:network-access` permission."
   },
+  "permission_accessNetworkDescription": {
+    "message": "$1의 인터넷 액세스를 허용합니다. 제삼자 서버와 데이터를 주고받는 데 모두 사용할 수 있습니다.",
+    "description": "An extended description of the `endowment:network-access` permission. $1 is the snap name."
+  },
   "permission_accessSnap": {
     "message": "$1 스냅에 연결",
     "description": "The description for the `wallet_snap` permission. $1 is the name of the snap."
@@ -3062,9 +3434,17 @@
     "message": "정기적 활동 예약 및 실행",
     "description": "The description for the `snap_cronjob` permission"
   },
+  "permission_cronjobDescription": {
+    "message": "$1에게 고정된 시간이나 날짜, 간격으로 주기적으로 실행되는 작업을 수행하도록 허용합니다. 시간에 민감한 상호작용이나 알림을 트리거하는 데 사용할 수 있습니다.",
+    "description": "An extended description for the `snap_cronjob` permission. $1 is the snap name."
+  },
   "permission_dialog": {
     "message": "MetaMask 대화창 표시",
     "description": "The description for the `snap_dialog` permission"
+  },
+  "permission_dialogDescription": {
+    "message": "$1 스냅이 MetaMask 팝업을 만들고 여기에 맞춤 텍스트와 입력란, 그리고 버튼을 표시하여 승인 또는 거부에 활용하도록 허용합니다.\n이는 경고, 컨펌, Snap에 필요한 옵트인 플로우 등을 만드는 데 사용할 수 있습니다.",
+    "description": "An extended description for the `snap_dialog` permission. $1 is the snap name."
   },
   "permission_ethereumAccounts": {
     "message": "주소, 계정 잔액, 활동 및 승인할 트랜잭션 추천 보기",
@@ -3074,29 +3454,121 @@
     "message": "이더리움 공급자에 액세스합니다.",
     "description": "The description for the `endowment:ethereum-provider` permission"
   },
+  "permission_ethereumProviderDescription": {
+    "message": "$1 스냅이 MetaMask와 직접 소통하여 블록체인에서 데이터를 읽고 메시지 및 트랜잭션을 제안하도록 허용합니다.",
+    "description": "An extended description for the `endowment:ethereum-provider` permission. $1 is the snap name."
+  },
+  "permission_getEntropy": {
+    "message": "$1에 대해 고유한 키를 임의로 파생합니다.",
+    "description": "The description for the `snap_getEntropy` permission. $1 is the snap name."
+  },
+  "permission_getEntropyDescription": {
+    "message": "$1 스냅이 노출을 피하여 $1에 고유한 임의의 키를 파생하도록 허용합니다. 이 키는 MetaMask 계정과 별개이며 개인 키 또는 비밀복구구문과 관련이 없습니다. 다른 Snap은 이 정보에 액세스할 수 없습니다.",
+    "description": "An extended description for the `snap_getEntropy` permission. $1 is the snap name."
+  },
+  "permission_getLocale": {
+    "message": "원하는 언어로 변경하세요.",
+    "description": "The description for the `snap_getLocale` permission"
+  },
+  "permission_getLocaleDescription": {
+    "message": "MetaMask 설정에서 원하는 언어로 $1 스냅을 사용하세요. 이 기능을 사용하면 선택한 언어로 $1의 콘텐츠를 현지화하고 표시할 수 있습니다.",
+    "description": "An extended description for the `snap_getLocale` permission. $1 is the snap name."
+  },
+  "permission_homePage": {
+    "message": "사용자 지정 화면 표시",
+    "description": "The description for the `endowment:page-home` permission"
+  },
+  "permission_homePageDescription": {
+    "message": "$1에서 MetaMask의 사용자 지정 홈 화면 구성에 참여하도록 허용합니다. 이는 사용자 인터페이스, 구성, 대시보드에 사용할 수 있습니다.",
+    "description": "An extended description for the `endowment:page-home` permission. $1 is the snap name."
+  },
+  "permission_keyring": {
+    "message": "이더리움 계정 추가 및 제어 요청 허용",
+    "description": "The description for the `endowment:keyring` permission"
+  },
+  "permission_keyringDescription": {
+    "message": "$1 스냅이 계정 추가 또는 제거 요청을 받고 해당 계정을 대신하여 서명하고 트랜잭션할 수 있도록 합니다.",
+    "description": "An extended description for the `endowment:keyring` permission. $1 is the snap name."
+  },
   "permission_lifecycleHooks": {
     "message": "라이프사이클 훅 사용",
     "description": "The description for the `endowment:lifecycle-hooks` permission"
+  },
+  "permission_lifecycleHooksDescription": {
+    "message": "$1 스냅이 라이프사이클 훅을 사용하도록 허용하여 라이프사이클 동안 코드를 특정 횟수만큼 실행합니다.",
+    "description": "An extended description for the `endowment:lifecycle-hooks` permission. $1 is the snap name."
   },
   "permission_manageAccounts": {
     "message": "이더리움 계정 추가 및 제어",
     "description": "The description for `snap_manageAccounts` permission"
   },
+  "permission_manageAccountsDescription": {
+    "message": "$1 스냅이 이더리움 계정을 추가 또는 제거하도록 허용한 후, 해당 계정을 이용하여 트랜잭션하고 서명합니다.",
+    "description": "An extended description for the `snap_manageAccounts` permission. $1 is the snap name."
+  },
+  "permission_manageBip32Keys": {
+    "message": "$1 계정 관리",
+    "description": "The description for the `snap_getBip32Entropy` permission. $1 is a derivation path, e.g. 'm/44'/0'/0' (secp256k1)'."
+  },
+  "permission_manageBip44AndBip32KeysDescription": {
+    "message": "$1 스냅이 요청된 네트워크에서 계정과 자산을 관리하도록 허용합니다. 해당 계정은 비밀복구구문(공개하지 않음)을 사용하여 파생되고 백업됩니다. 키를 파생할 수 있는 기능을 통해 $1 스냅은 이더리움(EVM)뿐 아니라 다양한 블록체인 프로토콜을 지원할 수 있습니다.",
+    "description": "An extended description for the `snap_getBip44Entropy` and `snap_getBip44Entropy` permissions. $1 is the snap name."
+  },
+  "permission_manageBip44Keys": {
+    "message": "$1 계정 관리",
+    "description": "The description for the `snap_getBip44Entropy` permission. $1 is the name of a protocol, e.g. 'Filecoin'."
+  },
   "permission_manageState": {
     "message": "장치의 데이터를 저장하고 관리합니다.",
     "description": "The description for the `snap_manageState` permission"
+  },
+  "permission_manageStateDescription": {
+    "message": "$1 스냅이 암호화를 통해 데이터를 안전하게 저장, 업데이트, 검색하도록 허용합니다. 다른 Snap은 이 정보에 액세스할 수 없습니다.",
+    "description": "An extended description for the `snap_manageState` permission. $1 is the snap name."
+  },
+  "permission_nameLookup": {
+    "message": "도메인 및 주소 조회를 제공합니다.",
+    "description": "The description for the `endowment:name-lookup` permission."
+  },
+  "permission_nameLookupDescription": {
+    "message": "Snap이 주소 및 도메인 조회를 가져와 MetaMask UI의 다른 부분에 표시하도록 허용합니다.",
+    "description": "An extended description for the `endowment:name-lookup` permission."
   },
   "permission_notifications": {
     "message": "알림을 표시합니다.",
     "description": "The description for the `snap_notify` permission"
   },
+  "permission_notificationsDescription": {
+    "message": "$1 스냅이 MetaMask에서 알림을 표시하도록 허용합니다. Snap이 작업이 필요하거나 기한이 있는 정보를 짧은 알림으로 트리거할 수 있습니다.",
+    "description": "An extended description for the `snap_notify` permission. $1 is the snap name."
+  },
+  "permission_rpc": {
+    "message": "$1 측이 $2 스냅과 직접 소통하도록 허용합니다.",
+    "description": "The description for the `endowment:rpc` permission. $1 is 'other snaps' or 'websites', $2 is the snap name."
+  },
+  "permission_rpcDescription": {
+    "message": "$$1 측이 $2 스냅으로 메시지를 전송하고 $2에서 응답을 받도록 허용합니다.",
+    "description": "An extended description for the `endowment:rpc` permission. $1 is 'other snaps' or 'websites', $2 is the snap name."
+  },
+  "permission_rpcDescriptionOriginList": {
+    "message": "$1 및 $2",
+    "description": "A list of allowed origins where $2 is the last origin of the list and $1 is the rest of the list separated by ','."
+  },
   "permission_transactionInsight": {
     "message": "트랜잭션 인사이트를 가져와 표시합니다.",
     "description": "The description for the `endowment:transaction-insight` permission"
   },
+  "permission_transactionInsightDescription": {
+    "message": "$1 스냅이 트랜잭션을 디코딩하고 MetaMask UI에서 인사이트를 표시하도록 허용합니다. 피싱 방지와 보안 솔루션에 사용할 수 있습니다.",
+    "description": "An extended description for the `endowment:transaction-insight` permission. $1 is the snap name."
+  },
   "permission_transactionInsightOrigin": {
     "message": "트랜잭션을 추천하는 웹사이트 출처 보기",
     "description": "The description for the `transactionOrigin` caveat, to be used with the `endowment:transaction-insight` permission"
+  },
+  "permission_transactionInsightOriginDescription": {
+    "message": "$1 스냅이 트랜잭션을 제안하는 웹사이트의 출처(URI)를 볼 수 있도록 허용합니다. 피싱 방지와 보안 솔루션에 사용할 수 있습니다.",
+    "description": "An extended description for the `transactionOrigin` caveat, to be used with the `endowment:transaction-insight` permission. $1 is the snap name."
   },
   "permission_unknown": {
     "message": "알 수 없는 권한: $1",
@@ -3106,6 +3578,10 @@
     "message": "$1 공개 키 보기($2).",
     "description": "The description for the `snap_getBip32PublicKey` permission. $1 is a derivation path, e.g. 'm/44'/0'/0''. $2 is the elliptic curve name, e.g. 'secp256k1'."
   },
+  "permission_viewBip32PublicKeysDescription": {
+    "message": "$2 스냅이 $1에 대한 공개 키(및 주소)를 볼 수 있도록 허용합니다. 이를 통해 계정이나 자산에 대한 통제권이 부여되지는 않습니다.",
+    "description": "An extended description for the `snap_getBip32PublicKey` permission. $1 is a derivation path (name). $2 is the snap name."
+  },
   "permission_viewNamedBip32PublicKeys": {
     "message": "$1에 관한 공개 키 보기",
     "description": "The description for the `snap_getBip32PublicKey` permission. $1 is a name for the derivation path, e.g., 'Ethereum accounts'."
@@ -3113,6 +3589,10 @@
   "permission_webAssembly": {
     "message": "WebAssembly 지원",
     "description": "The description of the `endowment:webassembly` permission."
+  },
+  "permission_webAssemblyDescription": {
+    "message": "$1 스냅이 WebAssembly를 통해 하위 레벨 실행 환경에 액세스하도록 허용합니다.",
+    "description": "An extended description of the `endowment:webassembly` permission. $1 is the snap name."
   },
   "permissions": {
     "message": "권한"
@@ -3125,6 +3605,15 @@
   },
   "personalAddressDetected": {
     "message": "개인 주소가 발견되었습니다. 토큰 계약 주소를 입력하세요."
+  },
+  "pinExtensionDescription": {
+    "message": "확장 메뉴로 이동 후 MetaMask Institutional을 고정하여 원활하게 액세스하세요."
+  },
+  "pinExtensionTitle": {
+    "message": "확장 고정"
+  },
+  "pinToTop": {
+    "message": "맨 위에 고정"
   },
   "pleaseConfirm": {
     "message": "컨펌하세요"
@@ -3141,6 +3630,9 @@
   },
   "portfolioDashboard": {
     "message": "포트폴리오 대시보드"
+  },
+  "preferredProvider": {
+    "message": "선호 공급업체 선택"
   },
   "preparingSwap": {
     "message": "스왑 준비 중..."
@@ -3282,6 +3774,12 @@
   "removeJWTDescription": {
     "message": "정말 이 토큰을 삭제하시겠습니까? 이 토큰에 할당된 모든 계정이 확장 프로그램에서도 제거됩니다."
   },
+  "removeKeyringSnap": {
+    "message": "이 Snap을 제거하면 이 계정들이 MetaMask에서 제거됩니다:"
+  },
+  "removeKeyringSnapToolTip": {
+    "message": "Snap은 계정을 제어하며 Snap을 제거하면 계정도 MetaMask에서 제거되지만, 블록체인에는 남게 됩니다."
+  },
   "removeNFT": {
     "message": "NFT 제거"
   },
@@ -3290,6 +3788,12 @@
   },
   "removeSnap": {
     "message": "스냅 제거"
+  },
+  "removeSnapAccountDescription": {
+    "message": "계속하면 이 계정을 MetaMask에서 사용할 수 없습니다."
+  },
+  "removeSnapAccountTitle": {
+    "message": "계정 제거"
   },
   "removeSnapConfirmation": {
     "message": "$1(을)를 제거하시겠습니까?",
@@ -3300,6 +3804,9 @@
   },
   "replace": {
     "message": "대체"
+  },
+  "reportIssue": {
+    "message": "문제 신고"
   },
   "requestFlaggedAsMaliciousFallbackCopyReason": {
     "message": "보안 공급입체가 추가 정보를 공유하지 않았습니다"
@@ -3410,6 +3917,9 @@
     "message": "MetaMask 지원팀은 이러한 정보를 절대로 묻지 않습니다,",
     "description": "The bolded texted in the second part of 'revealSeedWordsWarning'"
   },
+  "revealSensitiveContent": {
+    "message": "민감한 콘텐츠 공개"
+  },
   "revealTheSeedPhrase": {
     "message": "시드 구문 보기"
   },
@@ -3463,6 +3973,12 @@
   "searchAccounts": {
     "message": "계정 검색"
   },
+  "searchTokenOrNFT": {
+    "message": "토큰 또는 NFT 검색"
+  },
+  "searchTokens": {
+    "message": "토큰 검색"
+  },
   "secretRecoveryPhrase": {
     "message": "비밀복구구문"
   },
@@ -3479,7 +3995,7 @@
     "message": "보안 경고"
   },
   "securityAlertsDescription": {
-    "message": "이 기능은 개인정보를 보호하면서 트랜잭션 및 서명 요청을 적극적으로 검토하여 이더리움 메인넷에서 악의적인 활동이 있는 경우 경고합니다. 사용자 데이터는 이 서비스를 제공하는 제삼자와 공유되지 않습니다. 요청을 승인하기 전에 항상 직접 확인하세요. 이 기능이 모든 악의적인 활동 탐지를 보장하는 것은 아닙니다."
+    "message": "이 기능은 트랜잭션 및 서명 요청을 적극적으로 검토하여 이더리움 메인넷에서 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 확인하세요. 이 기능이 모든 악의적인 활동 탐지를 보장하는 것은 아닙니다. 이 기능을 활성화하면 제공업체의 이용약관에 동의하는 것입니다."
   },
   "securityAndPrivacy": {
     "message": "보안 및 프라이버시"
@@ -3548,11 +4064,17 @@
   "select": {
     "message": "선택"
   },
+  "selectAToken": {
+    "message": "토큰 선택"
+  },
   "selectAccounts": {
     "message": "계정 선택"
   },
   "selectAccountsForSnap": {
     "message": "이 스냅을 사용할 계정을 선택하세요"
+  },
+  "selectActionButton": {
+    "message": "작업 선택"
   },
   "selectAll": {
     "message": "모두 선택"
@@ -3571,6 +4093,9 @@
   },
   "selectAnAction": {
     "message": "작업 선택"
+  },
+  "selectEnableDisplayMediaPrivacyPreference": {
+    "message": "NFT 미디어 표시 켜기"
   },
   "selectHdPath": {
     "message": "HD 경로 선택"
@@ -3593,11 +4118,24 @@
   "send": {
     "message": "보내기"
   },
+  "sendAToken": {
+    "message": "토큰 보내기"
+  },
   "sendBugReport": {
     "message": "버그 리포트 전송"
   },
   "sendDescription": {
     "message": "모든 계정으로 암호화폐 보내기"
+  },
+  "sendNoContactsConversionText": {
+    "message": "여기를 클릭"
+  },
+  "sendNoContactsDescription": {
+    "message": "연락처를 사용하면 다른 계정으로 여러 번 트랜잭션을 안전하게 전송할 수 있습니다. 연락처를 만들려면, $1",
+    "description": "$1 represents the action text 'click here'"
+  },
+  "sendNoContactsTitle": {
+    "message": "아직 연락처가 없습니다"
   },
   "sendSpecifiedTokens": {
     "message": "$1 보내기",
@@ -3619,6 +4157,9 @@
   "sendingToTokenContractWarning": {
     "message": "경고: 자금 손실이 발생할 수 있는 토큰 계약으로 전송하게 됩니다. $1",
     "description": "$1 is a clickable link with text defined by the 'learnMoreUpperCase' key. The link will open to a support article regarding the known contract address warning"
+  },
+  "sendingZeroAmount": {
+    "message": "0 $1 전송 중입이니다."
   },
   "sepolia": {
     "message": "Sepolia 테스트 네트워크"
@@ -3642,8 +4183,20 @@
   "settingsSearchMatchingNotFound": {
     "message": "검색 결과가 없습니다."
   },
+  "settingsSubHeadingSignatures": {
+    "message": "서명 요청"
+  },
   "show": {
     "message": "보기"
+  },
+  "showAccount": {
+    "message": "계정 표시"
+  },
+  "showExtensionInFullSizeView": {
+    "message": "확장 브라우저를 전체 화면으로 보기"
+  },
+  "showExtensionInFullSizeViewDescription": {
+    "message": "이 옵션을 이용하면 확장 아이콘을 클릭할 때 기본으로 전체 화면이 나타납니다."
   },
   "showFiatConversionInTestnets": {
     "message": "테스트넷에 전환 표시"
@@ -3663,6 +4216,9 @@
   "showIncomingTransactionsDescription": {
     "message": "이 항목을 선택하면 Etherscan을 사용해 거래 목록에 수신 거래를 표시할 수 있습니다.",
     "description": "$1 is the link to etherscan url and $2 is the link to the privacy policy of consensys APIs"
+  },
+  "showIncomingTransactionsExplainer": {
+    "message": "이는 네트워크마다 다른 제삼자 API에 의존하며, 이더리움 주소와 IP 주소가 노출됩니다."
   },
   "showMore": {
     "message": "더 보기"
@@ -3706,6 +4262,12 @@
   "simulationErrorMessageV2": {
     "message": "가스를 추정할 수 없었습니다. 계약에 오류가 있을 수 있으며 이 트랜잭션이 실패할 수 있습니다."
   },
+  "siteConnections": {
+    "message": "사이트 연결"
+  },
+  "sites": {
+    "message": "사이트"
+  },
   "skip": {
     "message": "건너뛰기"
   },
@@ -3718,11 +4280,18 @@
   "smartContracts": {
     "message": "스마트 계약"
   },
+  "smartSwaps": {
+    "message": "스마트 스왑"
+  },
   "smartSwapsAreHere": {
     "message": "스마트 스왑이 시작되었습니다!"
   },
   "smartSwapsDescription": {
     "message": "MetaMask 스왑이 더욱 스마트해졌습니다! 스마트 스왑을 활성화하면 MetaMask가 프로그램을 통해 스왑을 최적화하여 다음과 같은 활동에 도움을 드립니다."
+  },
+  "smartSwapsDescription2": {
+    "message": "*스마트 스왑은 트랜잭션을 비공개로 제출합니다. 이는 언제든지 고급 설정에서 해제할 수 있습니다. 스마트 스왑에 관해 더 자세히 알아보려면, 다음 링크를 확인하세요: $1",
+    "description": "$1 is an external link to FAQ and Risk Disclosures"
   },
   "smartSwapsErrorNotEnoughFunds": {
     "message": "스마트 스왑 자금 부족"
@@ -3730,9 +4299,54 @@
   "smartSwapsErrorUnavailable": {
     "message": "스마트 스왑을 잠시 사용할 수 없습니다."
   },
+  "smartSwapsTooltip": {
+    "message": "제출하기 전에 트랜잭션을 시뮬레이션하면 트랜잭션 비용을 줄이고 실패율을 낮출 수 있습니다. 더 자세한 사항은 다음 링크를 확인하세요: $1",
+    "description": "$1 is an external link to FAQ and Risk Disclosures"
+  },
+  "snapAccountCreated": {
+    "message": "계정 생성됨"
+  },
+  "snapAccountCreatedDescription": {
+    "message": "새 계정을 사용할 준비가 되었습니다!"
+  },
+  "snapAccountCreationFailed": {
+    "message": "계정 생성 실패"
+  },
+  "snapAccountCreationFailedDescription": {
+    "message": "$1에서 계정을 만들지 못했습니다.",
+    "description": "$1 is the snap name"
+  },
+  "snapAccountRedirectFinishSigningTitle": {
+    "message": "서명 완료"
+  },
+  "snapAccountRedirectSiteDescription": {
+    "message": "$1의 지침을 따르세요"
+  },
+  "snapAccountRemovalFailed": {
+    "message": "계정 삭제 실패"
+  },
+  "snapAccountRemovalFailedDescription": {
+    "message": "$1에서 계정을 삭제하지 못했습니다.",
+    "description": "$1 is the snap name"
+  },
+  "snapAccountRemoved": {
+    "message": "계정 제거됨"
+  },
+  "snapAccountRemovedDescription": {
+    "message": "이 계정은 더 이상 MetaMask에서 사용할 수 없습니다."
+  },
+  "snapAccounts": {
+    "message": "계정 Snap"
+  },
+  "snapAccountsDescription": {
+    "message": "제삼자 Snap이 제어하는 계정입니다."
+  },
   "snapConnectionWarning": {
     "message": "$1에서 $2 스냅 연결을 원합니다. 해당 웹사이트를 신뢰할 수 있는 경우에만 진행하세요.",
     "description": "$2 is the snap and $1 is the dapp requesting connection to the snap."
+  },
+  "snapConnections": {
+    "message": "Snap 연결"
   },
   "snapContent": {
     "message": "콘텐츠 출처: $1",
@@ -3748,8 +4362,28 @@
   "snapInstallSuccess": {
     "message": "설치 완료"
   },
+  "snapInstallWarningCheck": {
+    "message": "$1 스냅이 다음을 수행할 수 있는 권한을 요청합니다:",
+    "description": "Warning message used in popup displayed on snap install. $1 is the snap name."
+  },
   "snapInstallWarningHeading": {
     "message": "주의하여 진행하세요"
+  },
+  "snapInstallWarningPermissionDescriptionForBip32View": {
+    "message": "$1 스냅이 사용자의 공개 키(및 주소)를 볼 수 있도록 허용합니다. 이를 통해 계정이나 자산에 대한 통제권이 부여되지는 않습니다.",
+    "description": "An extended description for the `snap_getBip32PublicKey` permission used for tooltip on Snap Install Warning screen (popup/modal). $1 is the snap name."
+  },
+  "snapInstallWarningPermissionDescriptionForEntropy": {
+    "message": "$1 Snap이 요청된 네트워크에서 계정과 자산을 관리하도록 허용합니다. 해당 계정은 비밀복구구문(공개하지 않음)을 사용하여 파생되고 백업됩니다. 키를 파생할 수 있는 기능을 통해 $1 스냅은 이더리움(EVM)뿐 아니라 다양한 블록체인 프로토콜을 지원할 수 있습니다.",
+    "description": "An extended description for the `snap_getBip44Entropy` and `snap_getBip44Entropy` permissions used for tooltip on Snap Install Warning screen (popup/modal). $1 is the snap name."
+  },
+  "snapInstallWarningPermissionNameForEntropy": {
+    "message": "$1 계정 관리",
+    "description": "Permission name used for the Permission Cell component displayed on warning popup when installing a Snap. $1 is list of account types."
+  },
+  "snapInstallWarningPermissionNameForViewPublicKey": {
+    "message": "$1에 관한 공개 키 보기",
+    "description": "Permission name used for the Permission Cell component displayed on warning popup when installing a Snap. $1 is list of account types."
   },
   "snapInstallationErrorDescription": {
     "message": "$1 스냅을 설치할 수 없습니다.",
@@ -3768,6 +4402,10 @@
   "snapResultSuccessDescription": {
     "message": "$1 사용 가능"
   },
+  "snapUpdateAlertDescription": {
+    "message": "$1의 최신 버전 받기",
+    "description": "Description used in Snap update alert banner when snap update is available. $1 is the Snap name."
+  },
   "snapUpdateAvailable": {
     "message": "업데이트 가능"
   },
@@ -3779,11 +4417,21 @@
     "message": "업데이트 실패",
     "description": "Error title used when snap update fails."
   },
+  "snapUpdateRequest": {
+    "message": "$1을(를) $2(으)로 업데이트하면 다음 권한을 허용하게 됩니다. $1을(를) 신뢰하는 경우에만 계속하세요.",
+    "description": "$1 is the snap name and $2 is the snap version."
+  },
   "snapUpdateSuccess": {
     "message": "업데이트 완료"
   },
+  "snapUrlIsBlocked": {
+    "message": "이 Snap이 차단된 사이트로 이동하려 합니다. $1."
+  },
   "snaps": {
     "message": "스냅"
+  },
+  "snapsConnected": {
+    "message": "Snap 연결됨"
   },
   "snapsInvalidUIError": {
     "message": "스냅에서 지정한 UI가 올바르지 않습니다."
@@ -3791,9 +4439,20 @@
   "snapsNoInsight": {
     "message": "스냅이 인사이트를 가져오지 못했습니다"
   },
+  "snapsPrivacyWarningFirstMessage": {
+    "message": "귀하는 Consensys $1에 정의된 바와 같이 달리 명시되지 않는 한 설치하는 모든 Snap이 타사 서비스임을 인정합니다. 타사 서비스 이용은 해당 타사 서비스 제공업체가 정한 별도의 약관이 적용됩니다. Consensys는 특정인이 특정한 이유로 Snap을 사용하는 것을 권장하지 않습니다. 타사 서비스에 액세스, 신뢰, 사용하는 것은 본인의 책임입니다. Consensys는 타사 서비스 사용으로 인해 귀하의 계정에 발생하는 손실에 대한 모든 책임과 의무를 부인합니다.",
+    "description": "First part of a message in popup modal displayed when installing a snap for the first time. $1 is terms of use link."
+  },
   "snapsPrivacyWarningSecondMessage": {
     "message": "타사와 공유하는 모든 정보는 해당 타사의 개인정보 처리방침에 따라 직접 수집됩니다. 더 자세한 내용은 해당 회사의 개인정보 처리방침을 참고하시기 바랍니다.",
     "description": "Second part of a message in popup modal displayed when installing a snap for the first time."
+  },
+  "snapsPrivacyWarningThirdMessage": {
+    "message": "Consensys는 귀하가 타사와 공유한 정보에 접근할 수 없습니다.",
+    "description": "Third part of a message in popup modal displayed when installing a snap for the first time."
+  },
+  "snapsSettings": {
+    "message": "Snap 설정"
   },
   "snapsTermsOfUse": {
     "message": "이용약관"
@@ -3807,6 +4466,10 @@
   },
   "someNetworksMayPoseSecurity": {
     "message": "네트워크에 따라 보안이나 개인 정보 유출의 위험이 있을 수 있습니다. 네트워크 추가 및 사용 이전에 위험 요소를 파악하세요."
+  },
+  "somethingDoesntLookRight": {
+    "message": "무언가 잘못되었나요? $1",
+    "description": "A false positive message for users to contact support. $1 is a link to the support page."
   },
   "somethingIsWrong": {
     "message": "문제가 발생했습니다. 페이지를 다시 로드하세요."
@@ -4072,11 +4735,23 @@
   "submitted": {
     "message": "제출됨"
   },
+  "suggestedBy": {
+    "message": "추천자:"
+  },
+  "suggestedTokenSymbol": {
+    "message": "추천 티커 심볼:"
+  },
   "support": {
     "message": "지원"
   },
   "supportCenter": {
     "message": "지원 센터 방문하기"
+  },
+  "surveyConversion": {
+    "message": "설문조사에 참여하세요"
+  },
+  "surveyTitle": {
+    "message": "MetaMask의 미래를 그리세요"
   },
   "swap": {
     "message": "스왑"
@@ -4224,6 +4899,9 @@
   },
   "swapLearnMore": {
     "message": "스왑 자세히 알아보기"
+  },
+  "swapLiquiditySourceInfo": {
+    "message": "저희는 여러 유동성 공급원(거래소, 애그리게이터, 투자전문기관)을 검색하여 환율과 네트워크 수수료를 비교해 드립니다."
   },
   "swapLowSlippage": {
     "message": "낮은 슬리피지"
@@ -4497,6 +5175,9 @@
   "switchEthereumChainConfirmationTitle": {
     "message": "이 사이트가 네트워크를 전환하도록 허용하시겠습니까?"
   },
+  "switchInputCurrency": {
+    "message": "입력 통화 전환"
+  },
   "switchNetwork": {
     "message": "네트워크 전환"
   },
@@ -4617,6 +5298,18 @@
   "toggleEthSignOn": {
     "message": "켜기(비권장 사항)"
   },
+  "toggleRequestQueueDescription": {
+    "message": "이 기능을 이용하면 모든 사이트에 한 가지 네트워크를 선택하여 사용하는 대신, 사이트별로 네트워크를 다르게 선택할 수 있습니다. 이 기능을 사용하면 수동으로 네트워크를 전환하지 않아도 되므로 특정 사이트에서 사용자 경험이 저해되지 않습니다."
+  },
+  "toggleRequestQueueField": {
+    "message": "각 사이트별 네트워크 선택"
+  },
+  "toggleRequestQueueOff": {
+    "message": "끄기"
+  },
+  "toggleRequestQueueOn": {
+    "message": "켜기"
+  },
   "token": {
     "message": "토큰"
   },
@@ -4633,7 +5326,7 @@
     "message": "토큰 계약 주소"
   },
   "tokenDecimalFetchFailed": {
-    "message": "토큰 소수자리 필요"
+    "message": "토큰 십진수가 필요합니다. $1에서 찾아보세요"
   },
   "tokenDecimalTitle": {
     "message": "토큰 소수점:"
@@ -4759,6 +5452,21 @@
   "transactionHistoryTotalGasFee": {
     "message": "총 가스비"
   },
+  "transactionInsightWarningCheckboxMessage": {
+    "message": "$2의 $1 요청",
+    "description": "$1 is the action i.e. sign, confirm. $2 is the origin making the request."
+  },
+  "transactionInsightWarningContentPlural": {
+    "message": "$2 전에 경고 $1건을 확인하세요. $3후에는 되돌릴 수 없습니다.",
+    "description": "$1 is the number of warnings, $2 is the action (i.e. signing) and $3 is the result (i.e. signature, transaction)"
+  },
+  "transactionInsightWarningContentSingular": {
+    "message": "$1 전에 경고 1건을 확인하세요. $2 후에는 되돌릴 수 없습니다.",
+    "description": "$1 is the action (i.e. signing) and $2 is the result (i.e. signature, transaction)"
+  },
+  "transactionInsightWarningHeader": {
+    "message": "이 요청은 위험할 수 있습니다"
+  },
   "transactionNote": {
     "message": "트랜잭션 메모"
   },
@@ -4843,6 +5551,10 @@
   "unknownNetwork": {
     "message": "알 수 없는 비공개 네트워크"
   },
+  "unknownNetworkForKeyEntropy": {
+    "message": "알 수 없는 네트워크",
+    "description": "Displayed on places like Snap install warning when regular name is not available."
+  },
   "unknownQrCode": {
     "message": "오류: QR 코드를 식별할 수 없습니다."
   },
@@ -4854,6 +5566,9 @@
   },
   "unlockMessage": {
     "message": "분산된 웹이 다음을 대기 중"
+  },
+  "unpin": {
+    "message": "고정 해제"
   },
   "unrecognizedChain": {
     "message": "이 맞춤 네트워크는 인식되지 않았습니다.",
@@ -4871,6 +5586,9 @@
   },
   "update": {
     "message": "업데이트"
+  },
+  "updateRequest": {
+    "message": "업데이트 요청"
   },
   "updatedWithDate": {
     "message": "$1에 업데이트됨"
@@ -4896,11 +5614,24 @@
   "useNftDetection": {
     "message": "NFT 자동 감지"
   },
+  "useNftDetectionDescriptionText": {
+    "message": "MetaMask가 제삼자 서비스(예: OpenSea)를 이용하여 회원님의 NFT를 추가할 수 있도록 합니다. NFT를 자동 감지하면 이러한 서비스에 IP와 계정 주소가 노출됩니다. 이 기능을 켜면 IP 주소가 이더리움 주소와 연결되고 사기꾼이 에어드랍한 가짜 NFT가 표시될 수 있습니다. 이러한 위험을 피하기 위해 수동으로 토큰을 추가할 수 있습니다."
+  },
   "usePhishingDetection": {
     "message": "피싱 감지 사용"
   },
   "usePhishingDetectionDescription": {
     "message": "이더리움 사용자를 노리는 피싱 도메인에 대한 경고를 표시합니다"
+  },
+  "useSafeChainsListValidation": {
+    "message": "네트워크 세부 정보 확인"
+  },
+  "useSafeChainsListValidationDescription": {
+    "message": "MetaMask는 $1(이)라는 제삼자 서비스를 사용하여 정확하고 표준화된 네트워크 세부 정보를 표시합니다. 이를 통해 악성 또는 잘못된 네트워크에 연결할 가능성이 줄어듭니다. 이 기능을 사용하면 사용자의 IP 주소가 chainid.network에 노출됩니다."
+  },
+  "useSafeChainsListValidationWebsite": {
+    "message": "chainid.network",
+    "description": "useSafeChainsListValidationWebsite is separated from the rest of the text so that we can bold the third party service name in the middle of them"
   },
   "useSiteSuggestion": {
     "message": "사이트 제안 사용"
@@ -4973,6 +5704,9 @@
     "message": "Explorer에서 $1 보기",
     "description": "$1 is the action type. e.g (Account, Transaction, Swap)"
   },
+  "visitSite": {
+    "message": "사이트 방문"
+  },
   "visitWebSite": {
     "message": "웹사이트를 방문하세요"
   },
@@ -5010,6 +5744,10 @@
   },
   "warning": {
     "message": "경고"
+  },
+  "warningFromSnap": {
+    "message": "$1의 경고",
+    "description": "$1 represents the name of the snap"
   },
   "warningTooltipText": {
     "message": "$1 타사는 추가 통보나 동의 없이도 남은 토큰 전체를 사용할 수 있습니다. 보호를 위해 지출 한도를 하향하세요.",
