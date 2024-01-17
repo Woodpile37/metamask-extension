@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+<<<<<<< HEAD
 import { useSelector } from 'react-redux';
 import Box from '../../../../components/ui/box';
 import SiteIcon from '../../../../components/ui/site-icon';
@@ -8,11 +9,24 @@ import {
   TypographyVariant,
   FONT_WEIGHT,
   DISPLAY,
+=======
+import {
+  AvatarNetwork,
+  AvatarNetworkSize,
+  Box,
+  Text,
+} from '../../../../components/component-library';
+import {
+  Display,
+>>>>>>> circle-retry
   JustifyContent,
   BLOCK_SIZES,
   AlignItems,
+<<<<<<< HEAD
   TEXT_ALIGN,
   TextColor,
+=======
+>>>>>>> circle-retry
 } from '../../../../helpers/constants/design-system';
 import {
   CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP,
@@ -38,6 +52,7 @@ export default function ConfirmationNetworkSwitch({ newNetwork }) {
         className="confirmation-network-switch__icon"
         display={DISPLAY.BLOCK}
       >
+<<<<<<< HEAD
         {currentNetwork.chainId in CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP ? (
           <SiteIcon
             icon={CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP[currentNetwork.chainId]}
@@ -61,6 +76,17 @@ export default function ConfirmationNetworkSwitch({ newNetwork }) {
         >
           {currentNetwork.nickname || NETWORK_TO_NAME_MAP[currentNetwork.type]}
         </Typography>
+=======
+        <AvatarNetwork
+          src={fromNetworkDetails.iconUrl}
+          name={fromNetworkDetails.nickname}
+          size={AvatarNetworkSize.Xl}
+          marginBottom={2}
+        />
+        <Text display={Display.Flex} justifyContent={JustifyContent.center}>
+          {fromNetworkDetails.nickname}
+        </Text>
+>>>>>>> circle-retry
       </Box>
       <Box
         className="confirmation-network-switch__center-icon"
@@ -75,6 +101,7 @@ export default function ConfirmationNetworkSwitch({ newNetwork }) {
         className="confirmation-network-switch__icon"
         display={DISPLAY.BLOCK}
       >
+<<<<<<< HEAD
         {newNetwork.chainId in CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP ? (
           <SiteIcon
             icon={CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP[newNetwork.chainId]}
@@ -98,6 +125,17 @@ export default function ConfirmationNetworkSwitch({ newNetwork }) {
         >
           {newNetwork.nickname}
         </Typography>
+=======
+        <AvatarNetwork
+          src={toNetworkDetails.iconUrl}
+          name={toNetworkDetails.nickname}
+          size={AvatarNetworkSize.Xl}
+          marginBottom={2}
+        />
+        <Text display={Display.Flex} justifyContent={JustifyContent.center}>
+          {toNetworkDetails.nickname}
+        </Text>
+>>>>>>> circle-retry
       </Box>
     </Box>
   );

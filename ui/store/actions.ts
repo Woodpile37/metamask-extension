@@ -46,6 +46,7 @@ import {
   hasTransactionPendingApprovals,
   getApprovalFlows,
   getCurrentNetworkTransactions,
+  getIsSigningQRHardwareTransaction,
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   getNotifications,
   ///: END:ONLY_INCLUDE_IF
@@ -2483,6 +2484,7 @@ export function hideIpfsModal(): Action {
     type: actionConstants.SHOW_IPFS_MODAL_CLOSE,
   };
 }
+
 export function closeCurrentNotificationWindow(): ThunkAction<
   void,
   MetaMaskReduxState,
@@ -2495,6 +2497,7 @@ export function closeCurrentNotificationWindow(): ThunkAction<
     if (
       getEnvironmentType() === ENVIRONMENT_TYPE_NOTIFICATION &&
       !hasTransactionPendingApprovals(state) &&
+      !getIsSigningQRHardwareTransaction(state) &&
       approvalFlows.length === 0
     ) {
       closeNotificationPopup();
@@ -2840,6 +2843,10 @@ export function setShowFiatConversionOnTestnetsPreference(value: boolean) {
 
 export function setShowTestNetworks(value: boolean) {
   return setPreference('showTestNetworks', value);
+}
+
+export function setShowExtensionInFullSizeView(value: boolean) {
+  return setPreference('showExtensionInFullSizeView', value);
 }
 
 export function setAutoLockTimeLimit(value: boolean) {
@@ -4496,6 +4503,14 @@ export function hideBetaHeader() {
 
 export function hideProductTour() {
   return submitRequestToBackground('setShowProductTour', [false]);
+}
+
+export function hideAccountBanner() {
+  return submitRequestToBackground('setShowAccountBanner', [false]);
+}
+
+export function hideNetworkBanner() {
+  return submitRequestToBackground('setShowNetworkBanner', [false]);
 }
 
 // TODO: codeword NOT_A_THUNK @brad-decker

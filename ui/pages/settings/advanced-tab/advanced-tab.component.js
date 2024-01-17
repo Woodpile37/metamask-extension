@@ -33,6 +33,7 @@ export default class AdvancedTab extends PureComponent {
     setAdvancedInlineGasFeatureFlag: PropTypes.func,
     advancedInlineGas: PropTypes.bool,
     showFiatInTestnets: PropTypes.bool,
+<<<<<<< HEAD
     autoLockTimeLimit: PropTypes.number,
     setAutoLockTimeLimit: PropTypes.func.isRequired,
     setShowFiatConversionOnTestnetsPreference: PropTypes.func.isRequired,
@@ -43,6 +44,15 @@ export default class AdvancedTab extends PureComponent {
     ipfsGateway: PropTypes.string.isRequired,
     ledgerTransportType: PropTypes.string.isRequired,
     setLedgerLivePreference: PropTypes.func.isRequired,
+=======
+    showTestNetworks: PropTypes.bool,
+    showExtensionInFullSizeView: PropTypes.bool,
+    autoLockTimeLimit: PropTypes.number,
+    setAutoLockTimeLimit: PropTypes.func.isRequired,
+    setShowFiatConversionOnTestnetsPreference: PropTypes.func.isRequired,
+    setShowTestNetworks: PropTypes.func.isRequired,
+    setShowExtensionInFullSizeView: PropTypes.func.isRequired,
+>>>>>>> circle-retry
     setDismissSeedBackUpReminder: PropTypes.func.isRequired,
     dismissSeedBackUpReminder: PropTypes.bool.isRequired,
   };
@@ -252,6 +262,40 @@ export default class AdvancedTab extends PureComponent {
           </div>
         </div>
       </div>
+    );
+  }
+
+  renderToggleExtensionInFullSizeView() {
+    const { t } = this.context;
+    const { showExtensionInFullSizeView, setShowExtensionInFullSizeView } =
+      this.props;
+
+    return (
+      <Box
+        ref={this.settingsRefs[7]}
+        className="settings-page__content-row"
+        data-testid="advanced-setting-show-extension-in-full-size-view"
+        display={Display.Flex}
+        flexDirection={FlexDirection.Row}
+        justifyContent={JustifyContent.spaceBetween}
+        gap={4}
+      >
+        <div className="settings-page__content-item">
+          <span>{t('showExtensionInFullSizeView')}</span>
+          <div className="settings-page__content-description">
+            {t('showExtensionInFullSizeViewDescription')}
+          </div>
+        </div>
+
+        <div className="settings-page__content-item-col">
+          <ToggleButton
+            value={showExtensionInFullSizeView}
+            onToggle={(value) => setShowExtensionInFullSizeView(!value)}
+            offLabel={t('off')}
+            onLabel={t('on')}
+          />
+        </div>
+      </Box>
     );
   }
 
@@ -549,6 +593,11 @@ export default class AdvancedTab extends PureComponent {
         {this.renderAdvancedGasInputInline()}
         {this.renderHexDataOptIn()}
         {this.renderShowConversionInTestnets()}
+<<<<<<< HEAD
+=======
+        {this.renderToggleTestNetworks()}
+        {this.renderToggleExtensionInFullSizeView()}
+>>>>>>> circle-retry
         {this.renderUseNonceOptIn()}
         {this.renderAutoLockTimeLimit()}
         {this.renderThreeBoxControl()}

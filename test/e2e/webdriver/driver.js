@@ -164,9 +164,40 @@ class Driver {
     throw new Error('waitUntilXWindowHandles timed out polling window handles');
   }
 
+<<<<<<< HEAD
   async switchToWindowWithTitle(title, windowHandles) {
     // eslint-disable-next-line no-param-reassign
     windowHandles = windowHandles || (await this.driver.getAllWindowHandles());
+=======
+  async getWindowTitleByHandlerId(handlerId) {
+    await this.driver.switchTo().window(handlerId);
+    return await this.driver.getTitle();
+  }
+
+  async switchToWindowWithTitle(
+    title,
+    initialWindowHandles,
+    delayStep = 1000,
+    timeout = this.timeout,
+    { retries = 8, retryDelay = 2500 } = {},
+  ) {
+    let windowHandles =
+      initialWindowHandles || (await this.driver.getAllWindowHandles());
+    let timeElapsed = 0;
+
+    while (timeElapsed <= timeout) {
+      for (const handle of windowHandles) {
+        const handleTitle = await retry(
+          {
+            retries,
+            delay: retryDelay,
+          },
+          async () => {
+            await this.driver.switchTo().window(handle);
+            return await this.driver.getTitle();
+          },
+        );
+>>>>>>> circle-retry
 
     for (const handle of windowHandles) {
       await this.driver.switchTo().window(handle);

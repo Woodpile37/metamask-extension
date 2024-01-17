@@ -168,6 +168,23 @@ export const AccountListItem = ({
               className="multichain-account-list-item__account-name"
               marginInlineEnd={2}
             >
+<<<<<<< HEAD
+=======
+              {isPinned ? (
+                <Icon
+                  name={IconName.Pin}
+                  size={IconSize.Xs}
+                  className="account-pinned-icon"
+                />
+              ) : null}
+              {isHidden ? (
+                <Icon
+                  name={IconName.EyeSlash}
+                  size={IconSize.Xs}
+                  className="account-hidden-icon"
+                />
+              ) : null}
+>>>>>>> circle-retry
               <Text
                 as="button"
                 onClick={(e) => {
@@ -315,8 +332,15 @@ export const AccountListItem = ({
           identity={identity}
           onClose={() => setAccountOptionsMenuOpen(false)}
           isOpen={accountOptionsMenuOpen}
+<<<<<<< HEAD
           isRemovable={keyring?.type !== KeyringType.hdKeyTree}
           closeMenu={closeMenu}
+=======
+          isRemovable={identity.keyring.type !== KeyringType.hdKeyTree}
+          closeMenu={closeMenu}
+          isPinned={isPinned}
+          isHidden={isHidden}
+>>>>>>> circle-retry
         />
       ) : null}
     </Box>

@@ -4,7 +4,11 @@ import { withRouter } from 'react-router-dom';
 import {
   displayWarning,
   setFeatureFlag,
+<<<<<<< HEAD
   showModal,
+=======
+  setShowExtensionInFullSizeView,
+>>>>>>> circle-retry
   setShowFiatConversionOnTestnetsPreference,
   setAutoLockTimeLimit,
   setThreeBoxSyncingPermission,
@@ -27,13 +31,27 @@ export const mapStateToProps = (state) => {
     useNonceField,
     ipfsGateway,
   } = metamask;
+<<<<<<< HEAD
   const { showFiatInTestnets, autoLockTimeLimit } = getPreferences(state);
+=======
+  const {
+    showFiatInTestnets,
+    showTestNetworks,
+    showExtensionInFullSizeView,
+    autoLockTimeLimit = DEFAULT_AUTO_LOCK_TIME_LIMIT,
+  } = getPreferences(state);
+>>>>>>> circle-retry
 
   return {
     warning,
     sendHexData,
     advancedInlineGas,
     showFiatInTestnets,
+<<<<<<< HEAD
+=======
+    showTestNetworks,
+    showExtensionInFullSizeView,
+>>>>>>> circle-retry
     autoLockTimeLimit,
     threeBoxSyncingAllowed,
     threeBoxDisabled,
@@ -55,6 +73,15 @@ export const mapDispatchToProps = (dispatch) => {
     setShowFiatConversionOnTestnetsPreference: (value) => {
       return dispatch(setShowFiatConversionOnTestnetsPreference(value));
     },
+<<<<<<< HEAD
+=======
+    setShowTestNetworks: (value) => {
+      return dispatch(setShowTestNetworks(value));
+    },
+    setShowExtensionInFullSizeView: (value) => {
+      return dispatch(setShowExtensionInFullSizeView(value));
+    },
+>>>>>>> circle-retry
     setAutoLockTimeLimit: (value) => {
       return dispatch(setAutoLockTimeLimit(value));
     },

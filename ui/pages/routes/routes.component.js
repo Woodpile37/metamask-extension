@@ -104,6 +104,36 @@ export default class Routes extends Component {
     browserEnvironmentBrowser: PropTypes.string,
     theme: PropTypes.string,
     sendStage: PropTypes.string,
+<<<<<<< HEAD
+=======
+    isNetworkUsed: PropTypes.bool,
+    allAccountsOnNetworkAreEmpty: PropTypes.bool,
+    isTestNet: PropTypes.bool,
+    showExtensionInFullSizeView: PropTypes.bool,
+    currentChainId: PropTypes.string,
+    shouldShowSeedPhraseReminder: PropTypes.bool,
+    forgottenPassword: PropTypes.bool,
+    isCurrentProviderCustom: PropTypes.bool,
+    completedOnboarding: PropTypes.bool,
+    isAccountMenuOpen: PropTypes.bool,
+    toggleAccountMenu: PropTypes.func,
+    isNetworkMenuOpen: PropTypes.bool,
+    toggleNetworkMenu: PropTypes.func,
+    accountDetailsAddress: PropTypes.string,
+    isImportNftsModalOpen: PropTypes.bool.isRequired,
+    hideImportNftsModal: PropTypes.func.isRequired,
+    isIpfsModalOpen: PropTypes.bool.isRequired,
+    hideIpfsModal: PropTypes.func.isRequired,
+    isImportTokensModalOpen: PropTypes.bool.isRequired,
+    hideImportTokensModal: PropTypes.func.isRequired,
+    isSelectActionModalOpen: PropTypes.bool.isRequired,
+    hideSelectActionModal: PropTypes.func.isRequired,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    isShowKeyringSnapRemovalResultModal: PropTypes.bool.isRequired,
+    hideShowKeyringSnapRemovalResultModal: PropTypes.func.isRequired,
+    pendingConfirmations: PropTypes.array.isRequired,
+    ///: END:ONLY_INCLUDE_IF
+>>>>>>> circle-retry
   };
 
   static contextTypes = {
@@ -138,7 +168,14 @@ export default class Routes extends Component {
       setCurrentCurrencyToUSD,
       history,
       theme,
+      showExtensionInFullSizeView,
     } = this.props;
+
+    const windowType = getEnvironmentType();
+    if (showExtensionInFullSizeView && windowType === ENVIRONMENT_TYPE_POPUP) {
+      global.platform.openExtensionInBrowser();
+    }
+
     if (!currentCurrency) {
       setCurrentCurrencyToUSD();
     }

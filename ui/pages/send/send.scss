@@ -122,7 +122,11 @@
       cursor: pointer;
 
       &:hover {
+<<<<<<< HEAD
         background-color: rgba(design-system.$alto, 0.2);
+=======
+        background-color: var(--color-background-hover);
+>>>>>>> circle-retry
       }
 
       .identicon {

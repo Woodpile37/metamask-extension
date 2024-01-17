@@ -66,6 +66,7 @@ export default class PreferencesController {
       forgottenPassword: false,
       preferences: {
         autoLockTimeLimit: undefined,
+        showExtensionInFullSizeView: false,
         showFiatInTestnets: false,
         useNativeCurrencyAsPrimaryCurrency: true,
         hideZeroBalanceTokens: false,

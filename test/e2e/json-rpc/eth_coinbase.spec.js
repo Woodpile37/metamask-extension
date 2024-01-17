@@ -1,5 +1,13 @@
 const { strict: assert } = require('assert');
+<<<<<<< HEAD
 const { defaultGanacheOptions, withFixtures } = require('../helpers');
+=======
+const {
+  defaultGanacheOptions,
+  withFixtures,
+  unlockWallet,
+} = require('../helpers');
+>>>>>>> circle-retry
 const FixtureBuilder = require('../fixture-builder');
 
 describe('eth_coinbase', function () {
@@ -14,9 +22,13 @@ describe('eth_coinbase', function () {
         title: this.test.title,
       },
       async ({ driver }) => {
+<<<<<<< HEAD
         await driver.navigate();
         await driver.fill('#password', 'correct horse battery staple');
         await driver.press('#password', driver.Key.ENTER);
+=======
+        await unlockWallet(driver);
+>>>>>>> circle-retry
 
         // eth_coinbase
         await driver.openNewPage(`http://127.0.0.1:8080`);

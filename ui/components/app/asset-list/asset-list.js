@@ -110,6 +110,12 @@ const AssetList = ({ onClickAsset }) => {
   const primaryTokenImage = useSelector(getNativeCurrencyImage);
   const isMainnet = useSelector(getIsMainnet) || process.env.IN_TEST;
 
+  let isStakeable = isMainnet;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
+  isStakeable = false;
+  ///: END:ONLY_INCLUDE_IF
+
   return (
     <>
       <AssetListItem
@@ -144,8 +150,12 @@ const AssetList = ({ onClickAsset }) => {
         tokenImage={balanceIsLoading ? null : primaryTokenImage}
         isOriginalTokenSymbol={isOriginalNativeSymbol}
         isNativeCurrency
+<<<<<<< HEAD
         isStakeable={isMainnet}
 >>>>>>> upstream/develop
+=======
+        isStakeable={isStakeable}
+>>>>>>> circle-retry
       />
       <TokenList
         onTokenClick={(tokenAddress) => {

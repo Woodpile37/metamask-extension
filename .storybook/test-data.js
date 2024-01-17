@@ -360,7 +360,7 @@ const state = {
     previousProviderStore: {
       type: 'ropsten',
       ticker: 'ETH',
-      nickname: '',
+      nickname: 'Goerli',
       rpcUrl: '',
       chainId: '0x3',
     },

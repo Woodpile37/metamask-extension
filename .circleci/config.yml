@@ -26,10 +26,10 @@ executors:
       - image: mcr.microsoft.com/playwright:v1.39.0-jammy
 
 orbs:
-  gh: circleci/github-cli@2.0
-  codecov: codecov/codecov@3.2.2
+  gh: circleci/github-cli@2.3.0
+  codecov: codecov/codecov@3.3.0
+  retry-command: ostk0069/retry-command@0.0.5
   slack: circleci/slack@4.12.5
-
 
 rc_branch_only: &rc_branch_only
   filters:
@@ -334,6 +334,15 @@ workflows:
             - prep-build-ts-migration-dashboard
 
 jobs:
+  test-retry:
+    executor: node-browsers
+    steps:
+      - retry-command/retry-command:
+          command: echo 'hello' && exit 1
+          command_name: Hello with Retry
+          no_output_timeout: 5m
+          retry-count: 3
+          sleep: 5
   trigger-beta-build:
     executor: node-browsers-medium-plus
     steps:
@@ -471,18 +480,24 @@ jobs:
                 pattern: /^master$/
                 value: << pipeline.git.branch >>
           steps:
-            - run:
-                name: build:dist
+            - retry-command/retry-command:
+                command_name: build:dist
                 command: yarn build dist
+                no_output_timeout: 5m
+                retry-count: 3
+                sleep: 5
       - when:
           condition:
             matches:
               pattern: /^master$/
               value: << pipeline.git.branch >>
           steps:
-            - run:
-                name: build:prod
+            - retry-command/retry-command:
+                command_name: build:prod
                 command: yarn build prod
+                no_output_timeout: 5m
+                retry-count: 3
+                sleep: 5
       - run:
           name: build:debug
           command: find dist/ -type f -exec md5sum {} \; | sort -k 2
@@ -498,9 +513,12 @@ jobs:
       - run: *shallow-git-clone
       - attach_workspace:
           at: .
-      - run:
-          name: build:dist
+      - retry-command/retry-command:
+          command_name: build:dist
           command: yarn build --build-type desktop dist
+          no_output_timeout: 5m
+          retry-count: 3
+          sleep: 5
       - run:
           name: build:debug
           command: find dist/ -type f -exec md5sum {} \; | sort -k 2
@@ -605,9 +623,12 @@ jobs:
       - run: *shallow-git-clone
       - attach_workspace:
           at: .
-      - run:
-          name: Build extension for testing
+      - retry-command/retry-command:
+          command_name: Build extension for testing
           command: yarn build:test:flask
+          no_output_timeout: 5m
+          retry-count: 3
+          sleep: 5
       - run:
           name: Move test build to 'dist-test-flask' to avoid conflict with production build
           command: mv ./dist ./dist-test-flask
@@ -626,9 +647,12 @@ jobs:
       - run: *shallow-git-clone
       - attach_workspace:
           at: .
-      - run:
-          name: Build extension for testing
+      - retry-command/retry-command:
+          command_name: Build extension for testing
           command: yarn build:test:mmi
+          no_output_timeout: 5m
+          retry-count: 3
+          sleep: 5
       - run:
           name: Move test build to 'dist-test' to avoid conflict with production build
           command: mv ./dist ./dist-test-mmi
@@ -647,11 +671,14 @@ jobs:
       - run: *shallow-git-clone
       - attach_workspace:
           at: .
-      - run:
-          name: Build MMI extension for Playwright e2e
+      - retry-command/retry-command:
+          command_name: Build MMI extension for Playwright e2e
           command: |
             export MMI_CONFIGURATION_SERVICE_URL=$MMI_DEV_CONFIGURATION_SERVICE_URL
             yarn dist:mmi
+          no_output_timeout: 5m
+          retry-count: 3
+          sleep: 5
       - run:
           name: Move test build to 'dist-test' to avoid conflict with production build
           command: mv ./dist ./dist-test-mmi-playwright
@@ -673,9 +700,12 @@ jobs:
       - run: *shallow-git-clone
       - attach_workspace:
           at: .
-      - run:
-          name: Build extension in mv3 for testing
+      - retry-command/retry-command:
+          command_name: Build extension in mv3 for testing
           command: yarn build:test:mv3
+          no_output_timeout: 5m
+          retry-count: 3
+          sleep: 5
       - run:
           name: Move test build to 'dist-test' to avoid conflict with production build
           command: mv ./dist ./dist-test-mv3
@@ -694,9 +724,12 @@ jobs:
       - run: *shallow-git-clone
       - attach_workspace:
           at: .
-      - run:
-          name: Build extension for testing
+      - retry-command/retry-command:
+          command_name: Build extension for testing
           command: yarn build:test
+          no_output_timeout: 5m
+          retry-count: 3
+          sleep: 5
       - run:
           name: Move test build to 'dist-test' to avoid conflict with production build
           command: mv ./dist ./dist-test
@@ -715,9 +748,12 @@ jobs:
       - run: *shallow-git-clone
       - attach_workspace:
           at: .
-      - run:
-          name: Build extension for testing
+      - retry-command/retry-command:
+          command_name: Build extension for testing
           command: MULTICHAIN=1 yarn build:test
+          no_output_timeout: 5m
+          retry-count: 3
+          sleep: 5
       - run:
           name: Move test build to 'dist-test' to avoid conflict with production build
           command: mv ./dist ./dist-test-multichain
@@ -736,9 +772,12 @@ jobs:
       - run: *shallow-git-clone
       - attach_workspace:
           at: .
-      - run:
-          name: Build Storybook
+      - retry-command/retry-command:
+          command_name: Build Storybook
           command: yarn storybook:build
+          no_output_timeout: 5m
+          retry-count: 3
+          sleep: 5
       - persist_to_workspace:
           root: .
           paths:

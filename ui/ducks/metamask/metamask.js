@@ -13,6 +13,7 @@ import {
 } from '../../selectors';
 import { updateTransaction } from '../../store/actions';
 import { setCustomGasLimit, setCustomGasPrice } from '../gas/gas.duck';
+<<<<<<< HEAD
 import { decGWEIToHexWEI } from '../../helpers/utils/conversions.util';
 import { isEqualCaseInsensitive } from '../../helpers/utils/util';
 import { GAS_ESTIMATE_TYPES } from '../../../shared/constants/gas';
@@ -40,6 +41,44 @@ export default function reduceMetamask(state = {}, action) {
       showFiatInTestnets: false,
       showTestNetworks: false,
       useNativeCurrencyAsPrimaryCurrency: true,
+=======
+
+const initialState = {
+  isInitialized: false,
+  isUnlocked: false,
+  isAccountMenuOpen: false,
+  isNetworkMenuOpen: false,
+  identities: {},
+  transactions: [],
+  networkConfigurations: {},
+  addressBook: [],
+  contractExchangeRates: {},
+  confirmationExchangeRates: {},
+  pendingTokens: {},
+  customNonceValue: '',
+  useBlockie: false,
+  featureFlags: {},
+  welcomeScreenSeen: false,
+  currentLocale: '',
+  currentBlockGasLimit: '',
+  currentBlockGasLimitByChainId: {},
+  preferences: {
+    autoLockTimeLimit: DEFAULT_AUTO_LOCK_TIME_LIMIT,
+    showExtensionInFullSizeView: false,
+    showFiatInTestnets: false,
+    showTestNetworks: false,
+    useNativeCurrencyAsPrimaryCurrency: true,
+  },
+  firstTimeFlowType: null,
+  completedOnboarding: false,
+  knownMethodData: {},
+  use4ByteResolution: true,
+  participateInMetaMetrics: null,
+  nextNonce: null,
+  currencyRates: {
+    ETH: {
+      conversionRate: null,
+>>>>>>> circle-retry
     },
     firstTimeFlowType: null,
     completedOnboarding: false,

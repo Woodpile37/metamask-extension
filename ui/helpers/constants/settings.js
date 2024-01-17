@@ -107,9 +107,15 @@ export const SETTINGS_CONSTANTS = [
   },
   {
     tabMessage: (t) => t('advanced'),
+<<<<<<< HEAD
     sectionMessage: (t) => t('preferredLedgerConnectionType'),
     descriptionMessage: (t) => t('preferredLedgerConnectionType'),
     route: `${ADVANCED_ROUTE}#ledger-connection`,
+=======
+    sectionMessage: (t) => t('showExtensionInFullSizeView'),
+    descriptionMessage: (t) => t('showExtensionInFullSizeViewDescription'),
+    route: `${ADVANCED_ROUTE}#extension-full-size-view`,
+>>>>>>> circle-retry
     icon: 'fas fa-sliders-h',
   },
   {
