@@ -501,6 +501,8 @@ jobs:
       - run:
           name: build:debug
           command: find dist/ -type f -exec md5sum {} \; | sort -k 2
+      - store_artifacts:
+          path: builds
       - persist_to_workspace:
           root: .
           paths:
@@ -736,6 +738,8 @@ jobs:
       - run:
           name: Move test zips to 'builds-test' to avoid conflict with production build
           command: mv ./builds ./builds-test
+      - store_artifacts:
+          path: builds-test
       - persist_to_workspace:
           root: .
           paths:
