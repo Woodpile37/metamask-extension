@@ -1778,12 +1778,14 @@
         "URL": true,
         "clearInterval": true,
         "console.error": true,
+        "crypto": true,
         "setInterval": true
       },
       "packages": {
         "@metamask/eth-query>json-rpc-random-id": true,
         "@metamask/ppom-validator>@metamask/base-controller": true,
         "@metamask/ppom-validator>@metamask/controller-utils": true,
+        "@metamask/ppom-validator>crypto-js": true,
         "@metamask/ppom-validator>elliptic": true,
         "await-semaphore": true,
         "browserify>buffer": true
@@ -1806,25 +1808,22 @@
       },
       "packages": {
         "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ppom-validator>@metamask/controller-utils>@metamask/utils": true,
+        "@metamask/gas-fee-controller>@metamask/ethjs-unit": true,
+        "@metamask/utils": true,
         "browserify>buffer": true,
         "eslint>fast-deep-equal": true,
         "eth-ens-namehash": true,
-        "ethereumjs-util": true,
-        "ethjs>ethjs-unit": true
+        "ethereumjs-util": true
       }
     },
-    "@metamask/ppom-validator>@metamask/controller-utils>@metamask/utils": {
+    "@metamask/ppom-validator>crypto-js": {
       "globals": {
-        "TextDecoder": true,
-        "TextEncoder": true
+        "crypto": true,
+        "define": true,
+        "msCrypto": true
       },
       "packages": {
-        "@metamask/utils>@noble/hashes": true,
-        "browserify>buffer": true,
-        "nock>debug": true,
-        "semver": true,
-        "superstruct": true
+        "browserify>browser-resolve": true
       }
     },
     "@metamask/ppom-validator>elliptic": {
@@ -3249,6 +3248,11 @@
     "depcheck>@vue/compiler-sfc>postcss>nanoid": {
       "globals": {
         "crypto.getRandomValues": true
+      }
+    },
+    "depcheck>is-core-module>hasown": {
+      "packages": {
+        "browserify>has>function-bind": true
       }
     },
     "dependency-tree>precinct>detective-postcss>postcss>nanoid": {
@@ -4895,20 +4899,15 @@
       },
       "packages": {
         "browserify>has>function-bind": true,
+        "depcheck>is-core-module>hasown": true,
         "string.prototype.matchall>es-abstract>has-proto": true,
-        "string.prototype.matchall>get-intrinsic>hasown": true,
         "string.prototype.matchall>has-symbols": true
-      }
-    },
-    "string.prototype.matchall>get-intrinsic>hasown": {
-      "packages": {
-        "browserify>has>function-bind": true
       }
     },
     "string.prototype.matchall>internal-slot": {
       "packages": {
+        "depcheck>is-core-module>hasown": true,
         "string.prototype.matchall>get-intrinsic": true,
-        "string.prototype.matchall>get-intrinsic>hasown": true,
         "string.prototype.matchall>side-channel": true
       }
     },
