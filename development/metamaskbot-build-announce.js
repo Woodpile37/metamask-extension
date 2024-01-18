@@ -55,6 +55,9 @@ async function start() {
     })
     .join(', ');
 
+  const coverageUrl = `${BUILD_LINK_BASE}/coverage/index.html`;
+  const coverageLink = `<a href="${coverageUrl}">Report</a>`;
+
   const storybookUrl = `${BUILD_LINK_BASE}/storybook/index.html`;
   const storybookLink = `<a href="${storybookUrl}">Storybook</a>`;
 
@@ -69,6 +72,7 @@ async function start() {
     `builds: ${buildLinks}`,
     `bundle viz: ${bundleLinks}`,
     `build viz: ${depVizLink}`,
+    `code coverage: ${coverageLink}`,
     `storybook: ${storybookLink}`,
     `<a href="${allArtifactsUrl}">all artifacts</a>`,
   ];
@@ -195,7 +199,7 @@ async function start() {
     body: JSON_PAYLOAD,
     headers: {
       'User-Agent': 'metamaskbot',
-      'Authorization': `token ${GITHUB_COMMENT_TOKEN}`,
+      Authorization: `token ${GITHUB_COMMENT_TOKEN}`,
     },
   });
   if (!response.ok) {
