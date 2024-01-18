@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Fuse from 'fuse.js';
 import { isEqualCaseInsensitive } from '../../../../../shared/modules/string-utils';
@@ -38,24 +38,21 @@ export default function TokenSearch({
 
   useEffect(() => {
     setTokenSearchFuse(createTokenSearchFuse(tokenList));
-  }, [tokenList, searchQuery]);
+  }, [tokenList]);
 
-  const handleSearch = useCallback(
-    (newSearchQuery) => {
-      setSearchQuery(newSearchQuery);
-      const fuseSearchResult = tokenSearchFuse.search(newSearchQuery);
-      const addressSearchResult = getTokens(tokenList).filter((token) => {
-        return (
-          token.address &&
-          searchQuery &&
-          isEqualCaseInsensitive(token.address, newSearchQuery)
-        );
-      });
-      const results = [...addressSearchResult, ...fuseSearchResult];
-      onSearch({ newSearchQuery, results });
-    },
-    [onSearch, searchQuery, tokenList, tokenSearchFuse],
-  );
+  const handleSearch = (newSearchQuery) => {
+    setSearchQuery(newSearchQuery);
+    const fuseSearchResult = tokenSearchFuse.search(newSearchQuery);
+    const addressSearchResult = getTokens(tokenList).filter((token) => {
+      return (
+        token.address &&
+        newSearchQuery &&
+        isEqualCaseInsensitive(token.address, newSearchQuery)
+      );
+    });
+    const results = [...addressSearchResult, ...fuseSearchResult];
+    onSearch({ newSearchQuery, results });
+  };
 
   const clear = () => {
     setSearchQuery('');
@@ -71,7 +68,7 @@ export default function TokenSearch({
       autoFocus
       autoComplete={false}
       width={BlockSize.Full}
-      clearButtonOnClick={() => clear()}
+      clearButtonOnClick={clear}
       clearButtonProps={{
         size: Size.SM,
       }}

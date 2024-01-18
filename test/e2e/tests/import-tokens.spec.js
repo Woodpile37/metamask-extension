@@ -57,15 +57,10 @@ describe('Import flow', function () {
 
         // Wait for network to change and token list to load from state
         await networkSelectionModal.waitForElementState('hidden');
-        if (process.env.MULTICHAIN) {
-          await driver.findVisibleElement(
-            '[data-testid="multichain-token-list-item-secondary-value"]',
-          );
-        } else {
-          await driver.findVisibleElement(
-            '[data-testid="eth-overview__secondary-currency"]',
-          );
-        }
+        await driver.findElement({
+          css: '[data-testid="network-display"]',
+          text: 'Ethereum Mainnet',
+        });
 
         await driver.clickElement('[data-testid="import-token-button"]');
 

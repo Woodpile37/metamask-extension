@@ -55,6 +55,11 @@
       "globals": {
         "localStorage": true
       }
+    },
+    "@metamask/announcement-controller>@metamask/base-controller": {
+      "packages": {
+        "immer": true
+      }
     }
   }
 }
