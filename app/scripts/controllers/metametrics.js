@@ -487,7 +487,7 @@ export default class MetaMetricsController {
    *  view
    */
   trackPage(
-    { name, params, environmentType, page, referrer, actionId },
+    { name, params, environmentType, page, referrer, actionId, chainIds},
     options,
   ) {
     try {
@@ -504,6 +504,7 @@ export default class MetaMetricsController {
       const { metaMetricsId } = this.state;
       const idTrait = metaMetricsId ? 'userId' : 'anonymousId';
       const idValue = metaMetricsId ?? METAMETRICS_ANONYMOUS_ID;
+
       this._submitSegmentAPICall('page', {
         messageId: buildUniqueMessageId({ actionId }),
         [idTrait]: idValue,
@@ -511,7 +512,7 @@ export default class MetaMetricsController {
         properties: {
           params,
           locale: this.locale,
-          chain_id: this.chainId,
+          chain_ids: chainIds ?? [this.chainId],
           environment_type: environmentType,
         },
         context: this._buildContext(referrer, page),
@@ -742,7 +743,7 @@ export default class MetaMetricsController {
         currency,
         category,
         locale: this.locale,
-        chain_id: properties?.chain_id ?? this.chainId,
+        chain_ids: properties?.chain_ids ?? [this.chainId],
         environment_type: environmentType,
         ///: BEGIN:ONLY_INCLUDE_IF(build-mmi)
         ...mmiProps,
