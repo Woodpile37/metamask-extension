@@ -3,6 +3,10 @@ import React from 'react';
 import log from 'loglevel';
 import * as Sentry from '@sentry/browser';
 
+import getFetchWithTimeout from '../../../shared/modules/fetch-with-timeout';
+
+const fetchWithTimeout = getFetchWithTimeout();
+
 const warned = {};
 const missingMessageErrors = {};
 const missingSubstitutionErrors = {};
@@ -92,3 +96,36 @@ export const getMessage = (localeCode, localeMessages, key, substitutions) => {
 
   return phrase;
 };
+
+export async function fetchLocale(localeCode) {
+  try {
+    const response = await fetchWithTimeout(
+      `./_locales/${localeCode}/messages.json`,
+    );
+    return await response.json();
+  } catch (error) {
+    log.error(`failed to fetch ${localeCode} locale because of ${error}`);
+    return {};
+  }
+}
+
+const relativeTimeFormatLocaleData = new Set();
+
+export async function loadRelativeTimeFormatLocaleData(localeCode) {
+  const languageTag = localeCode.split('_')[0];
+  if (
+    Intl.RelativeTimeFormat &&
+    typeof Intl.RelativeTimeFormat.__addLocaleData === 'function' &&
+    !relativeTimeFormatLocaleData.has(languageTag)
+  ) {
+    const localeData = await fetchRelativeTimeFormatData(languageTag);
+    Intl.RelativeTimeFormat.__addLocaleData(localeData);
+  }
+}
+
+async function fetchRelativeTimeFormatData(languageTag) {
+  const response = await fetchWithTimeout(
+    `./intl/${languageTag}/relative-time-format-data.json`,
+  );
+  return await response.json();
+}
