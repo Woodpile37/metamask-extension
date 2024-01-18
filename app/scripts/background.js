@@ -2,55 +2,33 @@
  * @file The entry point for the web extension singleton process.
  */
 
-// Disabled to allow setting up initial state hooks first
-
-// This import sets up global functions required for Sentry to function.
-// It must be run first in case an error is thrown later during initialization.
-import './lib/setup-initial-state-hooks';
-
-import EventEmitter from 'events';
 import endOfStream from 'end-of-stream';
 import pump from 'pump';
 import debounce from 'debounce-stream';
 import log from 'loglevel';
 import browser from 'webextension-polyfill';
-import { storeAsStream } from '@metamask/obs-store';
-import { isObject } from '@metamask/utils';
-///: BEGIN:ONLY_INCLUDE_IN(snaps)
-import { ApprovalType } from '@metamask/controller-utils';
-///: END:ONLY_INCLUDE_IN
+import { storeAsStream, storeTransformStream } from '@metamask/obs-store';
 import PortStream from 'extension-port-stream';
+import { captureException } from '@sentry/browser';
 
 import { ethErrors } from 'eth-rpc-errors';
 import {
   ENVIRONMENT_TYPE_POPUP,
   ENVIRONMENT_TYPE_NOTIFICATION,
   ENVIRONMENT_TYPE_FULLSCREEN,
-  EXTENSION_MESSAGES,
   PLATFORM_FIREFOX,
-  ///: BEGIN:ONLY_INCLUDE_IN(keyring-snaps)
-  SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES,
-  ///: END:ONLY_INCLUDE_IN
 } from '../../shared/constants/app';
+import { SECOND } from '../../shared/constants/time';
 import {
-  REJECT_NOTIFICATION_CLOSE,
-  REJECT_NOTIFICATION_CLOSE_SIG,
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-  MetaMetricsUserTrait,
+  REJECT_NOTFICIATION_CLOSE,
+  REJECT_NOTFICIATION_CLOSE_SIG,
 } from '../../shared/constants/metametrics';
-import { checkForLastErrorAndLog } from '../../shared/modules/browser-runtime.utils';
 import { isManifestV3 } from '../../shared/modules/mv3.utils';
-import { maskObject } from '../../shared/modules/object.utils';
-import { logPortMessages } from './lib/stream-logger';
-import { METAMASK_CTX } from './context';
 import migrations from './migrations';
 import Migrator from './lib/migrator';
 import ExtensionPlatform from './platforms/extension';
 import LocalStore from './lib/local-store';
 import ReadOnlyNetworkStore from './lib/network-store';
-import { SENTRY_BACKGROUND_STATE } from './lib/setupSentry';
-
 import createStreamSink from './lib/createStreamSink';
 import NotificationManager, {
   NOTIFICATION_MANAGER_EVENTS,
@@ -62,25 +40,8 @@ import rawFirstTimeState from './first-time-state';
 import getFirstPreferredLangCode from './lib/get-first-preferred-lang-code';
 import getObjStructure from './lib/getObjStructure';
 import setupEnsIpfsResolver from './lib/ens-ipfs/setup';
-import { deferredPromise, getPlatform } from './lib/util';
-
+import { getPlatform } from './lib/util';
 /* eslint-enable import/first */
-
-/* eslint-disable import/order */
-///: BEGIN:ONLY_INCLUDE_IN(desktop)
-import {
-  CONNECTION_TYPE_EXTERNAL,
-  CONNECTION_TYPE_INTERNAL,
-} from '@metamask/desktop/dist/constants';
-import DesktopManager from '@metamask/desktop/dist/desktop-manager';
-///: END:ONLY_INCLUDE_IN
-/* eslint-enable import/order */
-
-// Setup global hook for improved Sentry state snapshots during initialization
-const inTest = process.env.IN_TEST;
-const localStore = inTest ? new ReadOnlyNetworkStore() : new LocalStore();
-global.stateHooks.getMostRecentPersistedState = () =>
-  localStore.mostRecentRetrievedState;
 
 const { sentry } = global;
 const firstTimeState = { ...rawFirstTimeState };
@@ -93,21 +54,26 @@ const metamaskInternalProcessHash = {
 
 const metamaskBlockedPorts = ['trezor-connect'];
 
-log.setLevel(process.env.METAMASK_DEBUG ? 'debug' : 'info', false);
+log.setDefaultLevel(process.env.METAMASK_DEBUG ? 'debug' : 'info');
 
 const platform = new ExtensionPlatform();
+
 const notificationManager = new NotificationManager();
+global.METAMASK_NOTIFIER = notificationManager;
 
 let popupIsOpen = false;
 let notificationIsOpen = false;
 let uiIsTriggering = false;
 const openMetamaskTabsIDs = {};
 const requestAccountTabIds = {};
-let controller;
+
+// state persistence
+const inTest = process.env.IN_TEST;
+const localStore = inTest ? new ReadOnlyNetworkStore() : new LocalStore();
 let versionedData;
 
 if (inTest || process.env.METAMASK_DEBUG) {
-  global.stateHooks.metamaskGetState = localStore.get.bind(localStore);
+  global.metamaskGetState = localStore.get.bind(localStore);
 }
 
 const phishingPageUrl = new URL(process.env.PHISHING_WARNING_PAGE_URL);
@@ -116,101 +82,22 @@ const ONE_SECOND_IN_MILLISECONDS = 1_000;
 // Timeout for initializing phishing warning page.
 const PHISHING_WARNING_PAGE_TIMEOUT = ONE_SECOND_IN_MILLISECONDS;
 
-///: BEGIN:ONLY_INCLUDE_IN(desktop)
-const OVERRIDE_ORIGIN = {
-  EXTENSION: 'EXTENSION',
-  DESKTOP: 'DESKTOP_APP',
-};
-///: END:ONLY_INCLUDE_IN
-
-// Event emitter for state persistence
-export const statePersistenceEvents = new EventEmitter();
-
 /**
- * This deferred Promise is used to track whether initialization has finished.
- *
- * It is very important to ensure that `resolveInitialization` is *always*
- * called once initialization has completed, and that `rejectInitialization` is
- * called if initialization fails in an unrecoverable way.
+ * In case of MV3 we attach a "onConnect" event listener as soon as the application is initialised.
+ * Reason is that in case of MV3 a delay in doing this was resulting in missing first connect event after service worker is re-activated.
  */
-const {
-  promise: isInitialized,
-  resolve: resolveInitialization,
-  reject: rejectInitialization,
-} = deferredPromise();
 
-/**
- * Sends a message to the dapp(s) content script to signal it can connect to MetaMask background as
- * the backend is not active. It is required to re-connect dapps after service worker re-activates.
- * For non-dapp pages, the message will be sent and ignored.
- */
-const sendReadyMessageToTabs = async () => {
-  const tabs = await browser.tabs
-    .query({
-      /**
-       * Only query tabs that our extension can run in. To do this, we query for all URLs that our
-       * extension can inject scripts in, which is by using the "<all_urls>" value and __without__
-       * the "tabs" manifest permission. If we included the "tabs" permission, this would also fetch
-       * URLs that we'd not be able to inject in, e.g. chrome://pages, chrome://extension, which
-       * is not what we'd want.
-       *
-       * You might be wondering, how does the "url" param work without the "tabs" permission?
-       *
-       * @see {@link https://bugs.chromium.org/p/chromium/issues/detail?id=661311#c1}
-       *  "If the extension has access to inject scripts into Tab, then we can return the url
-       *   of Tab (because the extension could just inject a script to message the location.href)."
-       */
-      url: '<all_urls>',
-      windowType: 'normal',
-    })
-    .then((result) => {
-      checkForLastErrorAndLog();
-      return result;
-    })
-    .catch(() => {
-      checkForLastErrorAndLog();
-    });
-
-  /** @todo we should only sendMessage to dapp tabs, not all tabs. */
-  for (const tab of tabs) {
-    browser.tabs
-      .sendMessage(tab.id, {
-        name: EXTENSION_MESSAGES.READY,
-      })
-      .then(() => {
-        checkForLastErrorAndLog();
-      })
-      .catch(() => {
-        // An error may happen if the contentscript is blocked from loading,
-        // and thus there is no runtime.onMessage handler to listen to the message.
-        checkForLastErrorAndLog();
-      });
-  }
+const initApp = async (remotePort) => {
+  browser.runtime.onConnect.removeListener(initApp);
+  await initialize(remotePort);
+  log.info('MetaMask initialization complete.');
 };
 
-// These are set after initialization
-let connectRemote;
-let connectExternal;
-
-browser.runtime.onConnect.addListener(async (...args) => {
-  // Queue up connection attempts here, waiting until after initialization
-  await isInitialized;
-
-  // This is set in `setupController`, which is called as part of initialization
-  connectRemote(...args);
-});
-browser.runtime.onConnectExternal.addListener(async (...args) => {
-  // Queue up connection attempts here, waiting until after initialization
-  await isInitialized;
-
-  // This is set in `setupController`, which is called as part of initialization
-  connectExternal(...args);
-});
-
-function saveTimestamp() {
-  const timestamp = new Date().toISOString();
-
-  browser.storage.session.set({ timestamp });
+if (isManifestV3()) {
+  browser.runtime.onConnect.addListener(initApp);
+} else {
+  // initialization flow
+  initialize().catch(log.error);
 }
 
 /**
@@ -224,38 +111,41 @@ function saveTimestamp() {
  * @property {boolean} isInitialized - Whether the first vault has been created.
  * @property {boolean} isUnlocked - Whether the vault is currently decrypted and accounts are available for selection.
  * @property {boolean} isAccountMenuOpen - Represents whether the main account selection UI is currently displayed.
- * @property {boolean} isNetworkMenuOpen - Represents whether the main network selection UI is currently displayed.
- * @property {object} identities - An object matching lower-case hex addresses to Identity objects with "address" and "name" (nickname) keys.
- * @property {object} networkConfigurations - A list of network configurations, containing RPC provider details (eg chainId, rpcUrl, rpcPreferences).
+ * @property {Object} identities - An object matching lower-case hex addresses to Identity objects with "address" and "name" (nickname) keys.
+ * @property {Object} unapprovedTxs - An object mapping transaction hashes to unapproved transactions.
+ * @property {Array} frequentRpcList - A list of frequently used RPCs, including custom user-provided ones.
  * @property {Array} addressBook - A list of previously sent to addresses.
- * @property {object} contractExchangeRates - Info about current token prices.
+ * @property {Object} contractExchangeRates - Info about current token prices.
  * @property {Array} tokens - Tokens held by the current user, including their balances.
- * @property {object} send - TODO: Document
+ * @property {Object} send - TODO: Document
  * @property {boolean} useBlockie - Indicates preferred user identicon format. True for blockie, false for Jazzicon.
- * @property {object} featureFlags - An object for optional feature flags.
+ * @property {Object} featureFlags - An object for optional feature flags.
  * @property {boolean} welcomeScreen - True if welcome screen should be shown.
  * @property {string} currentLocale - A locale string matching the user's preferred display language.
- * @property {object} providerConfig - The current selected network provider.
- * @property {string} providerConfig.rpcUrl - The address for the RPC API, if using an RPC API.
- * @property {string} providerConfig.type - An identifier for the type of network selected, allows MetaMask to use custom provider strategies for known networks.
- * @property {string} networkStatus - Either "unknown", "available", "unavailable", or "blocked", depending on the status of the currently selected network.
- * @property {object} accounts - An object mapping lower-case hex addresses to objects with "balance" and "address" keys, both storing hex string values.
+ * @property {Object} provider - The current selected network provider.
+ * @property {string} provider.rpcUrl - The address for the RPC API, if using an RPC API.
+ * @property {string} provider.type - An identifier for the type of network selected, allows MetaMask to use custom provider strategies for known networks.
+ * @property {string} network - A stringified number of the current network ID.
+ * @property {Object} accounts - An object mapping lower-case hex addresses to objects with "balance" and "address" keys, both storing hex string values.
  * @property {hex} currentBlockGasLimit - The most recently seen block gas limit, in a lower case hex prefixed string.
- * @property {object} unapprovedMsgs - An object of messages pending approval, mapping a unique ID to the options.
+ * @property {TransactionMeta[]} currentNetworkTxList - An array of transactions associated with the currently selected network.
+ * @property {Object} unapprovedMsgs - An object of messages pending approval, mapping a unique ID to the options.
  * @property {number} unapprovedMsgCount - The number of messages in unapprovedMsgs.
- * @property {object} unapprovedPersonalMsgs - An object of messages pending approval, mapping a unique ID to the options.
+ * @property {Object} unapprovedPersonalMsgs - An object of messages pending approval, mapping a unique ID to the options.
  * @property {number} unapprovedPersonalMsgCount - The number of messages in unapprovedPersonalMsgs.
- * @property {object} unapprovedEncryptionPublicKeyMsgs - An object of messages pending approval, mapping a unique ID to the options.
+ * @property {Object} unapprovedEncryptionPublicKeyMsgs - An object of messages pending approval, mapping a unique ID to the options.
  * @property {number} unapprovedEncryptionPublicKeyMsgCount - The number of messages in EncryptionPublicKeyMsgs.
- * @property {object} unapprovedDecryptMsgs - An object of messages pending approval, mapping a unique ID to the options.
+ * @property {Object} unapprovedDecryptMsgs - An object of messages pending approval, mapping a unique ID to the options.
  * @property {number} unapprovedDecryptMsgCount - The number of messages in unapprovedDecryptMsgs.
- * @property {object} unapprovedTypedMsgs - An object of messages pending approval, mapping a unique ID to the options.
+ * @property {Object} unapprovedTypedMsgs - An object of messages pending approval, mapping a unique ID to the options.
  * @property {number} unapprovedTypedMsgCount - The number of messages in unapprovedTypedMsgs.
  * @property {number} pendingApprovalCount - The number of pending request in the approval controller.
+ * @property {string[]} keyringTypes - An array of unique keyring identifying strings, representing available strategies for creating accounts.
  * @property {Keyring[]} keyrings - An array of keyring descriptions, summarizing the accounts that are available for use, and what keyrings they belong to.
  * @property {string} selectedAddress - A lower case hex string of the currently selected address.
  * @property {string} currentCurrency - A string identifying the user's preferred display currency, for use in showing conversion rates.
- * @property {number} currencyRates - An object mapping of nativeCurrency to conversion rate and date
+ * @property {number} conversionRate - A number representing the current exchange rate from the user's preferred currency to Ether.
+ * @property {number} conversionDate - A unix epoch date (ms) for the time the current conversion rate was last retrieved.
  * @property {boolean} forgottenPassword - Returns true if the user has initiated the password recovery screen, is recovering from seed phrase.
  */
 
@@ -268,53 +158,15 @@ function saveTimestamp() {
 /**
  * Initializes the MetaMask controller, and sets up all platform configuration.
  *
+ * @param {string} remotePort - remote application port connecting to extension.
  * @returns {Promise} Setup complete.
  */
-async function initialize() {
-  try {
-    const initData = await loadStateFromPersistence();
-    const initState = initData.data;
-    const initLangCode = await getFirstPreferredLangCode();
-
-    ///: BEGIN:ONLY_INCLUDE_IN(desktop)
-    await DesktopManager.init(platform.getVersion());
-    ///: END:ONLY_INCLUDE_IN
-
-    let isFirstMetaMaskControllerSetup;
-    if (isManifestV3) {
-      // Save the timestamp immediately and then every `SAVE_TIMESTAMP_INTERVAL`
-      // miliseconds. This keeps the service worker alive.
-      const SAVE_TIMESTAMP_INTERVAL_MS = 2 * 1000;
-
-      saveTimestamp();
-      setInterval(saveTimestamp, SAVE_TIMESTAMP_INTERVAL_MS);
-
-      const sessionData = await browser.storage.session.get([
-        'isFirstMetaMaskControllerSetup',
-      ]);
-
-      isFirstMetaMaskControllerSetup =
-        sessionData?.isFirstMetaMaskControllerSetup === undefined;
-      await browser.storage.session.set({ isFirstMetaMaskControllerSetup });
-    }
-
-    setupController(
-      initState,
-      initLangCode,
-      {},
-      isFirstMetaMaskControllerSetup,
-      initData.meta,
-    );
-    if (!isManifestV3) {
-      await loadPhishingWarningPage();
-    }
-    await sendReadyMessageToTabs();
-    log.info('MetaMask initialization complete.');
-
-    resolveInitialization();
-  } catch (error) {
-    rejectInitialization(error);
-  }
+async function initialize(remotePort) {
+  const initState = await loadStateFromPersistence();
+  const initLangCode = await getFirstPreferredLangCode();
+  await setupController(initState, initLangCode, remotePort);
+  await loadPhishingWarningPage();
+  log.info('MetaMask initialization complete.');
 }
 
 /**
@@ -371,7 +223,7 @@ async function loadPhishingWarningPage() {
   } catch (error) {
     if (error instanceof PhishingWarningPageTimeoutError) {
       console.warn(
-        'Phishing warning page timeout; page not guaranteed to work offline.',
+        'Phishing warning page timeout; page not guaraneteed to work offline.',
       );
     } else {
       console.error('Failed to initialize phishing warning page', error);
@@ -393,7 +245,7 @@ async function loadPhishingWarningPage() {
  *
  * @returns {Promise<MetaMaskState>} Last data emitted from previous instance of MetaMask.
  */
-export async function loadStateFromPersistence() {
+async function loadStateFromPersistence() {
   // migrations
   const migrator = new Migrator({ migrations });
   migrator.on('error', console.warn);
@@ -427,41 +279,20 @@ export async function loadStateFromPersistence() {
   versionedData = await migrator.migrateData(versionedData);
   if (!versionedData) {
     throw new Error('MetaMask - migrator returned undefined');
-  } else if (!isObject(versionedData.meta)) {
-    throw new Error(
-      `MetaMask - migrator metadata has invalid type '${typeof versionedData.meta}'`,
-    );
-  } else if (typeof versionedData.meta.version !== 'number') {
-    throw new Error(
-      `MetaMask - migrator metadata version has invalid type '${typeof versionedData
-        .meta.version}'`,
-    );
-  } else if (!isObject(versionedData.data)) {
-    throw new Error(
-      `MetaMask - migrator data has invalid type '${typeof versionedData.data}'`,
-    );
   }
-  // this initializes the meta/version data as a class variable to be used for future writes
-  localStore.setMetadata(versionedData.meta);
 
   // write to disk
-  localStore.set(versionedData.data);
-
-  // {
-  //   KeyringController: {
-  //     vault: 'encrypted string'
-  //     keyrings: [],
-  //   },
-  //   // other state
-  // }
-
-  // {
-  //   vault: "",
-  //   // other state
-  // }
+  if (localStore.isSupported) {
+    localStore.set(versionedData);
+  } else {
+    // throw in setTimeout so as to not block boot
+    setTimeout(() => {
+      throw new Error('MetaMask - Localstore not supported');
+    });
+  }
 
   // return just the data
-  return versionedData;
+  return versionedData.data;
 }
 
 /**
@@ -470,27 +301,21 @@ export async function loadStateFromPersistence() {
  * Streams emitted state updates to platform-specific storage strategy.
  * Creates platform listeners for new Dapps/Contexts, and sets up their data connections to the controller.
  *
- * @param {object} initState - The initial state to start the controller with, matches the state that is emitted from the controller.
+ * @param {Object} initState - The initial state to start the controller with, matches the state that is emitted from the controller.
  * @param {string} initLangCode - The region code for the language preferred by the current user.
- * @param {object} overrides - object with callbacks that are allowed to override the setup controller logic (usefull for desktop app)
- * @param isFirstMetaMaskControllerSetup
- * @param {object} stateMetadata - Metadata about the initial state and migrations, including the most recent migration version
+ * @param {string} remoteSourcePort - remote application port connecting to extension.
+ * @returns {Promise} After setup is complete.
  */
-export function setupController(
-  initState,
-  initLangCode,
-  overrides,
-  isFirstMetaMaskControllerSetup,
-  stateMetadata,
-) {
+function setupController(initState, initLangCode, remoteSourcePort) {
   //
   // MetaMask Controller
   //
 
-  controller = new MetamaskController({
+  const controller = new MetamaskController({
     infuraProjectId: process.env.INFURA_PROJECT_ID,
     // User confirmation callbacks:
     showUserConfirmation: triggerUi,
+    openPopup,
     // initial state
     initState,
     // initial locale code
@@ -505,22 +330,15 @@ export function setupController(
     getOpenMetamaskTabsIds: () => {
       return openMetamaskTabsIDs;
     },
-    localStore,
-    overrides,
-    isFirstMetaMaskControllerSetup,
-    currentMigrationVersion: stateMetadata.version,
-    featureFlags: {},
   });
 
   setupEnsIpfsResolver({
-    getCurrentChainId: () =>
-      controller.networkController.state.providerConfig.chainId,
+    getCurrentChainId: controller.networkController.getCurrentChainId.bind(
+      controller.networkController,
+    ),
     getIpfsGateway: controller.preferencesController.getIpfsGateway.bind(
       controller.preferencesController,
     ),
-    getUseAddressBarEnsResolution: () =>
-      controller.preferencesController.store.getState()
-        .useAddressBarEnsResolution,
     provider: controller.provider,
   });
 
@@ -528,35 +346,59 @@ export function setupController(
   pump(
     storeAsStream(controller.store),
     debounce(1000),
-    createStreamSink(async (state) => {
-      await localStore.set(state);
-      statePersistenceEvents.emit('state-persisted', state);
-    }),
+    storeTransformStream(versionifyData),
+    createStreamSink(persistData),
     (error) => {
       log.error('MetaMask - Persistence pipeline failed', error);
     },
   );
 
-  const vault = null;
+  /**
+   * Assigns the given state to the versioned object (with metadata), and returns that.
+   *
+   * @param {Object} state - The state object as emitted by the MetaMaskController.
+   * @returns {VersionedData} The state object wrapped in an object that includes a metadata key.
+   */
+  function versionifyData(state) {
+    versionedData.data = state;
+    return versionedData;
+  }
 
-  // setup vault state persistence
-  pump(
-    storeAsStream(controller.vaultStore),
-    debounce(1000),
-    createStreamSink(async (key, keyedState) => {
-      await vault.set(key, keyedState);
-      const encryptedKeyedState = vault.get(key);
-      const existingEncryptedVault = null; // get existing vault somehow
-      await localStore.set({
-        vault: { ...existingEncryptedVault, [key]: encryptedKeyedState },
-      });
-    }),
-    (error) => {
-      log.error('MetaMask - Persistence pipeline failed', error);
-    },
-  );
+  let dataPersistenceFailing = false;
 
-  setupSentryGetStateGlobal(controller);
+  async function persistData(state) {
+    if (!state) {
+      throw new Error('MetaMask - updated state is missing');
+    }
+    if (!state.data) {
+      throw new Error('MetaMask - updated state does not have data');
+    }
+    if (localStore.isSupported) {
+      try {
+        await localStore.set(state);
+        if (dataPersistenceFailing) {
+          dataPersistenceFailing = false;
+        }
+      } catch (err) {
+        // log error so we dont break the pipeline
+        if (!dataPersistenceFailing) {
+          dataPersistenceFailing = true;
+          captureException(err);
+        }
+        log.error('error setting state in local store:', err);
+      }
+    }
+  }
+
+  //
+  // connect to other contexts
+  //
+  if (isManifestV3() && remoteSourcePort) {
+    connectRemote(remoteSourcePort);
+  }
+
+  browser.runtime.onConnect.addListener(connectRemote);
+  browser.runtime.onConnectExternal.addListener(connectExternal);
 
   const isClientOpenStatus = () => {
     return (
@@ -598,27 +440,7 @@ export function setupController(
    *
    * @param {Port} remotePort - The port provided by a new context.
    */
-  connectRemote = async (remotePort) => {
-    ///: BEGIN:ONLY_INCLUDE_IN(desktop)
-    if (
-      DesktopManager.isDesktopEnabled() &&
-      OVERRIDE_ORIGIN.DESKTOP !== overrides?.getOrigin?.()
-    ) {
-      DesktopManager.createStream(remotePort, CONNECTION_TYPE_INTERNAL).then(
-        () => {
-          // When in Desktop Mode the responsibility to send CONNECTION_READY is on the desktop app side
-          if (isManifestV3) {
-            // Message below if captured by UI code in app/scripts/ui.js which will trigger UI initialisation
-            // This ensures that UI is initialised only after background is ready
-            // It fixes the issue of blank screen coming when extension is loaded, the issue is very frequent in MV3
-            remotePort.postMessage({ name: 'CONNECTION_READY' });
-          }
-        },
-      );
-      return;
-    }
-    ///: END:ONLY_INCLUDE_IN
-
+  function connectRemote(remotePort) {
     const processName = remotePort.name;
 
     if (metamaskBlockedPorts.includes(remotePort.name)) {
@@ -627,26 +449,30 @@ export function setupController(
 
     let isMetaMaskInternalProcess = false;
     const sourcePlatform = getPlatform();
-    const senderUrl = remotePort.sender?.url
-      ? new URL(remotePort.sender.url)
-      : null;
 
     if (sourcePlatform === PLATFORM_FIREFOX) {
       isMetaMaskInternalProcess = metamaskInternalProcessHash[processName];
     } else {
       isMetaMaskInternalProcess =
-        senderUrl?.origin === `chrome-extension://${browser.runtime.id}`;
+        remotePort.sender.origin === `chrome-extension://${browser.runtime.id}`;
     }
 
+    const senderUrl = remotePort.sender?.url
+      ? new URL(remotePort.sender.url)
+      : null;
+
     if (isMetaMaskInternalProcess) {
-      const portStream =
-        overrides?.getPortStream?.(remotePort) || new PortStream(remotePort);
-      portStream._setLogger(
-        logPortMessages(METAMASK_CTX.BACKGROUND, METAMASK_CTX.UI),
-      );
+      const portStream = new PortStream(remotePort);
       // communication with popup
       controller.isClientOpen = true;
       controller.setupTrustedCommunication(portStream, remotePort.sender);
+
+      if (isManifestV3()) {
+        // Message below if captured by UI code in app/scripts/ui.js which will trigger UI initialisation
+        // This ensures that UI is initialised only after background is ready
+        // It fixes the issue of blank screen coming when extension is loaded, the issue is very frequent in MV3
+        remotePort.postMessage({ name: 'CONNECTION_READY' });
+      }
 
       if (processName === ENVIRONMENT_TYPE_POPUP) {
         popupIsOpen = true;
@@ -691,11 +517,7 @@ export function setupController(
       senderUrl.origin === phishingPageUrl.origin &&
       senderUrl.pathname === phishingPageUrl.pathname
     ) {
-      const portStream =
-        overrides?.getPortStream?.(remotePort) || new PortStream(remotePort);
-      portStream._setLogger(
-        logPortMessages(METAMASK_CTX.BACKGROUND, METAMASK_CTX.UI),
-      );
+      const portStream = new PortStream(remotePort);
       controller.setupPhishingCommunication({
         connectionStream: portStream,
       });
@@ -711,49 +533,45 @@ export function setupController(
           }
         });
       }
-      connectExternal(remotePort, METAMASK_CTX.CONTENTSCRIPT);
+      connectExternal(remotePort);
     }
-  };
+  }
 
   // communication with page or other extension
-  connectExternal = (remotePort, to = METAMASK_CTX.EXTERNAL) => {
-    ///: BEGIN:ONLY_INCLUDE_IN(desktop)
-    if (
-      DesktopManager.isDesktopEnabled() &&
-      OVERRIDE_ORIGIN.DESKTOP !== overrides?.getOrigin?.()
-    ) {
-      DesktopManager.createStream(remotePort, CONNECTION_TYPE_EXTERNAL);
-      return;
-    }
-    ///: END:ONLY_INCLUDE_IN
-
-    const portStream =
-      overrides?.getPortStream?.(remotePort) || new PortStream(remotePort);
-    portStream._setLogger(logPortMessages(METAMASK_CTX.BACKGROUND, to));
+  function connectExternal(remotePort) {
+    const portStream = new PortStream(remotePort);
     controller.setupUntrustedCommunication({
       connectionStream: portStream,
       sender: remotePort.sender,
     });
-  };
-
-  if (overrides?.registerConnectListeners) {
-    overrides.registerConnectListeners(connectRemote, connectExternal);
   }
 
   //
   // User Interface setup
   //
-  updateBadge();
 
-  controller.decryptMessageController.hub.on(
+  updateBadge();
+  controller.txController.on(
     METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
     updateBadge,
   );
-  controller.encryptionPublicKeyController.hub.on(
+  controller.messageManager.on(
     METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
     updateBadge,
   );
-  controller.signatureController.hub.on(
+  controller.personalMessageManager.on(
+    METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
+    updateBadge,
+  );
+  controller.decryptMessageManager.on(
+    METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
+    updateBadge,
+  );
+  controller.encryptionPublicKeyManager.on(
+    METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
+    updateBadge,
+  );
+  controller.typedMessageManager.on(
     METAMASK_CONTROLLER_EVENTS.UPDATE_BADGE,
     updateBadge,
   );
@@ -767,13 +585,6 @@ export function setupController(
     updateBadge,
   );
 
-  controller.controllerMessenger.subscribe(
-    METAMASK_CONTROLLER_EVENTS.QUEUED_REQUEST_STATE_CHANGE,
-    updateBadge,
-  );
-
-  controller.txController.initApprovals();
-
   /**
    * Updates the Web Extension's "badge" number, on the little fox in the toolbar.
    * The number reflects the current number of pending transactions or message signatures needing user approval.
@@ -785,7 +596,7 @@ export function setupController(
       label = String(count);
     }
     // browserAction has been replaced by action in MV3
-    if (isManifestV3) {
+    if (isManifestV3()) {
       browser.action.setBadgeText({ text: label });
       browser.action.setBadgeBackgroundColor({ color: '#037DD6' });
     } else {
@@ -795,101 +606,96 @@ export function setupController(
   }
 
   function getUnapprovedTransactionCount() {
-    let count = controller.appStateController.waitingForUnlock.length;
-    if (controller.preferencesController.getUseRequestQueue()) {
-      count += controller.queuedRequestController.state.queuedRequestCount;
-    } else {
-      count += controller.approvalController.getTotalApprovalCount();
-    }
-    return count;
+    const unapprovedTxCount = controller.txController.getUnapprovedTxCount();
+    const { unapprovedMsgCount } = controller.messageManager;
+    const { unapprovedPersonalMsgCount } = controller.personalMessageManager;
+    const { unapprovedDecryptMsgCount } = controller.decryptMessageManager;
+    const {
+      unapprovedEncryptionPublicKeyMsgCount,
+    } = controller.encryptionPublicKeyManager;
+    const { unapprovedTypedMessagesCount } = controller.typedMessageManager;
+    const pendingApprovalCount = controller.approvalController.getTotalApprovalCount();
+    const waitingForUnlockCount =
+      controller.appStateController.waitingForUnlock.length;
+    return (
+      unapprovedTxCount +
+      unapprovedMsgCount +
+      unapprovedPersonalMsgCount +
+      unapprovedDecryptMsgCount +
+      unapprovedEncryptionPublicKeyMsgCount +
+      unapprovedTypedMessagesCount +
+      pendingApprovalCount +
+      waitingForUnlockCount
+    );
   }
-
-  controller.controllerMessenger.subscribe(
-    'QueuedRequestController:countChanged',
-    (count) => {
-      updateBadge();
-      if (count > 0) {
-        triggerUi();
-      }
-    },
-  );
 
   notificationManager.on(
     NOTIFICATION_MANAGER_EVENTS.POPUP_CLOSED,
     ({ automaticallyClosed }) => {
-      if (controller.preferencesController.getUseRequestQueue()) {
-        // when the feature flag is on, rejecting unnapproved notifications in this way does nothing (since the controllers havent seen the requests yet)
-        // Also, the updating of badge / triggering of UI happens from the countChanged event when the feature flag is on, so we dont need that here either.
-        // The only thing that we might want to add here is possibly calling a method to empty the queue / do the same thing as rejecting all confirmed?
-        return;
-      }
-
       if (!automaticallyClosed) {
         rejectUnapprovedNotifications();
       } else if (getUnapprovedTransactionCount() > 0) {
         triggerUi();
       }
-
-      updateBadge();
     },
   );
 
   function rejectUnapprovedNotifications() {
-    controller.signatureController.rejectUnapproved(
-      REJECT_NOTIFICATION_CLOSE_SIG,
+    Object.keys(
+      controller.txController.txStateManager.getUnapprovedTxList(),
+    ).forEach((txId) =>
+      controller.txController.txStateManager.setTxStatusRejected(txId),
     );
-    controller.decryptMessageController.rejectUnapproved(
-      REJECT_NOTIFICATION_CLOSE,
-    );
-    controller.encryptionPublicKeyController.rejectUnapproved(
-      REJECT_NOTIFICATION_CLOSE,
+    controller.messageManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.messageManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE_SIG,
+        ),
+      );
+    controller.personalMessageManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.personalMessageManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE_SIG,
+        ),
+      );
+    controller.typedMessageManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.typedMessageManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE_SIG,
+        ),
+      );
+    controller.decryptMessageManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.decryptMessageManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE,
+        ),
+      );
+    controller.encryptionPublicKeyManager.messages
+      .filter((msg) => msg.status === 'unapproved')
+      .forEach((tx) =>
+        controller.encryptionPublicKeyManager.rejectMsg(
+          tx.id,
+          REJECT_NOTFICIATION_CLOSE,
+        ),
+      );
+
+    // Finally, reject all approvals managed by the ApprovalController
+    controller.approvalController.clear(
+      ethErrors.provider.userRejectedRequest(),
     );
 
-    // Finally, resolve snap dialog approvals on Flask and reject all the others managed by the ApprovalController.
-    Object.values(controller.approvalController.state.pendingApprovals).forEach(
-      ({ id, type }) => {
-        switch (type) {
-          ///: BEGIN:ONLY_INCLUDE_IN(snaps)
-          case ApprovalType.SnapDialogAlert:
-          case ApprovalType.SnapDialogPrompt:
-            controller.approvalController.accept(id, null);
-            break;
-          case ApprovalType.SnapDialogConfirmation:
-            controller.approvalController.accept(id, false);
-            break;
-          ///: END:ONLY_INCLUDE_IN
-          ///: BEGIN:ONLY_INCLUDE_IN(keyring-snaps)
-          case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.confirmAccountCreation:
-          case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.confirmAccountRemoval:
-          case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showSnapAccountRedirect:
-            controller.approvalController.accept(id, false);
-            break;
-          ///: END:ONLY_INCLUDE_IN
-          default:
-            controller.approvalController.reject(
-              id,
-              ethErrors.provider.userRejectedRequest(),
-            );
-            break;
-        }
-      },
-    );
+    updateBadge();
   }
 
-  ///: BEGIN:ONLY_INCLUDE_IN(desktop)
-  if (OVERRIDE_ORIGIN.DESKTOP !== overrides?.getOrigin?.()) {
-    controller.store.subscribe((state) => {
-      DesktopManager.setState(state);
-    });
-  }
-  ///: END:ONLY_INCLUDE_IN
-
-  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
-  // Updates the snaps registry and check for newly blocked snaps to block if the user has at least one snap installed.
-  if (Object.keys(controller.snapController.state.snaps).length > 0) {
-    controller.snapController.updateBlockedSnaps();
-  }
-  ///: END:ONLY_INCLUDE_IN
+  return Promise.resolve();
 }
 
 //
@@ -917,64 +723,35 @@ async function triggerUi() {
   ) {
     uiIsTriggering = true;
     try {
-      const currentPopupId = controller.appStateController.getCurrentPopupId();
-      await notificationManager.showPopup(
-        (newPopupId) =>
-          controller.appStateController.setCurrentPopupId(newPopupId),
-        currentPopupId,
-      );
+      await notificationManager.showPopup();
     } finally {
       uiIsTriggering = false;
     }
   }
 }
 
-// It adds the "App Installed" event into a queue of events, which will be tracked only after a user opts into metrics.
-const addAppInstalledEvent = () => {
-  if (controller) {
-    controller.metaMetricsController.updateTraits({
-      [MetaMetricsUserTrait.InstallDateExt]: new Date()
-        .toISOString()
-        .split('T')[0], // yyyy-mm-dd
-    });
-    controller.metaMetricsController.addEventBeforeMetricsOptIn({
-      category: MetaMetricsEventCategory.App,
-      event: MetaMetricsEventName.AppInstalled,
-      properties: {},
-    });
-    return;
-  }
-  setTimeout(() => {
-    // If the controller is not set yet, we wait and try to add the "App Installed" event again.
-    addAppInstalledEvent();
-  }, 1000);
-};
+/**
+ * Opens the browser popup for user confirmation of watchAsset
+ * then it waits until user interact with the UI
+ */
+async function openPopup() {
+  await triggerUi();
+  await new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (!notificationIsOpen) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, SECOND);
+  });
+}
 
 // On first install, open a new tab with MetaMask
-async function onInstall() {
-  const storeAlreadyExisted = Boolean(await localStore.get());
-  // If the store doesn't exist, then this is the first time running this script,
-  // and is therefore an install
-  if (process.env.IN_TEST) {
-    addAppInstalledEvent();
-  } else if (!storeAlreadyExisted && !process.env.METAMASK_DEBUG) {
-    addAppInstalledEvent();
+browser.runtime.onInstalled.addListener(({ reason }) => {
+  if (
+    reason === 'install' &&
+    !(process.env.METAMASK_DEBUG || process.env.IN_TEST)
+  ) {
     platform.openExtensionInBrowser();
   }
-}
-
-function setupSentryGetStateGlobal(store) {
-  global.stateHooks.getSentryAppState = function () {
-    const backgroundState = store.memStore.getState();
-    return maskObject(backgroundState, SENTRY_BACKGROUND_STATE);
-  };
-}
-
-async function initBackground() {
-  await onInstall();
-  initialize().catch(log.error);
-}
-
-if (!process.env.SKIP_BACKGROUND_INITIALIZATION) {
-  initBackground();
-}
+});
