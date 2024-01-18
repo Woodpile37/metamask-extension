@@ -3,11 +3,9 @@ import { configureStore as baseConfigureStore } from '@reduxjs/toolkit';
 import devtoolsEnhancer from 'remote-redux-devtools';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 import { GasEstimateType, GasFeeEstimates } from '@metamask/gas-fee-controller';
-import { InternalAccount } from '@metamask/keyring-api';
 import rootReducer from '../ducks';
 import { LedgerTransportTypes } from '../../shared/constants/hardware-wallets';
 import { TransactionMeta } from '../../shared/constants/transaction';
-import type { NetworkStatus } from '../../shared/constants/network';
 
 /**
  * This interface is temporary and is copied from the message-manager.js file
@@ -18,21 +16,15 @@ import type { NetworkStatus } from '../../shared/constants/network';
  * TODO: Replace this
  */
 export interface TemporaryMessageDataType {
-  id: string;
+  id: number;
   type: string;
   msgParams: {
-    metamaskId: string;
+    metamaskId: number;
     data: string;
   };
-  ///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
-  metadata?: {
-    custodyId?: string;
-  };
-  status?: string;
-  ///: END:ONLY_INCLUDE_IN
 }
 
-export interface MessagesIndexedById {
+interface MessagesIndexedById {
   [id: string]: TemporaryMessageDataType;
 }
 
@@ -51,10 +43,16 @@ interface TemporaryBackgroundState {
       name: string;
     }[];
   };
-  providerConfig: {
+  accounts: {
+    [address: string]: {
+      address: string;
+      balance: string;
+    };
+  };
+  provider: {
     chainId: string;
   };
-  transactions: TransactionMeta[];
+  currentNetworkTxList: TransactionMeta[];
   selectedAddress: string;
   identities: {
     [address: string]: {
@@ -63,37 +61,24 @@ interface TemporaryBackgroundState {
   };
   ledgerTransportType: LedgerTransportTypes;
   unapprovedDecryptMsgs: MessagesIndexedById;
+  unapprovedTxs: {
+    [transactionId: string]: TransactionMeta;
+  };
   unapprovedMsgs: MessagesIndexedById;
   unapprovedPersonalMsgs: MessagesIndexedById;
   unapprovedTypedMessages: MessagesIndexedById;
-  networksMetadata: {
-    [NetworkClientId: string]: {
-      EIPS: { [eip: string]: boolean };
-      status: NetworkStatus;
-    };
-  };
-  selectedNetworkClientId: string;
+  network: string;
   pendingApprovals: ApprovalControllerState['pendingApprovals'];
-  approvalFlows: ApprovalControllerState['approvalFlows'];
   knownMethodData?: {
     [fourBytePrefix: string]: Record<string, unknown>;
   };
   gasFeeEstimates: GasFeeEstimates;
   gasEstimateType: GasEstimateType;
-  ///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
-  custodyAccountDetails?: { [key: string]: any };
-  ///: END:ONLY_INCLUDE_IN
-  internalAccounts: {
-    accounts: {
-      [key: string]: InternalAccount;
-    };
-    selectedAccount: string;
-  };
 }
 
 type RootReducerReturnType = ReturnType<typeof rootReducer>;
 
-export type CombinedBackgroundAndReduxState = RootReducerReturnType & {
+type CombinedBackgroundAndReduxState = RootReducerReturnType & {
   activeTab: {
     origin: string;
   };
