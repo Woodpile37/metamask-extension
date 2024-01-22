@@ -9,11 +9,6 @@ import { MOBILE_SYNC_ROUTE } from '../../../helpers/constants/routes';
 
 import { getPlatform } from '../../../../app/scripts/lib/util';
 import { PLATFORM_FIREFOX } from '../../../../shared/constants/app';
-import { LEDGER_TRANSPORT_TYPES } from '../../../../shared/constants/hardware-wallets';
-
-const defaultTransportType = window.navigator.hid
-  ? LEDGER_TRANSPORT_TYPES.WEBHID
-  : LEDGER_TRANSPORT_TYPES.U2F;
 
 export default class AdvancedTab extends PureComponent {
   static contextTypes = {
@@ -33,26 +28,18 @@ export default class AdvancedTab extends PureComponent {
     setAdvancedInlineGasFeatureFlag: PropTypes.func,
     advancedInlineGas: PropTypes.bool,
     showFiatInTestnets: PropTypes.bool,
-<<<<<<< HEAD
+    showTestNetworks: PropTypes.bool,
     autoLockTimeLimit: PropTypes.number,
     setAutoLockTimeLimit: PropTypes.func.isRequired,
     setShowFiatConversionOnTestnetsPreference: PropTypes.func.isRequired,
+    setShowTestNetworks: PropTypes.func.isRequired,
     threeBoxSyncingAllowed: PropTypes.bool.isRequired,
     setThreeBoxSyncingPermission: PropTypes.func.isRequired,
     threeBoxDisabled: PropTypes.bool.isRequired,
     setIpfsGateway: PropTypes.func.isRequired,
     ipfsGateway: PropTypes.string.isRequired,
-    ledgerTransportType: PropTypes.string.isRequired,
+    useLedgerLive: PropTypes.bool.isRequired,
     setLedgerLivePreference: PropTypes.func.isRequired,
-=======
-    showTestNetworks: PropTypes.bool,
-    showExtensionInFullSizeView: PropTypes.bool,
-    autoLockTimeLimit: PropTypes.number,
-    setAutoLockTimeLimit: PropTypes.func.isRequired,
-    setShowFiatConversionOnTestnetsPreference: PropTypes.func.isRequired,
-    setShowTestNetworks: PropTypes.func.isRequired,
-    setShowExtensionInFullSizeView: PropTypes.func.isRequired,
->>>>>>> circle-retry
     setDismissSeedBackUpReminder: PropTypes.func.isRequired,
     dismissSeedBackUpReminder: PropTypes.bool.isRequired,
   };
@@ -231,6 +218,35 @@ export default class AdvancedTab extends PureComponent {
     );
   }
 
+  renderToggleTestNetworks() {
+    const { t } = this.context;
+    const { showTestNetworks, setShowTestNetworks } = this.props;
+
+    return (
+      <div
+        className="settings-page__content-row"
+        data-testid="advanced-setting-show-testnet-conversion"
+      >
+        <div className="settings-page__content-item">
+          <span>{t('showTestnetNetworks')}</span>
+          <div className="settings-page__content-description">
+            {t('showTestnetNetworksDescription')}
+          </div>
+        </div>
+        <div className="settings-page__content-item">
+          <div className="settings-page__content-item-col">
+            <ToggleButton
+              value={showTestNetworks}
+              onToggle={(value) => setShowTestNetworks(!value)}
+              offLabel={t('off')}
+              onLabel={t('on')}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   renderShowConversionInTestnets() {
     const { t } = this.context;
     const {
@@ -262,40 +278,6 @@ export default class AdvancedTab extends PureComponent {
           </div>
         </div>
       </div>
-    );
-  }
-
-  renderToggleExtensionInFullSizeView() {
-    const { t } = this.context;
-    const { showExtensionInFullSizeView, setShowExtensionInFullSizeView } =
-      this.props;
-
-    return (
-      <Box
-        ref={this.settingsRefs[7]}
-        className="settings-page__content-row"
-        data-testid="advanced-setting-show-extension-in-full-size-view"
-        display={Display.Flex}
-        flexDirection={FlexDirection.Row}
-        justifyContent={JustifyContent.spaceBetween}
-        gap={4}
-      >
-        <div className="settings-page__content-item">
-          <span>{t('showExtensionInFullSizeView')}</span>
-          <div className="settings-page__content-description">
-            {t('showExtensionInFullSizeViewDescription')}
-          </div>
-        </div>
-
-        <div className="settings-page__content-item-col">
-          <ToggleButton
-            value={showExtensionInFullSizeView}
-            onToggle={(value) => setShowExtensionInFullSizeView(!value)}
-            offLabel={t('off')}
-            onLabel={t('on')}
-          />
-        </div>
-      </Box>
     );
   }
 
@@ -442,7 +424,7 @@ export default class AdvancedTab extends PureComponent {
 
   renderLedgerLiveControl() {
     const { t } = this.context;
-    const { ledgerTransportType, setLedgerLivePreference } = this.props;
+    const { useLedgerLive, setLedgerLivePreference } = this.props;
 
     return (
       <div className="settings-page__content-row">
@@ -455,12 +437,8 @@ export default class AdvancedTab extends PureComponent {
         <div className="settings-page__content-item">
           <div className="settings-page__content-item-col">
             <ToggleButton
-              value={ledgerTransportType === LEDGER_TRANSPORT_TYPES.LIVE}
-              onToggle={(value) =>
-                setLedgerLivePreference(
-                  value ? defaultTransportType : LEDGER_TRANSPORT_TYPES.LIVE,
-                )
-              }
+              value={useLedgerLive}
+              onToggle={(value) => setLedgerLivePreference(!value)}
               offLabel={t('off')}
               onLabel={t('on')}
               disabled={getPlatform() === PLATFORM_FIREFOX}
@@ -593,11 +571,7 @@ export default class AdvancedTab extends PureComponent {
         {this.renderAdvancedGasInputInline()}
         {this.renderHexDataOptIn()}
         {this.renderShowConversionInTestnets()}
-<<<<<<< HEAD
-=======
         {this.renderToggleTestNetworks()}
-        {this.renderToggleExtensionInFullSizeView()}
->>>>>>> circle-retry
         {this.renderUseNonceOptIn()}
         {this.renderAutoLockTimeLimit()}
         {this.renderThreeBoxControl()}

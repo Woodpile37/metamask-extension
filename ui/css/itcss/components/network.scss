@@ -1,5 +1,3 @@
-@use "design-system";
-
 .network-component--disabled {
   cursor: not-allowed;
 
@@ -9,7 +7,7 @@
 }
 
 .network-component.pointer {
-  border: 1px solid var(--color-border-muted);
+  border: 1px solid $Grey-200;
   border-radius: 82px;
   padding: 6px 3px;
   flex: 0 0 auto;
@@ -19,16 +17,20 @@
     background-color: rgba(3, 135, 137, 0.7) !important;
   }
 
+  &.ropsten-test-network .menu-icon-circle div {
+    background-color: rgba(233, 21, 80, 0.7) !important;
+  }
+
+  &.kovan-test-network .menu-icon-circle div {
+    background-color: rgba(105, 4, 150, 0.7) !important;
+  }
+
+  &.rinkeby-test-network .menu-icon-circle div {
+    background-color: rgba(235, 179, 63, 0.7) !important;
+  }
+
   &.goerli-test-network .menu-icon-circle div {
     background-color: rgba(48, 153, 242, 0.7) !important;
-  }
-
-  &.sepolia-test-network .menu-icon-circle div {
-    background-color: rgba(207, 181, 240, 0.7) !important;
-  }
-
-  &.linea-test-network .menu-icon-circle div {
-    background-color: rgba(0, 0, 0, 0.7) !important;
   }
 
   &.localhost-network .menu-icon-circle div {
@@ -44,7 +46,6 @@
 }
 
 .dropdown-menu-item .fa.delete {
-  color: var(--color-icon-default);
   margin-right: 10px;
   display: none;
 }
@@ -54,37 +55,43 @@
 }
 
 .network-droppo {
-  background-color: var(--color-background-default);
-  border-radius: 4px;
   right: 2px;
 
   .color-indicator {
-    margin: 0 14px 0 4px;
+    margin: 0 14px;
   }
 
-  @include design-system.screen-sm-min {
+  @media screen and (min-width: $break-large) {
     right: calc(((100% - 85vw) / 2) + 2px);
   }
 
-  @include design-system.screen-md-min {
+  @media screen and (min-width: 769px) {
     right: calc(((100% - 80vw) / 2) + 2px);
   }
 
-  @include design-system.screen-lg-min {
+  @media screen and (min-width: 1281px) {
     right: calc(((100% - 65vw) / 2) + 2px);
   }
 }
 
 .network-name-item {
   flex: 1;
+  color: $dusty-gray;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 }
 
+.network-check,
+.network-check__transparent {
+  color: $white;
+  margin-left: 7px;
+}
+
 .network-check__transparent {
   opacity: 0;
-  width: 24px;
+  width: 16px;
+  margin: 0;
 }
 
 .menu-icon-circle,
@@ -99,8 +106,8 @@
 }
 
 .menu-icon-circle--active {
-  border: 1px solid var(--color-border-default);
-  background: var(--color-background-default);
+  border: 1px solid $white;
+  background: rgba(100, 100, 100, 0.4);
 }
 
 .menu-icon-circle div,
@@ -121,52 +128,28 @@
   width: 100%;
 }
 
-.network-dropdown-list {
-  max-height: 330px;
-  overflow-y: auto;
-  margin-bottom: 8px;
-}
-
 .network-dropdown-divider {
   width: 100%;
   height: 1px;
   margin: 10px 0;
-  background-color: var(--color-border-default);
+  background-color: $scorpion;
 }
 
 .network-dropdown-title {
-  @include design-system.H4;
+  @include H4;
 
   height: 25px;
   width: 120px;
-  color: var(--color-text-default);
+  color: $white;
   text-align: center;
 }
 
 .network-dropdown-content {
-  @include design-system.H6;
+  @include H6;
 
   min-height: 36px;
   width: 265px;
-  color: var(--color-text-default);
-
-  &--link {
-    color: var(--color-primary-default);
-    cursor: pointer;
-    text-decoration: underline;
-
-    &:hover {
-      color: var(--color-primary-alternative);
-    }
-  }
-
-  &--dismiss {
-    position: absolute;
-    top: 63px;
-    right: 10px;
-    padding: 2px 8px;
-    width: auto;
-  }
+  color: $dusty-gray;
 }
 
 .network-caret {
@@ -188,8 +171,4 @@
     top: -5px;
     left: -6px;
   }
-}
-
-.network__add-network-button {
-  padding: 0 16px;
 }

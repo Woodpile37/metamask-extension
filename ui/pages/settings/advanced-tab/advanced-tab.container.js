@@ -4,17 +4,16 @@ import { withRouter } from 'react-router-dom';
 import {
   displayWarning,
   setFeatureFlag,
-<<<<<<< HEAD
   showModal,
-=======
-  setShowExtensionInFullSizeView,
->>>>>>> circle-retry
   setShowFiatConversionOnTestnetsPreference,
+  setShowTestNetworks,
   setAutoLockTimeLimit,
   setThreeBoxSyncingPermission,
   turnThreeBoxSyncingOnAndInitialize,
   setUseNonceField,
   setIpfsGateway,
+  setLedgerLivePreference,
+  setDismissSeedBackUpReminder,
 } from '../../../store/actions';
 import { getPreferences } from '../../../selectors';
 import AdvancedTab from './advanced-tab.component';
@@ -30,33 +29,28 @@ export const mapStateToProps = (state) => {
     threeBoxDisabled,
     useNonceField,
     ipfsGateway,
+    useLedgerLive,
+    dismissSeedBackUpReminder,
   } = metamask;
-<<<<<<< HEAD
-  const { showFiatInTestnets, autoLockTimeLimit } = getPreferences(state);
-=======
   const {
     showFiatInTestnets,
     showTestNetworks,
-    showExtensionInFullSizeView,
-    autoLockTimeLimit = DEFAULT_AUTO_LOCK_TIME_LIMIT,
+    autoLockTimeLimit,
   } = getPreferences(state);
->>>>>>> circle-retry
 
   return {
     warning,
     sendHexData,
     advancedInlineGas,
     showFiatInTestnets,
-<<<<<<< HEAD
-=======
     showTestNetworks,
-    showExtensionInFullSizeView,
->>>>>>> circle-retry
     autoLockTimeLimit,
     threeBoxSyncingAllowed,
     threeBoxDisabled,
     useNonceField,
     ipfsGateway,
+    useLedgerLive,
+    dismissSeedBackUpReminder,
   };
 };
 
@@ -73,15 +67,9 @@ export const mapDispatchToProps = (dispatch) => {
     setShowFiatConversionOnTestnetsPreference: (value) => {
       return dispatch(setShowFiatConversionOnTestnetsPreference(value));
     },
-<<<<<<< HEAD
-=======
     setShowTestNetworks: (value) => {
       return dispatch(setShowTestNetworks(value));
     },
-    setShowExtensionInFullSizeView: (value) => {
-      return dispatch(setShowExtensionInFullSizeView(value));
-    },
->>>>>>> circle-retry
     setAutoLockTimeLimit: (value) => {
       return dispatch(setAutoLockTimeLimit(value));
     },
@@ -94,6 +82,12 @@ export const mapDispatchToProps = (dispatch) => {
     },
     setIpfsGateway: (value) => {
       return dispatch(setIpfsGateway(value));
+    },
+    setLedgerLivePreference: (value) => {
+      return dispatch(setLedgerLivePreference(value));
+    },
+    setDismissSeedBackUpReminder: (value) => {
+      return dispatch(setDismissSeedBackUpReminder(value));
     },
   };
 };

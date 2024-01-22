@@ -1,5 +1,5 @@
 const { strict: assert } = require('assert');
-const { convertToHexValue, withFixtures } = require('../helpers');
+const { withFixtures } = require('../helpers');
 
 describe('Stores custom RPC history', function () {
   const ganacheOptions = {
@@ -7,14 +7,13 @@ describe('Stores custom RPC history', function () {
       {
         secretKey:
           '0x7C9529A67102755B7E6102D6D950AC5D5863C98713805CEC576B945B15B71EAC',
-        balance: convertToHexValue(25000000000000000000),
+        balance: 25000000000000000000,
       },
     ],
   };
   it(`creates first custom RPC entry`, async function () {
     const port = 8546;
     const chainId = 1338;
-    const symbol = 'TEST';
     await withFixtures(
       {
         fixtures: 'imported-account',
@@ -31,20 +30,19 @@ describe('Stores custom RPC history', function () {
 
         await driver.clickElement('.network-display');
 
+        await driver.clickElement({ text: 'Add Network', tag: 'span' });
+
+        // wait for the full screen to be visible
+        await driver.findVisibleElement('settings-page__content');
+
+        await driver.findElement('.settings-page__sub-header-text');
+
         await driver.clickElement({ text: 'Add Network', tag: 'button' });
 
-        await driver.clickElement({
-          text: 'Add a network manually',
-          tag: 'h6',
-        });
-
-        await driver.findElement('.networks-tab__sub-header-text');
-
         const customRpcInputs = await driver.findElements('input[type="text"]');
-        const networkNameInput = customRpcInputs[1];
-        const rpcUrlInput = customRpcInputs[2];
-        const chainIdInput = customRpcInputs[3];
-        const symbolInput = customRpcInputs[4];
+        const networkNameInput = customRpcInputs[0];
+        const rpcUrlInput = customRpcInputs[1];
+        const chainIdInput = customRpcInputs[2];
 
         await networkNameInput.clear();
         await networkNameInput.sendKeys(networkName);
@@ -55,13 +53,7 @@ describe('Stores custom RPC history', function () {
         await chainIdInput.clear();
         await chainIdInput.sendKeys(chainId.toString());
 
-        await symbolInput.clear();
-        await symbolInput.sendKeys(symbol);
-
-        await driver.clickElement(
-          '.networks-tab__add-network-form-footer .btn-primary',
-        );
-
+        await driver.clickElement('.network-form__footer .btn-primary');
         await driver.findElement({ text: networkName, tag: 'span' });
       },
     );
@@ -80,27 +72,27 @@ describe('Stores custom RPC history', function () {
         await driver.press('#password', driver.Key.ENTER);
 
         // duplicate network
-        const duplicateRpcUrl = 'https://mainnet.infura.io/v3/';
+        const duplicateRpcUrl = 'http://localhost:8545';
 
         await driver.clickElement('.network-display');
 
+        await driver.clickElement({ text: 'Add Network', tag: 'span' });
+
+        // wait for the full screen to be visible
+        await driver.findVisibleElement('settings-page__content');
+
+        await driver.findElement('.settings-page__sub-header-text');
+
         await driver.clickElement({ text: 'Add Network', tag: 'button' });
 
-        await driver.clickElement({
-          text: 'Add a network manually',
-          tag: 'h6',
-        });
-
-        await driver.findElement('.networks-tab__sub-header-text');
-
         const customRpcInputs = await driver.findElements('input[type="text"]');
-        const rpcUrlInput = customRpcInputs[2];
+        const rpcUrlInput = customRpcInputs[1];
 
         await rpcUrlInput.clear();
         await rpcUrlInput.sendKeys(duplicateRpcUrl);
         await driver.findElement({
-          text: 'This URL is currently used by the mainnet network.',
-          tag: 'h6',
+          text: 'This URL is currently used by the Localhost 8545 network.',
+          tag: 'p',
         });
       },
     );
@@ -112,7 +104,6 @@ describe('Stores custom RPC history', function () {
         fixtures: 'imported-account',
         ganacheOptions,
         title: this.test.title,
-        failOnConsoleError: false,
       },
       async ({ driver }) => {
         await driver.navigate();
@@ -125,33 +116,28 @@ describe('Stores custom RPC history', function () {
 
         await driver.clickElement('.network-display');
 
+        await driver.clickElement({ text: 'Add Network', tag: 'span' });
+
+        // wait for the full screen to be visible
+        await driver.findVisibleElement('settings-page__content');
+
+        await driver.findElement('.settings-page__sub-header-text');
+
         await driver.clickElement({ text: 'Add Network', tag: 'button' });
 
-        await driver.clickElement({
-          text: 'Add a network manually',
-          tag: 'h6',
-        });
-
-        await driver.findElement('.networks-tab__sub-header-text');
-
         const customRpcInputs = await driver.findElements('input[type="text"]');
-        const rpcUrlInput = customRpcInputs[2];
-        const chainIdInput = customRpcInputs[3];
+        const rpcUrlInput = customRpcInputs[1];
+        const chainIdInput = customRpcInputs[2];
+
+        await rpcUrlInput.clear();
+        await rpcUrlInput.sendKeys(newRpcUrl);
 
         await chainIdInput.clear();
         await chainIdInput.sendKeys(duplicateChainId);
         await driver.findElement({
           text:
             'This Chain ID is currently used by the Localhost 8545 network.',
-          tag: 'h6',
-        });
-
-        await rpcUrlInput.clear();
-        await rpcUrlInput.sendKeys(newRpcUrl);
-
-        await driver.findElement({
-          text: 'Could not fetch chain ID. Is your RPC URL correct?',
-          tag: 'h6',
+          tag: 'p',
         });
       },
     );
@@ -210,7 +196,6 @@ describe('Stores custom RPC history', function () {
         fixtures: 'custom-rpc',
         ganacheOptions,
         title: this.test.title,
-        failOnConsoleError: false,
       },
       async ({ driver }) => {
         await driver.navigate();
@@ -219,18 +204,10 @@ describe('Stores custom RPC history', function () {
 
         await driver.clickElement('.network-display');
 
-        await driver.clickElement({ text: 'Add Network', tag: 'button' });
+        await driver.clickElement({ text: 'Add Network', tag: 'span' });
 
-        await driver.clickElement({
-          text: 'Add a network manually',
-          tag: 'h6',
-        });
-
-        await driver.findVisibleElement('.settings-page__content');
-        // // cancel new custom rpc
-        await driver.clickElement(
-          '.networks-tab__add-network-form-footer button.btn-secondary',
-        );
+        // wait for the full screen to be visible
+        await driver.findVisibleElement('settings-page__content');
 
         const networkListItems = await driver.findClickableElements(
           '.networks-tab__networks-list-name',
