@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect, useRef, useContext } from 'react';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import {
   Switch,
   Route,
@@ -7,7 +7,7 @@ import {
   useHistory,
   Redirect,
 } from 'react-router-dom';
-import BigNumber from 'bignumber.js';
+import { shuffle, isEqual } from 'lodash';
 import { I18nContext } from '../../contexts/i18n';
 import {
   getSelectedAccount,
@@ -15,6 +15,7 @@ import {
   getIsSwapsChain,
   isHardwareWallet,
   getHardwareWalletType,
+  getTokenList,
 } from '../../selectors/selectors';
 import {
   getQuotes,
@@ -22,7 +23,6 @@ import {
   getTradeTxId,
   getApproveTxId,
   getFetchingQuotes,
-  setBalanceError,
   setTopAssets,
   getFetchParams,
   setAggregatorMetadata,
@@ -32,14 +32,23 @@ import {
   getSwapsFeatureIsLive,
   prepareToLeaveSwaps,
   fetchAndSetSwapsGasPriceInfo,
-  fetchSwapsLiveness,
-  getUseNewSwapsApi,
-  getFromToken,
+  fetchSwapsLivenessAndFeatureFlags,
+  getReviewSwapClickedTimestamp,
+  getPendingSmartTransactions,
+  getSmartTransactionsOptInStatus,
+  getSmartTransactionsEnabled,
+  getSmartTransactionsError,
+  getSmartTransactionsErrorMessageDismissed,
+  navigateBackToBuildQuote,
 } from '../../ducks/swaps/swaps';
-import { isEIP1559Network } from '../../ducks/metamask/metamask';
+import {
+  checkNetworkAndAccountSupports1559,
+  currentNetworkTxListSelector,
+} from '../../selectors';
 import {
   AWAITING_SIGNATURES_ROUTE,
   AWAITING_SWAP_ROUTE,
+  SMART_TRANSACTION_STATUS_ROUTE,
   BUILD_QUOTE_ROUTE,
   VIEW_QUOTE_ROUTE,
   LOADING_QUOTES_ROUTE,
@@ -61,20 +70,22 @@ import {
   removeToken,
   setBackgroundSwapRouteState,
   setSwapsErrorKey,
+  dismissSmartTransactionsErrorMessage,
 } from '../../store/actions';
-import { currentNetworkTxListSelector } from '../../selectors';
+
 import { useNewMetricEvent } from '../../hooks/useMetricEvent';
 import { useGasFeeEstimates } from '../../hooks/useGasFeeEstimates';
 import FeatureToggledRoute from '../../helpers/higher-order-components/feature-toggled-route';
 import { TRANSACTION_STATUSES } from '../../../shared/constants/transaction';
+import ActionableMessage from '../../components/ui/actionable-message';
 import {
   fetchTokens,
   fetchTopAssets,
   getSwapsTokensReceivedFromTxMeta,
   fetchAggregatorMetadata,
-  countDecimals,
 } from './swaps.util';
 import AwaitingSignatures from './awaiting-signatures';
+import SmartTransactionStatus from './smart-transaction-status';
 import AwaitingSwap from './awaiting-swap';
 import LoadingQuote from './loading-swaps-quotes';
 import BuildQuote from './build-quote';
@@ -90,32 +101,49 @@ export default function Swap() {
   const isAwaitingSignaturesRoute = pathname === AWAITING_SIGNATURES_ROUTE;
   const isSwapsErrorRoute = pathname === SWAPS_ERROR_ROUTE;
   const isLoadingQuotesRoute = pathname === LOADING_QUOTES_ROUTE;
+  const isSmartTransactionStatusRoute =
+    pathname === SMART_TRANSACTION_STATUS_ROUTE;
+  const isViewQuoteRoute = pathname === VIEW_QUOTE_ROUTE;
 
-  const fetchParams = useSelector(getFetchParams);
+  const fetchParams = useSelector(getFetchParams, isEqual);
   const { destinationTokenInfo = {} } = fetchParams?.metaData || {};
 
-  const [inputValue, setInputValue] = useState(fetchParams?.value || '');
-  const [maxSlippage, setMaxSlippage] = useState(fetchParams?.slippage || 3);
-  const [isFeatureFlagLoaded, setIsFeatureFlagLoaded] = useState(false);
-  const [tokenFromError, setTokenFromError] = useState(null);
-
   const routeState = useSelector(getBackgroundSwapRouteState);
-  const selectedAccount = useSelector(getSelectedAccount);
-  const quotes = useSelector(getQuotes);
-  const txList = useSelector(currentNetworkTxListSelector);
+  const selectedAccount = useSelector(getSelectedAccount, shallowEqual);
+  const quotes = useSelector(getQuotes, isEqual);
+  const txList = useSelector(currentNetworkTxListSelector, shallowEqual);
   const tradeTxId = useSelector(getTradeTxId);
   const approveTxId = useSelector(getApproveTxId);
-  const aggregatorMetadata = useSelector(getAggregatorMetadata);
+  const aggregatorMetadata = useSelector(getAggregatorMetadata, shallowEqual);
   const fetchingQuotes = useSelector(getFetchingQuotes);
   let swapsErrorKey = useSelector(getSwapsErrorKey);
   const swapsEnabled = useSelector(getSwapsFeatureIsLive);
   const chainId = useSelector(getCurrentChainId);
   const isSwapsChain = useSelector(getIsSwapsChain);
-  const useNewSwapsApi = useSelector(getUseNewSwapsApi);
-  const EIP1559NetworkEnabled = useSelector(isEIP1559Network);
-  const fromToken = useSelector(getFromToken);
+  const networkAndAccountSupports1559 = useSelector(
+    checkNetworkAndAccountSupports1559,
+  );
+  const tokenList = useSelector(getTokenList, isEqual);
+  const listTokenValues = shuffle(Object.values(tokenList));
+  const reviewSwapClickedTimestamp = useSelector(getReviewSwapClickedTimestamp);
+  const pendingSmartTransactions = useSelector(getPendingSmartTransactions);
+  const reviewSwapClicked = Boolean(reviewSwapClickedTimestamp);
+  const smartTransactionsOptInStatus = useSelector(
+    getSmartTransactionsOptInStatus,
+  );
+  const smartTransactionsEnabled = useSelector(getSmartTransactionsEnabled);
+  const smartTransactionsError = useSelector(getSmartTransactionsError);
+  const smartTransactionsErrorMessageDismissed = useSelector(
+    getSmartTransactionsErrorMessageDismissed,
+  );
+  const showSmartTransactionsErrorMessage =
+    smartTransactionsError && !smartTransactionsErrorMessageDismissed;
 
-  useGasFeeEstimates(); // This will pre-load gas fees before going to the View Quote page.
+  if (networkAndAccountSupports1559) {
+    // This will pre-load gas fees before going to the View Quote page.
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useGasFeeEstimates();
+  }
 
   const {
     balance: ethBalance,
@@ -177,34 +205,24 @@ export default function Swap() {
 
   // eslint-disable-next-line
   useEffect(() => {
-    if (isFeatureFlagLoaded) {
-      fetchTokens(chainId, useNewSwapsApi)
-        .then((tokens) => {
-          dispatch(setSwapsTokens(tokens));
-        })
-        .catch((error) => console.error(error));
-      fetchTopAssets(chainId, useNewSwapsApi).then((topAssets) => {
-        dispatch(setTopAssets(topAssets));
-      });
-      fetchAggregatorMetadata(chainId, useNewSwapsApi).then(
-        (newAggregatorMetadata) => {
-          dispatch(setAggregatorMetadata(newAggregatorMetadata));
-        },
-      );
-      if (!EIP1559NetworkEnabled) {
-        dispatch(fetchAndSetSwapsGasPriceInfo(chainId));
-      }
-      return () => {
-        dispatch(prepareToLeaveSwaps());
-      };
+    fetchTokens(chainId)
+      .then((tokens) => {
+        dispatch(setSwapsTokens(tokens));
+      })
+      .catch((error) => console.error(error));
+    fetchTopAssets(chainId).then((topAssets) => {
+      dispatch(setTopAssets(topAssets));
+    });
+    fetchAggregatorMetadata(chainId).then((newAggregatorMetadata) => {
+      dispatch(setAggregatorMetadata(newAggregatorMetadata));
+    });
+    if (!networkAndAccountSupports1559) {
+      dispatch(fetchAndSetSwapsGasPriceInfo(chainId));
     }
-  }, [
-    dispatch,
-    chainId,
-    isFeatureFlagLoaded,
-    useNewSwapsApi,
-    EIP1559NetworkEnabled,
-  ]);
+    return () => {
+      dispatch(prepareToLeaveSwaps());
+    };
+  }, [dispatch, chainId, networkAndAccountSupports1559]);
 
   const hardwareWalletUsed = useSelector(isHardwareWallet);
   const hardwareWalletType = useSelector(getHardwareWalletType);
@@ -221,6 +239,8 @@ export default function Swap() {
       current_screen: pathname.match(/\/swaps\/(.+)/u)[1],
       is_hardware_wallet: hardwareWalletUsed,
       hardware_wallet_type: hardwareWalletType,
+      stx_enabled: smartTransactionsEnabled,
+      stx_user_opt_in: smartTransactionsOptInStatus,
     },
   });
   const exitEventRef = useRef();
@@ -231,21 +251,22 @@ export default function Swap() {
   });
 
   useEffect(() => {
-    const fetchSwapsLivenessWrapper = async () => {
-      await dispatch(fetchSwapsLiveness());
-      setIsFeatureFlagLoaded(true);
+    const fetchSwapsLivenessAndFeatureFlagsWrapper = async () => {
+      await dispatch(fetchSwapsLivenessAndFeatureFlags());
     };
-    fetchSwapsLivenessWrapper();
+    fetchSwapsLivenessAndFeatureFlagsWrapper();
     return () => {
       exitEventRef.current();
     };
   }, [dispatch]);
 
   useEffect(() => {
-    if (swapsErrorKey && !isSwapsErrorRoute) {
+    // If there is a swapsErrorKey and reviewSwapClicked is false, there was an error in silent quotes prefetching
+    // and we don't want to show the error page in that case, because another API call for quotes can be successful.
+    if (swapsErrorKey && !isSwapsErrorRoute && reviewSwapClicked) {
       history.push(SWAPS_ERROR_ROUTE);
     }
-  }, [history, swapsErrorKey, isSwapsErrorRoute]);
+  }, [history, swapsErrorKey, isSwapsErrorRoute, reviewSwapClicked]);
 
   const beforeUnloadEventAddedRef = useRef();
   useEffect(() => {
@@ -271,22 +292,50 @@ export default function Swap() {
     <div className="swaps">
       <div className="swaps__container">
         <div className="swaps__header">
+          <div
+            className="swaps__header-edit"
+            onClick={async () => {
+              await dispatch(navigateBackToBuildQuote(history));
+            }}
+          >
+            {isViewQuoteRoute && t('edit')}
+          </div>
           <div className="swaps__title">{t('swap')}</div>
-          {!isAwaitingSwapRoute && !isAwaitingSignaturesRoute && (
-            <div
-              className="swaps__header-cancel"
-              onClick={async () => {
-                clearTemporaryTokenRef.current();
-                dispatch(clearSwapsState());
-                await dispatch(resetBackgroundSwapsState());
-                history.push(DEFAULT_ROUTE);
-              }}
-            >
-              {t('cancel')}
-            </div>
-          )}
+          <div
+            className="swaps__header-cancel"
+            onClick={async () => {
+              clearTemporaryTokenRef.current();
+              dispatch(clearSwapsState());
+              await dispatch(resetBackgroundSwapsState());
+              history.push(DEFAULT_ROUTE);
+            }}
+          >
+            {!isAwaitingSwapRoute &&
+              !isAwaitingSignaturesRoute &&
+              !isSmartTransactionStatusRoute &&
+              t('cancel')}
+          </div>
         </div>
         <div className="swaps__content">
+          {showSmartTransactionsErrorMessage && (
+            <ActionableMessage
+              type="danger"
+              message={
+                <div className="build-quote__token-verification-warning-message">
+                  <div className="build-quote__bold">
+                    {t('smartTransactionsAlert')}
+                  </div>
+                  <div>{t('smartTransactionsUnavailable')}</div>
+                </div>
+              }
+              className="actionable-message--left-aligned actionable-message--error swaps__error-message"
+              primaryAction={{
+                label: t('dismiss'),
+                onClick: () => dispatch(dismissSmartTransactionsErrorMessage()),
+              }}
+              withRightButton
+            />
+          )}
           <Switch>
             <FeatureToggledRoute
               redirectRoute={SWAPS_MAINTENANCE_ROUTE}
@@ -302,31 +351,11 @@ export default function Swap() {
                   return <Redirect to={{ pathname: LOADING_QUOTES_ROUTE }} />;
                 }
 
-                const onInputChange = (newInputValue, balance) => {
-                  setInputValue(newInputValue);
-                  const balanceError = new BigNumber(newInputValue || 0).gt(
-                    balance || 0,
-                  );
-                  // "setBalanceError" is just a warning, a user can still click on the "Review Swap" button.
-                  dispatch(setBalanceError(balanceError));
-                  setTokenFromError(
-                    fromToken &&
-                      countDecimals(newInputValue) > fromToken.decimals
-                      ? 'tooManyDecimals'
-                      : null,
-                  );
-                };
-
                 return (
                   <BuildQuote
-                    inputValue={inputValue}
-                    onInputChange={onInputChange}
                     ethBalance={ethBalance}
-                    setMaxSlippage={setMaxSlippage}
                     selectedAccountAddress={selectedAccountAddress}
-                    maxSlippage={maxSlippage}
-                    isFeatureFlagLoaded={isFeatureFlagLoaded}
-                    tokenFromError={tokenFromError}
+                    shuffledTokensList={listTokenValues}
                   />
                 );
               }}
@@ -337,6 +366,16 @@ export default function Swap() {
               path={VIEW_QUOTE_ROUTE}
               exact
               render={() => {
+                if (
+                  pendingSmartTransactions.length > 0 &&
+                  routeState === 'smartTransactionStatus'
+                ) {
+                  return (
+                    <Redirect
+                      to={{ pathname: SMART_TRANSACTION_STATUS_ROUTE }}
+                    />
+                  );
+                }
                 if (Object.values(quotes).length) {
                   return (
                     <ViewQuote numberOfQuotes={Object.values(quotes).length} />
@@ -357,8 +396,6 @@ export default function Swap() {
                       swapComplete={false}
                       errorKey={swapsErrorKey}
                       txHash={tradeTxData?.hash}
-                      inputValue={inputValue}
-                      maxSlippage={maxSlippage}
                       submittedTime={tradeTxData?.submittedTime}
                     />
                   );
@@ -379,7 +416,6 @@ export default function Swap() {
                     }
                     onDone={async () => {
                       await dispatch(setBackgroundSwapRouteState(''));
-
                       if (
                         swapsErrorKey === ERROR_FETCHING_QUOTES ||
                         swapsErrorKey === QUOTES_NOT_AVAILABLE_ERROR
@@ -416,6 +452,13 @@ export default function Swap() {
               }}
             />
             <Route
+              path={SMART_TRANSACTION_STATUS_ROUTE}
+              exact
+              render={() => {
+                return <SmartTransactionStatus />;
+              }}
+            />
+            <Route
               path={AWAITING_SWAP_ROUTE}
               exact
               render={() => {
@@ -427,8 +470,6 @@ export default function Swap() {
                     submittingSwap={
                       routeState === 'awaiting' && !(approveTxId || tradeTxId)
                     }
-                    inputValue={inputValue}
-                    maxSlippage={maxSlippage}
                   />
                 ) : (
                   <Redirect to={{ pathname: DEFAULT_ROUTE }} />

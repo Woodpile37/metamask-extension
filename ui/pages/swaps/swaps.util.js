@@ -488,6 +488,34 @@ export async function fetchSwapsGasPrices(chainId, useNewSwapsApi) {
   };
 }
 
+export const getEstimatedFeeForSmartTransaction = ({
+  chainId,
+  currentCurrency,
+  conversionRate,
+  nativeCurrencySymbol,
+  estimatedFeeInWeiDec,
+}) => {
+  const estimatedFeeInWeiHex = decimalToHex(estimatedFeeInWeiDec);
+  const ethFee = getValueFromWeiHex({
+    value: estimatedFeeInWeiHex,
+    toDenomination: 'ETH',
+    numberOfDecimals: 5,
+  });
+  const rawNetworkFees = getValueFromWeiHex({
+    value: estimatedFeeInWeiHex,
+    toCurrency: currentCurrency,
+    conversionRate,
+    numberOfDecimals: 2,
+  });
+  const formattedNetworkFee = formatCurrency(rawNetworkFees, currentCurrency);
+  const chainCurrencySymbolToUse =
+    nativeCurrencySymbol || SWAPS_CHAINID_DEFAULT_TOKEN_MAP[chainId].symbol;
+  return {
+    feeInFiat: formattedNetworkFee,
+    feeInEth: `${ethFee} ${chainCurrencySymbolToUse}`,
+  };
+};
+
 export function getRenderableNetworkFeesForQuote({
   tradeGas,
   approveGas,
@@ -549,6 +577,8 @@ export function quotesToRenderableData(
   approveGas,
   tokenConversionRates,
   chainId,
+  smartTransactionFees,
+  nativeCurrencySymbol,
 ) {
   return Object.values(quotes).map((quote) => {
     const {
@@ -573,11 +603,16 @@ export function quotesToRenderableData(
       destinationTokenInfo.decimals,
     ).toPrecision(8);
 
-    const {
+    let feeInFiat = null;
+    let feeInEth = null;
+    let rawNetworkFees = null;
+    let rawEthFee = null;
+
+    ({
       feeInFiat,
+      feeInEth,
       rawNetworkFees,
       rawEthFee,
-      feeInEth,
     } = getRenderableNetworkFeesForQuote({
       tradeGas: gasEstimateWithRefund || decimalToHex(averageGas || 800000),
       approveGas,
@@ -588,7 +623,17 @@ export function quotesToRenderableData(
       sourceSymbol: sourceTokenInfo.symbol,
       sourceAmount,
       chainId,
-    });
+    }));
+
+    if (smartTransactionFees) {
+      ({ feeInFiat, feeInEth } = getEstimatedFeeForSmartTransaction({
+        chainId,
+        currentCurrency,
+        conversionRate,
+        nativeCurrencySymbol,
+        estimatedFeeInWeiDec: smartTransactionFees.feeEstimate,
+      }));
+    }
 
     const slippageMultiplier = new BigNumber(100 - slippage).div(100);
     const minimumAmountReceived = new BigNumber(destinationValue)
@@ -842,4 +887,13 @@ export const getSwapsLivenessForNetwork = (swapsFeatureFlags = {}, chainId) => {
 export const countDecimals = (value) => {
   if (!value || Math.floor(value) === value) return 0;
   return value.toString().split('.')[1]?.length || 0;
+};
+
+export const showRemainingTimeInMinAndSec = (remainingTimeInSec) => {
+  if (!Number.isInteger(remainingTimeInSec)) {
+    return '0:00';
+  }
+  const minutes = Math.floor(remainingTimeInSec / 60);
+  const seconds = remainingTimeInSec % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };

@@ -21,9 +21,14 @@ import {
   updateTransaction,
   resetBackgroundSwapsState,
   setSwapsLiveness,
+  setSwapsFeatureFlags,
   setSelectedQuoteAggId,
   setSwapsTxGasLimit,
   cancelTx,
+  fetchSmartTransactionsLiveness,
+  signAndSendSmartTransaction,
+  updateSmartTransaction,
+  setSmartTransactionsRefreshInterval,
 } from '../../store/actions';
 import {
   AWAITING_SIGNATURES_ROUTE,
@@ -32,6 +37,7 @@ import {
   LOADING_QUOTES_ROUTE,
   SWAPS_ERROR_ROUTE,
   SWAPS_MAINTENANCE_ROUTE,
+  SMART_TRANSACTION_STATUS_ROUTE,
 } from '../../helpers/constants/routes';
 import {
   fetchSwapsFeatureFlags,
@@ -45,8 +51,13 @@ import {
   getValueFromWeiHex,
   decGWEIToHexWEI,
   hexWEIToDecGWEI,
+  addHexes,
 } from '../../helpers/utils/conversions.util';
 import { conversionLessThan } from '../../../shared/modules/conversion.utils';
+import {
+  MAINNET_CHAIN_ID,
+  RINKEBY_CHAIN_ID,
+} from '../../../shared/constants/network';
 import { calcTokenAmount } from '../../helpers/utils/token-util';
 import {
   getSelectedAccount,
@@ -56,6 +67,7 @@ import {
   getCurrentChainId,
   isHardwareWallet,
   getHardwareWalletType,
+  checkNetworkAndAccountSupports1559,
 } from '../../selectors';
 import {
   ERROR_FETCHING_QUOTES,
@@ -65,7 +77,7 @@ import {
   SWAPS_FETCH_ORDER_CONFLICT,
 } from '../../../shared/constants/swaps';
 import { TRANSACTION_TYPES } from '../../../shared/constants/transaction';
-import { isEIP1559Network, getGasFeeEstimates } from '../metamask/metamask';
+import { getGasFeeEstimates } from '../metamask/metamask';
 
 const GAS_PRICES_LOADING_STATES = {
   INITIAL: 'INITIAL',
@@ -83,7 +95,12 @@ const initialState = {
   balanceError: false,
   fetchingQuotes: false,
   fromToken: null,
+  fromTokenInputValue: '',
+  fromTokenError: null,
+  isFeatureFlagLoaded: false,
+  maxSlippage: 3,
   quotesFetchStartTime: null,
+  reviewSwapClickedTimestamp: null,
   topAssets: {},
   toToken: null,
   customGas: {
@@ -125,8 +142,23 @@ const slice = createSlice({
     setFromToken: (state, action) => {
       state.fromToken = action.payload;
     },
+    setFromTokenInputValue: (state, action) => {
+      state.fromTokenInputValue = action.payload;
+    },
+    setFromTokenError: (state, action) => {
+      state.fromTokenError = action.payload;
+    },
+    setIsFeatureFlagLoaded: (state, action) => {
+      state.isFeatureFlagLoaded = action.payload;
+    },
+    setMaxSlippage: (state, action) => {
+      state.maxSlippage = action.payload;
+    },
     setQuotesFetchStartTime: (state, action) => {
       state.quotesFetchStartTime = action.payload;
+    },
+    setReviewSwapClickedTimestamp: (state, action) => {
+      state.reviewSwapClickedTimestamp = action.payload;
     },
     setTopAssets: (state, action) => {
       state.topAssets = action.payload;
@@ -172,6 +204,16 @@ export const getBalanceError = (state) => state.swaps.balanceError;
 
 export const getFromToken = (state) => state.swaps.fromToken;
 
+export const getFromTokenError = (state) => state.swaps.fromTokenError;
+
+export const getFromTokenInputValue = (state) =>
+  state.swaps.fromTokenInputValue;
+
+export const getIsFeatureFlagLoaded = (state) =>
+  state.swaps.isFeatureFlagLoaded;
+
+export const getMaxSlippage = (state) => state.swaps.maxSlippage;
+
 export const getTopAssets = (state) => state.swaps.topAssets;
 
 export const getToToken = (state) => state.swaps.toToken;
@@ -180,6 +222,9 @@ export const getFetchingQuotes = (state) => state.swaps.fetchingQuotes;
 
 export const getQuotesFetchStartTime = (state) =>
   state.swaps.quotesFetchStartTime;
+
+export const getReviewSwapClickedTimestamp = (state) =>
+  state.swaps.reviewSwapClickedTimestamp;
 
 export const getSwapsCustomizationModalPrice = (state) =>
   state.swaps.customGas.price;
@@ -228,11 +273,37 @@ const getSwapsState = (state) => state.metamask.swapsState;
 export const getSwapsFeatureIsLive = (state) =>
   state.metamask.swapsState.swapsFeatureIsLive;
 
-export const getUseNewSwapsApi = (state) =>
-  state.metamask.swapsState.useNewSwapsApi;
+export const getSmartTransactionsError = (state) =>
+  state.appState.smartTransactionsError;
+
+export const getSmartTransactionsErrorMessageDismissed = (state) =>
+  state.appState.smartTransactionsErrorMessageDismissed;
+
+export const getSmartTransactionsEnabled = (state) => {
+  const hardwareWalletUsed = isHardwareWallet(state);
+  const chainId = getCurrentChainId(state);
+  const isAllowedNetwork = [MAINNET_CHAIN_ID, RINKEBY_CHAIN_ID].includes(
+    chainId,
+  );
+  const smartTransactionsFeatureFlagEnabled =
+    state.metamask.swapsState?.swapsFeatureFlags?.smart_transactions
+      ?.extension_active;
+  const { smartTransactionsLiveness } = state.appState;
+  const smartTransactionsError = getSmartTransactionsError(state);
+  return Boolean(
+    isAllowedNetwork &&
+      !hardwareWalletUsed &&
+      smartTransactionsFeatureFlagEnabled &&
+      smartTransactionsLiveness &&
+      !smartTransactionsError,
+  );
+};
 
 export const getSwapsQuoteRefreshTime = (state) =>
   state.metamask.swapsState.swapsQuoteRefreshTime;
+
+export const getSwapsQuotePrefetchingRefreshTime = (state) =>
+  state.metamask.swapsState.swapsQuotePrefetchingRefreshTime;
 
 export const getBackgroundSwapRouteState = (state) =>
   state.metamask.swapsState.routeState;
@@ -248,6 +319,9 @@ export const getCustomMaxFeePerGas = (state) =>
 
 export const getCustomMaxPriorityFeePerGas = (state) =>
   state.metamask.swapsState.customMaxPriorityFeePerGas;
+
+export const getSwapsUserFeeLevel = (state) =>
+  state.metamask.swapsState.swapsUserFeeLevel;
 
 export const getFetchParams = (state) => state.metamask.swapsState.fetchParams;
 
@@ -304,6 +378,45 @@ export const getApproveTxParams = (state) => {
   return { ...approvalNeeded, gasPrice, data };
 };
 
+export const getSmartTransactionsOptInStatus = (state) => {
+  return state.metamask.smartTransactionsState?.userOptIn;
+};
+
+export const getCurrentSmartTransactions = (state) => {
+  return state.metamask.smartTransactionsState?.smartTransactions?.[
+    getCurrentChainId(state)
+  ];
+};
+
+export const getPendingSmartTransactions = (state) => {
+  const currentSmartTransactions = getCurrentSmartTransactions(state);
+  if (!currentSmartTransactions || currentSmartTransactions.length === 0) {
+    return [];
+  }
+  return currentSmartTransactions.filter((stx) => stx.status === 'pending');
+};
+
+export const getSmartTransactionFees = (state) => {
+  return state.appState.smartTransactionFees;
+};
+
+export const getSwapsRefreshStates = (state) => {
+  const {
+    swapsQuoteRefreshTime,
+    swapsQuotePrefetchingRefreshTime,
+    swapsStxGetTransactionsRefreshTime,
+    swapsStxBatchStatusRefreshTime,
+    swapsStxStatusDeadline,
+  } = state.metamask.swapsState;
+  return {
+    quoteRefreshTime: swapsQuoteRefreshTime,
+    quotePrefetchingRefreshTime: swapsQuotePrefetchingRefreshTime,
+    stxGetTransactionsRefreshTime: swapsStxGetTransactionsRefreshTime,
+    stxBatchStatusRefreshTime: swapsStxBatchStatusRefreshTime,
+    stxStatusDeadline: swapsStxStatusDeadline,
+  };
+};
+
 // Actions / action-creators
 
 const {
@@ -317,7 +430,12 @@ const {
   setBalanceError,
   setFetchingQuotes,
   setFromToken,
+  setFromTokenError,
+  setFromTokenInputValue,
+  setIsFeatureFlagLoaded,
+  setMaxSlippage,
   setQuotesFetchStartTime,
+  setReviewSwapClickedTimestamp,
   setTopAssets,
   setToToken,
   swapCustomGasModalPriceEdited,
@@ -332,7 +450,12 @@ export {
   setBalanceError,
   setFetchingQuotes,
   setFromToken as setSwapsFromToken,
+  setFromTokenError,
+  setFromTokenInputValue,
+  setIsFeatureFlagLoaded,
+  setMaxSlippage,
   setQuotesFetchStartTime as setSwapQuotesFetchStartTime,
+  setReviewSwapClickedTimestamp,
   setTopAssets,
   setToToken as setSwapToToken,
   swapCustomGasModalPriceEdited,
@@ -382,22 +505,27 @@ export const fetchAndSetSwapsGasPriceInfo = () => {
   };
 };
 
-export const fetchSwapsLiveness = () => {
+export const fetchSwapsLivenessAndFeatureFlags = () => {
   return async (dispatch, getState) => {
     let swapsLivenessForNetwork = {
       swapsFeatureIsLive: false,
-      useNewSwapsApi: false,
     };
     try {
       const swapsFeatureFlags = await fetchSwapsFeatureFlags();
+      await dispatch(setSwapsFeatureFlags(swapsFeatureFlags));
+      await dispatch(fetchSmartTransactionsLiveness());
       swapsLivenessForNetwork = getSwapsLivenessForNetwork(
         swapsFeatureFlags,
         getCurrentChainId(getState()),
       );
     } catch (error) {
-      log.error('Failed to fetch Swaps liveness, defaulting to false.', error);
+      log.error(
+        'Failed to fetch Swaps feature flags and Swaps liveness, defaulting to false.',
+        error,
+      );
     }
     await dispatch(setSwapsLiveness(swapsLivenessForNetwork));
+    dispatch(setIsFeatureFlagLoaded(true));
     return swapsLivenessForNetwork;
   };
 };
@@ -407,13 +535,13 @@ export const fetchQuotesAndSetQuoteState = (
   inputValue,
   maxSlippage,
   metaMetricsEvent,
+  pageRedirectionDisabled,
 ) => {
   return async (dispatch, getState) => {
     const state = getState();
     const chainId = getCurrentChainId(state);
     let swapsLivenessForNetwork = {
       swapsFeatureIsLive: false,
-      useNewSwapsApi: false,
     };
     try {
       const swapsFeatureFlags = await fetchSwapsFeatureFlags();
@@ -456,8 +584,12 @@ export const fetchQuotesAndSetQuoteState = (
       decimals: toTokenDecimals,
       iconUrl: toTokenIconUrl,
     } = selectedToToken;
-    await dispatch(setBackgroundSwapRouteState('loading'));
-    history.push(LOADING_QUOTES_ROUTE);
+    // pageRedirectionDisabled is true if quotes prefetching is active (a user is on the Build Quote page).
+    // In that case we just want to silently prefetch quotes without redirecting to the quotes loading page.
+    if (!pageRedirectionDisabled) {
+      await dispatch(setBackgroundSwapRouteState('loading'));
+      history.push(LOADING_QUOTES_ROUTE);
+    }
     dispatch(setFetchingQuotes(true));
 
     const contractExchangeRates = getTokenExchangeRates(state);
@@ -510,7 +642,11 @@ export const fetchQuotesAndSetQuoteState = (
 
     const hardwareWalletUsed = isHardwareWallet(state);
     const hardwareWalletType = getHardwareWalletType(state);
-    const EIP1559NetworkEnabled = isEIP1559Network(state);
+    const networkAndAccountSupports1559 = checkNetworkAndAccountSupports1559(
+      state,
+    );
+    const smartTransactionsOptInStatus = getSmartTransactionsOptInStatus(state);
+    const smartTransactionsEnabled = getSmartTransactionsEnabled(state);
     metaMetricsEvent({
       event: 'Quotes Requested',
       category: 'swaps',
@@ -523,6 +659,8 @@ export const fetchQuotesAndSetQuoteState = (
         custom_slippage: maxSlippage !== 2,
         is_hardware_wallet: hardwareWalletUsed,
         hardware_wallet_type: hardwareWalletType,
+        stx_enabled: smartTransactionsEnabled,
+        stx_user_opt_in: smartTransactionsOptInStatus,
         anonymizedData: true,
       },
     });
@@ -552,7 +690,7 @@ export const fetchQuotesAndSetQuoteState = (
         ),
       );
 
-      const gasPriceFetchPromise = EIP1559NetworkEnabled
+      const gasPriceFetchPromise = networkAndAccountSupports1559
         ? null // For EIP 1559 we can get gas prices via "useGasFeeEstimates".
         : dispatch(fetchAndSetSwapsGasPriceInfo());
 
@@ -574,6 +712,8 @@ export const fetchQuotesAndSetQuoteState = (
             custom_slippage: maxSlippage !== 2,
             is_hardware_wallet: hardwareWalletUsed,
             hardware_wallet_type: hardwareWalletType,
+            stx_enabled: smartTransactionsEnabled,
+            stx_user_opt_in: smartTransactionsOptInStatus,
           },
         });
         dispatch(setSwapsErrorKey(QUOTES_NOT_AVAILABLE_ERROR));
@@ -599,6 +739,8 @@ export const fetchQuotesAndSetQuoteState = (
             available_quotes: Object.values(fetchedQuotes)?.length,
             is_hardware_wallet: hardwareWalletUsed,
             hardware_wallet_type: hardwareWalletType,
+            stx_enabled: smartTransactionsEnabled,
+            stx_user_opt_in: smartTransactionsOptInStatus,
             anonymizedData: true,
           },
         });
@@ -621,15 +763,102 @@ export const fetchQuotesAndSetQuoteState = (
   };
 };
 
+export const signAndSendSwapsSmartTransaction = ({
+  unsignedTransaction,
+  smartTransactionFees,
+  metaMetricsEvent,
+  history,
+}) => {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const fetchParams = getFetchParams(state);
+    const { metaData, value: swapTokenValue, slippage } = fetchParams;
+    const { sourceTokenInfo = {}, destinationTokenInfo = {} } = metaData;
+    const usedQuote = getUsedQuote(state);
+    const swapsRefreshStates = getSwapsRefreshStates(state);
+    try {
+      dispatch(
+        setSmartTransactionsRefreshInterval(
+          swapsRefreshStates?.stxBatchStatusRefreshTime,
+        ),
+      );
+      // sign and send stx
+      const uuid = await dispatch(
+        signAndSendSmartTransaction({
+          unsignedTransaction,
+          smartTransactionFees,
+        }),
+      );
+      history.push(SMART_TRANSACTION_STATUS_ROUTE);
+      // update stx with data
+      const destinationValue = calcTokenAmount(
+        usedQuote.destinationAmount,
+        destinationTokenInfo.decimals || 18,
+      ).toPrecision(8);
+      const smartTransactionsOptInStatus = getSmartTransactionsOptInStatus(
+        state,
+      );
+      const smartTransactionsEnabled = getSmartTransactionsEnabled(state);
+      const swapMetaData = {
+        token_from: sourceTokenInfo.symbol,
+        token_from_amount: String(swapTokenValue),
+        token_to: destinationTokenInfo.symbol,
+        token_to_amount: destinationValue,
+        slippage,
+        custom_slippage: slippage !== 2,
+        best_quote_source: getTopQuote(state)?.aggregator,
+        available_quotes: getQuotes(state)?.length,
+        other_quote_selected:
+          usedQuote.aggregator !== getTopQuote(state)?.aggregator,
+        other_quote_selected_source:
+          usedQuote.aggregator === getTopQuote(state)?.aggregator
+            ? ''
+            : usedQuote.aggregator,
+        average_savings: usedQuote.savings?.total,
+        performance_savings: usedQuote.savings?.performance,
+        fee_savings: usedQuote.savings?.fee,
+        median_metamask_fee: usedQuote.savings?.medianMetaMaskFee,
+        stx_enabled: smartTransactionsEnabled,
+        stx_user_opt_in: smartTransactionsOptInStatus,
+      };
+      metaMetricsEvent({
+        event: 'STX Swap Started',
+        category: 'swaps',
+        sensitiveProperties: swapMetaData,
+      });
+      const destinationTokenAddress = destinationTokenInfo.address;
+      const destinationTokenDecimals = destinationTokenInfo.decimals;
+      const destinationTokenSymbol = destinationTokenInfo.symbol;
+      const sourceTokenSymbol = sourceTokenInfo.symbol;
+      const type = TRANSACTION_TYPES.SWAP;
+      await dispatch(
+        updateSmartTransaction(uuid, {
+          origin: 'metamask',
+          destinationTokenAddress,
+          destinationTokenDecimals,
+          destinationTokenSymbol,
+          sourceTokenSymbol,
+          swapMetaData,
+          swapTokenValue,
+          type,
+        }),
+      );
+    } catch (e) {
+      console.log('signAndSendSwapsSmartTransaction error', e);
+    }
+  };
+};
+
 export const signAndSendTransactions = (history, metaMetricsEvent) => {
   return async (dispatch, getState) => {
     const state = getState();
     const chainId = getCurrentChainId(state);
     const hardwareWalletUsed = isHardwareWallet(state);
-    const EIP1559NetworkEnabled = isEIP1559Network(state);
+    const networkAndAccountSupports1559 = checkNetworkAndAccountSupports1559(
+      state,
+    );
     let swapsLivenessForNetwork = {
       swapsFeatureIsLive: false,
-      useNewSwapsApi: false,
     };
     try {
       const swapsFeatureFlags = await fetchSwapsFeatureFlags();
@@ -661,15 +890,28 @@ export const signAndSendTransactions = (history, metaMetricsEvent) => {
     }
 
     const { fast: fastGasEstimate } = getSwapGasPriceEstimateData(state);
-    // TODO: Make sure it works if EIP is not present.
-    const {
-      high: { suggestedMaxFeePerGas, suggestedMaxPriorityFeePerGas },
-    } = getGasFeeEstimates(state);
-    const maxFeePerGas =
-      customMaxFeePerGas || decGWEIToHexWEI(suggestedMaxFeePerGas);
-    const maxPriorityFeePerGas =
-      customMaxPriorityFeePerGas ||
-      decGWEIToHexWEI(suggestedMaxPriorityFeePerGas);
+
+    let maxFeePerGas;
+    let maxPriorityFeePerGas;
+    let baseAndPriorityFeePerGas;
+    let decEstimatedBaseFee;
+
+    if (networkAndAccountSupports1559) {
+      const {
+        high: { suggestedMaxFeePerGas, suggestedMaxPriorityFeePerGas },
+        estimatedBaseFee = '0',
+      } = getGasFeeEstimates(state);
+      decEstimatedBaseFee = decGWEIToHexWEI(estimatedBaseFee);
+      maxFeePerGas =
+        customMaxFeePerGas || decGWEIToHexWEI(suggestedMaxFeePerGas);
+      maxPriorityFeePerGas =
+        customMaxPriorityFeePerGas ||
+        decGWEIToHexWEI(suggestedMaxPriorityFeePerGas);
+      baseAndPriorityFeePerGas = addHexes(
+        decEstimatedBaseFee,
+        maxPriorityFeePerGas,
+      );
+    }
 
     const usedQuote = getUsedQuote(state);
     const usedTradeTxParams = usedQuote.trade;
@@ -690,7 +932,7 @@ export const signAndSendTransactions = (history, metaMetricsEvent) => {
 
     const usedGasPrice = getUsedSwapsGasPrice(state);
     usedTradeTxParams.gas = maxGasLimit;
-    if (EIP1559NetworkEnabled) {
+    if (networkAndAccountSupports1559) {
       usedTradeTxParams.maxFeePerGas = maxFeePerGas;
       usedTradeTxParams.maxPriorityFeePerGas = maxPriorityFeePerGas;
       delete usedTradeTxParams.gasPrice;
@@ -712,13 +954,14 @@ export const signAndSendTransactions = (history, metaMetricsEvent) => {
     const gasEstimateTotalInUSD = getValueFromWeiHex({
       value: calcGasTotal(
         totalGasLimitEstimate,
-        EIP1559NetworkEnabled ? maxFeePerGas : usedGasPrice,
+        networkAndAccountSupports1559 ? baseAndPriorityFeePerGas : usedGasPrice,
       ),
       toCurrency: 'usd',
       conversionRate: usdConversionRate,
       numberOfDecimals: 6,
     });
-
+    const smartTransactionsOptInStatus = getSmartTransactionsOptInStatus(state);
+    const smartTransactionsEnabled = getSmartTransactionsEnabled(state);
     const swapMetaData = {
       token_from: sourceTokenInfo.symbol,
       token_from_amount: String(swapTokenValue),
@@ -744,10 +987,13 @@ export const signAndSendTransactions = (history, metaMetricsEvent) => {
       median_metamask_fee: usedQuote.savings?.medianMetaMaskFee,
       is_hardware_wallet: hardwareWalletUsed,
       hardware_wallet_type: getHardwareWalletType(state),
+      stx_enabled: smartTransactionsEnabled,
+      stx_user_opt_in: smartTransactionsOptInStatus,
     };
-    if (EIP1559NetworkEnabled) {
+    if (networkAndAccountSupports1559) {
       swapMetaData.max_fee_per_gas = maxFeePerGas;
       swapMetaData.max_priority_fee_per_gas = maxPriorityFeePerGas;
+      swapMetaData.base_and_priority_fee_per_gas = baseAndPriorityFeePerGas;
     }
 
     metaMetricsEvent({
@@ -756,7 +1002,7 @@ export const signAndSendTransactions = (history, metaMetricsEvent) => {
       sensitiveProperties: swapMetaData,
     });
 
-    if (!isContractAddressValid(usedTradeTxParams.to, swapMetaData, chainId)) {
+    if (!isContractAddressValid(usedTradeTxParams.to, chainId)) {
       captureMessage('Invalid contract address', {
         extra: {
           token_from: swapMetaData.token_from,
@@ -779,7 +1025,7 @@ export const signAndSendTransactions = (history, metaMetricsEvent) => {
     }
 
     if (approveTxParams) {
-      if (EIP1559NetworkEnabled) {
+      if (networkAndAccountSupports1559) {
         approveTxParams.maxFeePerGas = maxFeePerGas;
         approveTxParams.maxPriorityFeePerGas = maxPriorityFeePerGas;
         delete approveTxParams.gasPrice;
@@ -795,6 +1041,7 @@ export const signAndSendTransactions = (history, metaMetricsEvent) => {
         updateTransaction(
           {
             ...approveTxMeta,
+            estimatedBaseFee: decEstimatedBaseFee,
             type: TRANSACTION_TYPES.SWAP_APPROVAL,
             sourceTokenSymbol: sourceTokenInfo.symbol,
           },
@@ -834,6 +1081,7 @@ export const signAndSendTransactions = (history, metaMetricsEvent) => {
       updateTransaction(
         {
           ...tradeTxMeta,
+          estimatedBaseFee: decEstimatedBaseFee,
           sourceTokenSymbol: sourceTokenInfo.symbol,
           destinationTokenSymbol: destinationTokenInfo.symbol,
           type: TRANSACTION_TYPES.SWAP,
@@ -871,13 +1119,12 @@ export function fetchMetaSwapsGasPriceEstimates() {
   return async (dispatch, getState) => {
     const state = getState();
     const chainId = getCurrentChainId(state);
-    const useNewSwapsApi = getUseNewSwapsApi(state);
 
     dispatch(swapGasPriceEstimatesFetchStarted());
 
     let priceEstimates;
     try {
-      priceEstimates = await fetchSwapsGasPrices(chainId, useNewSwapsApi);
+      priceEstimates = await fetchSwapsGasPrices(chainId);
     } catch (e) {
       log.warn('Fetching swaps gas prices failed:', e);
 

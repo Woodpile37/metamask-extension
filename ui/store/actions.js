@@ -18,6 +18,7 @@ import {
 import { hasUnconfirmedTransactions } from '../helpers/utils/confirm-tx.util';
 import txHelper from '../helpers/utils/tx-helper';
 import { getEnvironmentType, addHexPrefix } from '../../app/scripts/lib/util';
+import { decimalToHex } from '../helpers/utils/conversions.util';
 import {
   getMetaMaskAccounts,
   getPermittedAccountsForCurrentTab,
@@ -2355,6 +2356,13 @@ export function setSwapsLiveness(swapsLiveness) {
   };
 }
 
+export function setSwapsFeatureFlags(featureFlags) {
+  return async (dispatch) => {
+    await promisifiedBackground.setSwapsFeatureFlags(featureFlags);
+    await forceUpdateMetamaskState(dispatch);
+  };
+}
+
 export function fetchAndSetQuotes(fetchParams, fetchParamsMetaData) {
   return async (dispatch) => {
     const [
@@ -3088,6 +3096,183 @@ export async function setUnconnectedAccountAlertShown(origin) {
 
 export async function setWeb3ShimUsageAlertDismissed(origin) {
   await promisifiedBackground.setWeb3ShimUsageAlertDismissed(origin);
+}
+
+// Smart Transactions Controller
+export async function setSmartTransactionsOptInStatus(optInState) {
+  await promisifiedBackground.setSmartTransactionsOptInStatus(optInState);
+}
+
+const isPersistentError = (e) => {
+  const persistentError = "Fetch failed with status '5";
+  return e.message?.includes(persistentError);
+};
+
+export function fetchSmartTransactionFees(unsignedTransaction) {
+  return async (dispatch) => {
+    try {
+      const smartTransactionFees = await promisifiedBackground.fetchSmartTransactionFees(
+        unsignedTransaction,
+      );
+      dispatch({
+        type: actionConstants.SET_SMART_TRANSACTION_FEES,
+        payload: smartTransactionFees,
+      });
+    } catch (e) {
+      log.error(e);
+      if (isPersistentError(e)) {
+        dispatch({
+          type: actionConstants.SET_SMART_TRANSACTIONS_ERROR,
+          payload: e.message,
+        });
+      }
+    }
+  };
+}
+
+const createSignedTransactions = async (
+  unsignedTransaction,
+  fees,
+  areCancelTransactions,
+) => {
+  const unsignedTransactionsWithFees = fees.map((fee) => {
+    const unsignedTransactionWithFees = {
+      ...unsignedTransaction,
+      maxFeePerGas: decimalToHex(fee.maxFeePerGas),
+      maxPriorityFeePerGas: decimalToHex(fee.maxPriorityFeePerGas),
+      gas: areCancelTransactions
+        ? decimalToHex(21000) // It has to be 21000 for cancel transactions, otherwise the API would reject it.
+        : unsignedTransaction.gas,
+      value: unsignedTransaction.value,
+    };
+    if (areCancelTransactions) {
+      unsignedTransactionWithFees.to = unsignedTransactionWithFees.from;
+    }
+    return unsignedTransactionWithFees;
+  });
+  const signedTransactions = await promisifiedBackground.approveTransactionsWithSameNonce(
+    unsignedTransactionsWithFees,
+  );
+  return signedTransactions;
+};
+
+export function signAndSendSmartTransaction({
+  unsignedTransaction,
+  smartTransactionFees,
+}) {
+  return async (dispatch) => {
+    const signedTransactions = await createSignedTransactions(
+      unsignedTransaction,
+      smartTransactionFees.fees,
+    );
+    const signedCanceledTransactions = await createSignedTransactions(
+      unsignedTransaction,
+      smartTransactionFees.cancelFees,
+      true,
+    );
+    try {
+      const response = await promisifiedBackground.submitSignedTransactions({
+        signedTransactions,
+        signedCanceledTransactions,
+        txParams: unsignedTransaction,
+      }); // Returns e.g.: { uuid: 'dP23W7c2kt4FK9TmXOkz1UM2F20' }
+      return response.uuid;
+    } catch (e) {
+      log.error(e);
+      if (isPersistentError(e)) {
+        dispatch({
+          type: actionConstants.SET_SMART_TRANSACTIONS_ERROR,
+          payload: e.message,
+        });
+      }
+    }
+    return null;
+  };
+}
+
+export function updateSmartTransaction(uuid, txData) {
+  return async (dispatch) => {
+    try {
+      await promisifiedBackground.updateSmartTransaction({
+        uuid,
+        ...txData,
+      });
+    } catch (e) {
+      log.error(e);
+      if (isPersistentError(e)) {
+        dispatch({
+          type: actionConstants.SET_SMART_TRANSACTIONS_ERROR,
+          payload: e.message,
+        });
+      }
+    }
+  };
+}
+
+export function fetchSmartTransactionsStatus(uuids) {
+  return async (dispatch) => {
+    try {
+      await promisifiedBackground.fetchSmartTransactionsStatus(uuids);
+    } catch (e) {
+      log.error(e);
+      if (isPersistentError(e)) {
+        dispatch({
+          type: actionConstants.SET_SMART_TRANSACTIONS_ERROR,
+          payload: e.message,
+        });
+      }
+    }
+  };
+}
+
+export function setSmartTransactionsRefreshInterval(refreshInterval) {
+  return async () => {
+    try {
+      await promisifiedBackground.setStatusRefreshInterval(refreshInterval);
+    } catch (e) {
+      log.error(e);
+    }
+  };
+}
+
+export function cancelSmartTransaction(uuid) {
+  return async (dispatch) => {
+    try {
+      await promisifiedBackground.cancelSmartTransaction(uuid);
+    } catch (e) {
+      log.error(e);
+      if (isPersistentError(e)) {
+        dispatch({
+          type: actionConstants.SET_SMART_TRANSACTIONS_ERROR,
+          payload: e.message,
+        });
+      }
+    }
+  };
+}
+
+export function fetchSmartTransactionsLiveness() {
+  return async (dispatch) => {
+    try {
+      const smartTransactionsLiveness = await promisifiedBackground.fetchSmartTransactionsLiveness();
+      dispatch({
+        type: actionConstants.SET_SMART_TRANSACTIONS_LIVENESS,
+        payload: smartTransactionsLiveness,
+      });
+    } catch (e) {
+      log.error(e);
+      dispatch({
+        type: actionConstants.SET_SMART_TRANSACTIONS_LIVENESS,
+        payload: false,
+      });
+    }
+  };
+}
+
+export function dismissSmartTransactionsErrorMessage() {
+  return {
+    type: actionConstants.DISMISS_SMART_TRANSACTIONS_ERROR_MESSAGE,
+  };
 }
 
 // DetectTokenController

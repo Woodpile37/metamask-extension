@@ -34,7 +34,7 @@ describe('Ducks - Swaps', () => {
   describe('fetchSwapsLivenessAndFeatureFlags', () => {
     const cleanFeatureFlagApiCache = () => {
       setStorageItem(
-        'cachedFetch:https://swap.metaswap.codefi.network/featureFlags',
+        'cachedFetch:https://api2.metaswap.codefi.network/featureFlags',
         null,
       );
     };
@@ -47,7 +47,7 @@ describe('Ducks - Swaps', () => {
       featureFlagsResponse,
       replyWithError = false,
     } = {}) => {
-      const apiNock = nock('https://swap.metaswap.codefi.network').get(
+      const apiNock = nock('https://api2.metaswap.codefi.network').get(
         '/featureFlags',
       );
       if (replyWithError) {
@@ -245,21 +245,25 @@ describe('Ducks - Swaps', () => {
 
     it('returns false if feature flag is disabled, not a HW and is Ethereum network', () => {
       const state = createSwapsMockStore();
-      state.metamask.swapsState.swapsFeatureFlags.smartTransactions.extensionActive = false;
+      state.metamask.swapsState.swapsFeatureFlags.smart_transactions.extension_active = false;
       expect(swaps.getSmartTransactionsEnabled(state)).toBe(false);
     });
 
     it('returns false if feature flag is enabled, not a HW, STX liveness is false and is Ethereum network', () => {
       const state = createSwapsMockStore();
-      state.metamask.smartTransactionsState.liveness = false;
+      state.appState.smartTransactionsLiveness = false;
+      expect(swaps.getSmartTransactionsEnabled(state)).toBe(false);
+    });
+
+    it('returns false if feature flag is enabled, not a HW, STX error is present and is Ethereum network', () => {
+      const state = createSwapsMockStore();
+      state.appState.smartTransactionsError = 'Internal Server Error';
       expect(swaps.getSmartTransactionsEnabled(state)).toBe(false);
     });
 
     it('returns false if feature flag is enabled, is a HW and is Ethereum network', () => {
       const state = createSwapsMockStore();
-      state.metamask.internalAccounts.accounts[
-        state.metamask.internalAccounts.selectedAccount
-      ].metadata.keyring.type = 'Trezor Hardware';
+      state.metamask.keyrings[0].type = 'Trezor Hardware';
       expect(swaps.getSmartTransactionsEnabled(state)).toBe(false);
     });
 
@@ -321,7 +325,7 @@ describe('Ducks - Swaps', () => {
       const state = createSwapsMockStore();
       const smartTransactionFees = swaps.getSmartTransactionFees(state);
       expect(smartTransactionFees).toMatchObject(
-        state.metamask.smartTransactionsState.fees,
+        state.appState.smartTransactionFees,
       );
     });
   });

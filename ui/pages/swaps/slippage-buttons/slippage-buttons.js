@@ -7,22 +7,13 @@ import Button from '../../../components/ui/button';
 import InfoTooltip from '../../../components/ui/info-tooltip';
 import ToggleButton from '../../../components/ui/toggle-button';
 import Box from '../../../components/ui/box';
+import Typography from '../../../components/ui/typography';
 import {
-  TextVariant,
-  FontWeight,
-  AlignItems,
-  Display,
+  TYPOGRAPHY,
+  FONT_WEIGHT,
+  ALIGN_ITEMS,
+  DISPLAY,
 } from '../../../helpers/constants/design-system';
-import { getTranslatedStxErrorMessage } from '../swaps.util';
-import {
-  Slippage,
-  SMART_SWAPS_FAQ_AND_RISK_DISCLOSURES_URL,
-} from '../../../../shared/constants/swaps';
-import {
-  Text,
-  ButtonLink,
-  ButtonLinkSize,
-} from '../../../components/component-library';
 
 export default function SlippageButtons({
   onSelect,
@@ -31,14 +22,13 @@ export default function SlippageButtons({
   smartTransactionsEnabled,
   smartTransactionsOptInStatus,
   setSmartTransactionsOptInStatus,
-  currentSmartTransactionsError,
-  isDirectWrappingEnabled,
 }) {
   const t = useContext(I18nContext);
   const [customValue, setCustomValue] = useState(() => {
     if (
       typeof currentSlippage === 'number' &&
-      !Object.values(Slippage).includes(currentSlippage)
+      currentSlippage !== 2 &&
+      currentSlippage !== 3
     ) {
       return currentSlippage.toString();
     }
@@ -46,17 +36,17 @@ export default function SlippageButtons({
   });
   const [enteringCustomValue, setEnteringCustomValue] = useState(false);
   const [activeButtonIndex, setActiveButtonIndex] = useState(() => {
-    if (currentSlippage === Slippage.high) {
-      return 1; // 3% slippage.
-    } else if (currentSlippage === Slippage.default) {
-      return 0; // 2% slippage.
+    if (currentSlippage === 3) {
+      return 1;
+    } else if (currentSlippage === 2) {
+      return 0;
     } else if (typeof currentSlippage === 'number') {
-      return 2; // Custom slippage.
+      return 2;
     }
-    return 0;
+    return 1; // Choose activeButtonIndex = 1 for 3% slippage by default.
   });
   const [open, setOpen] = useState(() => {
-    return currentSlippage !== Slippage.default; // Only open Advanced options by default if it's not default slippage.
+    return currentSlippage !== 3; // Only open Advanced Options by default if it's not default 3% slippage.
   });
   const [inputRef, setInputRef] = useState(null);
 
@@ -111,150 +101,117 @@ export default function SlippageButtons({
       <div className="slippage-buttons__content">
         {open && (
           <>
-            {!isDirectWrappingEnabled && (
-              <div className="slippage-buttons__dropdown-content">
-                <div className="slippage-buttons__buttons-prefix">
-                  <div className="slippage-buttons__prefix-text">
-                    {t('swapsMaxSlippage')}
-                  </div>
-                  <InfoTooltip
-                    position="top"
-                    contentText={t('swapSlippageTooltip')}
-                  />
+            <div className="slippage-buttons__dropdown-content">
+              <div className="slippage-buttons__buttons-prefix">
+                <div className="slippage-buttons__prefix-text">
+                  {t('swapsMaxSlippage')}
                 </div>
-                <ButtonGroup
-                  defaultActiveButtonIndex={
-                    activeButtonIndex === 2 && !customValue
-                      ? 1
-                      : activeButtonIndex
-                  }
-                  variant="radiogroup"
-                  newActiveButtonIndex={activeButtonIndex}
-                  className={classnames(
-                    'button-group',
-                    'slippage-buttons__button-group',
-                  )}
-                >
-                  <Button
-                    onClick={() => {
-                      setCustomValue('');
-                      setEnteringCustomValue(false);
-                      setActiveButtonIndex(0);
-                      onSelect(Slippage.default);
-                    }}
-                  >
-                    {t('swapSlippagePercent', [Slippage.default])}
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setCustomValue('');
-                      setEnteringCustomValue(false);
-                      setActiveButtonIndex(1);
-                      onSelect(Slippage.high);
-                    }}
-                  >
-                    {t('swapSlippagePercent', [Slippage.high])}
-                  </Button>
-                  <Button
-                    className={classnames(
-                      'slippage-buttons__button-group-custom-button',
-                      {
-                        'radio-button--danger': errorText,
-                      },
-                    )}
-                    onClick={() => {
-                      setActiveButtonIndex(2);
-                      setEnteringCustomValue(true);
-                    }}
-                  >
-                    {enteringCustomValue ? (
-                      <div
-                        className={classnames(
-                          'slippage-buttons__custom-input',
-                          {
-                            'slippage-buttons__custom-input--danger': errorText,
-                          },
-                        )}
-                      >
-                        <input
-                          data-testid="slippage-buttons__custom-slippage"
-                          onChange={(event) => {
-                            const { value } = event.target;
-                            const isValueNumeric = !isNaN(Number(value));
-                            if (isValueNumeric) {
-                              setCustomValue(value);
-                              onSelect(Number(value));
-                            }
-                          }}
-                          type="text"
-                          maxLength="4"
-                          ref={setInputRef}
-                          onBlur={() => {
-                            setEnteringCustomValue(false);
-                          }}
-                          value={customValue || ''}
-                        />
-                      </div>
-                    ) : (
-                      customValueText
-                    )}
-                    {(customValue || enteringCustomValue) && (
-                      <div className="slippage-buttons__percentage-suffix">
-                        %
-                      </div>
-                    )}
-                  </Button>
-                </ButtonGroup>
+                <InfoTooltip
+                  position="top"
+                  contentText={t('swapAdvancedSlippageInfo')}
+                />
               </div>
-            )}
+              <ButtonGroup
+                defaultActiveButtonIndex={
+                  activeButtonIndex === 2 && !customValue
+                    ? 1
+                    : activeButtonIndex
+                }
+                variant="radiogroup"
+                newActiveButtonIndex={activeButtonIndex}
+                className={classnames(
+                  'button-group',
+                  'slippage-buttons__button-group',
+                )}
+              >
+                <Button
+                  onClick={() => {
+                    setCustomValue('');
+                    setEnteringCustomValue(false);
+                    setActiveButtonIndex(0);
+                    onSelect(2);
+                  }}
+                >
+                  2%
+                </Button>
+                <Button
+                  onClick={() => {
+                    setCustomValue('');
+                    setEnteringCustomValue(false);
+                    setActiveButtonIndex(1);
+                    onSelect(3);
+                  }}
+                >
+                  3%
+                </Button>
+                <Button
+                  className={classnames(
+                    'slippage-buttons__button-group-custom-button',
+                    {
+                      'radio-button--danger': errorText,
+                    },
+                  )}
+                  onClick={() => {
+                    setActiveButtonIndex(2);
+                    setEnteringCustomValue(true);
+                  }}
+                >
+                  {enteringCustomValue ? (
+                    <div
+                      className={classnames('slippage-buttons__custom-input', {
+                        'slippage-buttons__custom-input--danger': errorText,
+                      })}
+                    >
+                      <input
+                        onChange={(event) => {
+                          setCustomValue(event.target.value);
+                          onSelect(Number(event.target.value));
+                        }}
+                        type="number"
+                        step="0.1"
+                        ref={setInputRef}
+                        onBlur={() => {
+                          setEnteringCustomValue(false);
+                        }}
+                        value={customValue || ''}
+                      />
+                    </div>
+                  ) : (
+                    customValueText
+                  )}
+                  {(customValue || enteringCustomValue) && (
+                    <div className="slippage-buttons__percentage-suffix">%</div>
+                  )}
+                </Button>
+              </ButtonGroup>
+            </div>
             {smartTransactionsEnabled && (
-              <Box marginTop={2} display={Display.Flex}>
+              <Box marginTop={2} display={DISPLAY.FLEX}>
                 <Box
-                  display={Display.Flex}
-                  alignItems={AlignItems.center}
+                  display={DISPLAY.FLEX}
+                  alignItems={ALIGN_ITEMS.CENTER}
                   paddingRight={3}
                 >
-                  <Text
-                    variant={TextVariant.bodySm}
-                    as="h6"
-                    paddingRight={2}
-                    fontWeight={FontWeight.Bold}
+                  <Typography
+                    variant={TYPOGRAPHY.H6}
+                    boxProps={{ paddingRight: 2 }}
+                    fontWeight={FONT_WEIGHT.BOLD}
                   >
-                    {t('smartSwaps')}
-                  </Text>
-                  {currentSmartTransactionsError ? (
-                    <InfoTooltip
-                      position="top"
-                      contentText={getTranslatedStxErrorMessage(
-                        currentSmartTransactionsError,
-                        t,
-                      )}
-                    />
-                  ) : (
-                    <InfoTooltip
-                      position="top"
-                      contentText={t('smartSwapsTooltip', [
-                        <ButtonLink
-                          key="smart-swaps-faq-and-risk-disclosures"
-                          size={ButtonLinkSize.Inherit}
-                          href={SMART_SWAPS_FAQ_AND_RISK_DISCLOSURES_URL}
-                          externalLink
-                          display={Display.Inline}
-                        >
-                          {t('faqAndRiskDisclosures')}
-                        </ButtonLink>,
-                      ])}
-                    />
-                  )}
+                    {t('smartTransaction')}
+                  </Typography>
+                  {/* TODO: Enable this when we have the right content. */}
+                  {/* <InfoTooltip
+                    position="top"
+                    contentText={t('swapAdvancedSlippageInfo')}
+                  /> */}
                 </Box>
                 <ToggleButton
                   value={smartTransactionsOptInStatus}
                   onToggle={(value) => {
-                    setSmartTransactionsOptInStatus(!value, value);
+                    setSmartTransactionsOptInStatus(!value);
                   }}
                   offLabel={t('off')}
                   onLabel={t('on')}
-                  disabled={Boolean(currentSmartTransactionsError)}
                 />
               </Box>
             )}
@@ -273,8 +230,6 @@ SlippageButtons.propTypes = {
   maxAllowedSlippage: PropTypes.number.isRequired,
   currentSlippage: PropTypes.number,
   smartTransactionsEnabled: PropTypes.bool.isRequired,
-  smartTransactionsOptInStatus: PropTypes.bool,
+  smartTransactionsOptInStatus: PropTypes.object,
   setSmartTransactionsOptInStatus: PropTypes.func,
-  currentSmartTransactionsError: PropTypes.string,
-  isDirectWrappingEnabled: PropTypes.bool,
 };

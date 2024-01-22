@@ -1,14 +1,28 @@
 import { ETH, GWEI, WEI } from '../constants/common';
-import { addHexPrefix } from '../../../shared/modules/hexstring-utils';
+import { addHexPrefix } from '../../../app/scripts/lib/util';
 import {
   conversionUtil,
   addCurrencies,
   subtractCurrencies,
-} from '../../../shared/modules/conversion-util';
+} from '../../../shared/modules/conversion.utils';
 import { formatCurrency } from './confirm-tx.util';
 
 export function bnToHex(inputBn) {
   return addHexPrefix(inputBn.toString(16));
+}
+
+export function hexToDecimal(hexValue) {
+  return conversionUtil(hexValue, {
+    fromNumericBase: 'hex',
+    toNumericBase: 'dec',
+  });
+}
+
+export function decimalToHex(decimal) {
+  return conversionUtil(decimal, {
+    fromNumericBase: 'dec',
+    toNumericBase: 'hex',
+  });
 }
 
 export function getEthConversionFromWeiHex({
@@ -121,6 +135,24 @@ export function decGWEIToHexWEI(decGWEI) {
   });
 }
 
+export function decWEIToHexWEI(decWEI) {
+  return conversionUtil(decWEI, {
+    fromNumericBase: 'dec',
+    toNumericBase: 'hex',
+    fromDenomination: 'WEI',
+    toDenomination: 'WEI',
+  });
+}
+
+export function hexWEIToDecGWEI(decGWEI) {
+  return conversionUtil(decGWEI, {
+    fromNumericBase: 'hex',
+    toNumericBase: 'dec',
+    fromDenomination: 'WEI',
+    toDenomination: 'GWEI',
+  });
+}
+
 export function decETHToDecWEI(decEth) {
   return conversionUtil(decEth, {
     fromNumericBase: 'dec',
@@ -130,8 +162,26 @@ export function decETHToDecWEI(decEth) {
   });
 }
 
+export function hexWEIToDecETH(hexWEI) {
+  return conversionUtil(hexWEI, {
+    fromNumericBase: 'hex',
+    toNumericBase: 'dec',
+    fromDenomination: 'WEI',
+    toDenomination: 'ETH',
+  });
+}
+
 export function addHexes(aHexWEI, bHexWEI) {
   return addCurrencies(aHexWEI, bHexWEI, {
+    aBase: 16,
+    bBase: 16,
+    toNumericBase: 'hex',
+    numberOfDecimals: 6,
+  });
+}
+
+export function subtractHexes(aHexWEI, bHexWEI) {
+  return subtractCurrencies(aHexWEI, bHexWEI, {
     aBase: 16,
     bBase: 16,
     toNumericBase: 'hex',

@@ -9,12 +9,10 @@ import { formatDateWithYearContext } from '../../../helpers/utils/util';
 import {
   TRANSACTION_GROUP_CATEGORIES,
   TRANSACTION_GROUP_STATUSES,
-  SMART_TRANSACTION_STATUSES,
 } from '../../../../shared/constants/transaction';
+import { cancelSmartTransaction } from '../../../store/actions';
 
 import CancelButton from '../cancel-button';
-import { cancelSwapsSmartTransaction } from '../../../ducks/swaps/swaps';
-import SiteOrigin from '../../ui/site-origin';
 
 export default function SmartTransactionListItem({
   smartTransaction,
@@ -37,9 +35,9 @@ export default function SmartTransactionListItem({
   const subtitle = 'metamask';
   const date = formatDateWithYearContext(time);
   let displayedStatusKey;
-  if (status === SMART_TRANSACTION_STATUSES.PENDING) {
+  if (status === 'pending') {
     displayedStatusKey = TRANSACTION_GROUP_STATUSES.PENDING;
-  } else if (status?.startsWith(SMART_TRANSACTION_STATUSES.CANCELLED)) {
+  } else if (status?.startsWith('cancelled')) {
     displayedStatusKey = TRANSACTION_GROUP_STATUSES.CANCELLED;
   }
   const showCancelSwapLink =
@@ -61,11 +59,9 @@ export default function SmartTransactionListItem({
               date={date}
               status={displayedStatusKey}
             />
-            <SiteOrigin
-              className="transaction-list-item__origin"
-              siteOrigin={subtitle}
-              title={subtitle}
-            />
+            <span className="transaction-list-item__origin" title={subtitle}>
+              {subtitle}
+            </span>
           </h3>
         }
       >
@@ -76,7 +72,7 @@ export default function SmartTransactionListItem({
                 transaction={smartTransaction.uuid}
                 cancelTransaction={(e) => {
                   e?.preventDefault();
-                  dispatch(cancelSwapsSmartTransaction(smartTransaction.uuid));
+                  dispatch(cancelSmartTransaction(smartTransaction.uuid));
                   setCancelSwapLinkClicked(true);
                 }}
               />
