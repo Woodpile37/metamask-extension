@@ -1,5 +1,9 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { getKnownMethodData } from '../selectors/selectors';
+import {
+  getDetectedTokensInCurrentNetwork,
+  getKnownMethodData,
+  getTokenList,
+} from '../selectors/selectors';
 import {
   getStatusKey,
   getTransactionTypeTitle,
@@ -36,6 +40,7 @@ import { useTokenDisplayValue } from './useTokenDisplayValue';
 import { useTokenData } from './useTokenData';
 import { useSwappedTokenValue } from './useSwappedTokenValue';
 import { useCurrentAsset } from './useCurrentAsset';
+import { useAssetDetails } from './useAssetDetails';
 
 /**
  * @typedef {Object} TransactionDisplayData
@@ -67,6 +72,8 @@ export function useTransactionDisplayData(transactionGroup) {
   const dispatch = useDispatch();
   const currentAsset = useCurrentAsset();
   const knownTokens = useSelector(getTokens);
+  const detectedTokens = useSelector(getDetectedTokensInCurrentNetwork) || [];
+  const tokenList = useSelector(getTokenList);
   const knownCollectibles = useSelector(getCollectibles);
   const t = useI18nContext();
   const { initialTransaction, primaryTransaction } = transactionGroup;
@@ -95,6 +102,13 @@ export function useTransactionDisplayData(transactionGroup) {
   // This value is used to determine whether we should look inside txParams.data
   // to pull out and render token related information
   const isTokenCategory = TOKEN_CATEGORY_HASH[type];
+  const { tokenSymbol, decimals, toAddress } = useAssetDetails(
+    recipientAddress,
+    senderAddress,
+    initialTransaction?.txParams?.data,
+    isTokenCategory,
+  );
+  const customToken = { address: toAddress, symbol: tokenSymbol, decimals };
 
   // these values are always instantiated because they are either
   // used by or returned from hooks. Hooks must be called at the top level,
@@ -102,11 +116,19 @@ export function useTransactionDisplayData(transactionGroup) {
   // transfers, we pass an additional argument to these hooks that will be
   // false for non-token transactions. This additional argument forces the
   // hook to return null
-  const token =
-    isTokenCategory &&
-    knownTokens.find(({ address }) =>
-      isEqualCaseInsensitive(address, recipientAddress),
-    );
+
+  let token = null;
+  if (isTokenCategory) {
+    token =
+      knownTokens.find(({ address }) =>
+        isEqualCaseInsensitive(address, recipientAddress),
+      ) ||
+      detectedTokens.find(({ address }) =>
+        isEqualCaseInsensitive(address, recipientAddress),
+      ) ||
+      tokenList[recipientAddress.toLowerCase()] ||
+      customToken;
+  }
 
   const tokenData = useTokenData(
     initialTransaction?.txParams?.data,

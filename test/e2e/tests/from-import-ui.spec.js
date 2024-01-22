@@ -143,6 +143,7 @@ describe('Metamask Import UI', function () {
 
         // finds the transaction in the transactions list
         await driver.clickElement('[data-testid="home__activity-tab"]');
+        await driver.waitForElementNotPresent('.loading-overlay');
         await driver.wait(async () => {
           const confirmedTxes = await driver.findElements(
             '.transaction-list__completed-transactions .transaction-list-item',

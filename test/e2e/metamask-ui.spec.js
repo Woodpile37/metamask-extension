@@ -430,7 +430,6 @@ describe('MetaMask', function () {
       await driver.clickElement({ text: 'Transfer Tokens', tag: 'button' });
 
       await driver.switchToWindow(extension);
-      await driver.delay(largeDelayMs);
 
       await driver.findElements('.transaction-list__pending-transactions');
       await driver.waitForSelector(
@@ -440,6 +439,7 @@ describe('MetaMask', function () {
         },
         { timeout: 10000 },
       );
+      await driver.waitForElementNotPresent('.loading-overlay');
       await driver.clickElement('.transaction-list-item__primary-currency');
       await driver.delay(regularDelayMs);
 
@@ -493,11 +493,13 @@ describe('MetaMask', function () {
     });
 
     it('checks balance', async function () {
+      await driver.waitForElementNotPresent('.loading-overlay');
       await driver.clickElement({
         text: 'Assets',
         tag: 'button',
       });
 
+      await driver.waitForElementNotPresent('.loading-overlay');
       await driver.waitForSelector({
         css: '.asset-list-item__token-button',
         text: '7.5 TST',
@@ -507,6 +509,7 @@ describe('MetaMask', function () {
         text: 'Activity',
         tag: 'button',
       });
+      await driver.waitForElementNotPresent('.loading-overlay');
     });
   });
 
