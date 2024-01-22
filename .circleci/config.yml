@@ -1,25 +1,9 @@
 version: 2.1
 
-executors:
-  node-browsers:
-    docker:
-      - image: circleci/node:14-browsers
-  node-browsers-medium-plus:
-    docker:
-      - image: circleci/node:14-browsers
-    resource_class: medium+
-    environment:
-      NODE_OPTIONS: --max_old_space_size=2048
-  shellcheck:
-    docker:
-      - image: koalaman/shellcheck-alpine@sha256:35882cba254810c7de458528011e935ba2c4f3ebcb224275dfa7ebfa930ef294
-
 workflows:
   test_and_release:
     jobs:
       - create_release_pull_request:
-          requires:
-            - prep-deps
           filters:
             branches:
               only:
@@ -32,10 +16,13 @@ workflows:
       - prep-build-test:
           requires:
             - prep-deps
-      - prep-build-test-metrics:
+      - job-build-lavamoat:
           requires:
             - prep-deps
       - prep-build-storybook:
+          requires:
+            - prep-deps
+      - prep-scss:
           requires:
             - prep-deps
       - test-lint:
@@ -51,25 +38,24 @@ workflows:
       - test-e2e-firefox:
           requires:
             - prep-build-test
-      - test-e2e-chrome-metrics:
-          requires:
-            - prep-build-test-metrics
-      - test-e2e-firefox-metrics:
-          requires:
-            - prep-build-test-metrics
       - test-unit:
           requires:
             - prep-deps
       - test-unit-global:
           requires:
             - prep-deps
-      - validate-source-maps:
-          requires:
-            - prep-build
       - test-mozilla-lint:
           requires:
             - prep-deps
             - prep-build
+      - test-integration-flat-chrome:
+          requires:
+            - prep-deps
+            - prep-scss
+      - test-integration-flat-firefox:
+          requires:
+            - prep-deps
+            - prep-scss
       - all-tests-pass:
           requires:
             - test-lint
@@ -77,12 +63,11 @@ workflows:
             - test-lint-lockfile
             - test-unit
             - test-unit-global
-            - validate-source-maps
             - test-mozilla-lint
             - test-e2e-chrome
             - test-e2e-firefox
-            - test-e2e-chrome-metrics
-            - test-e2e-firefox-metrics
+            - test-integration-flat-chrome
+            - test-integration-flat-firefox
       - benchmark:
           requires:
             - prep-build-test
@@ -90,7 +75,7 @@ workflows:
           requires:
             - prep-deps
             - prep-build
-            - prep-build-storybook
+            - job-build-lavamoat
             - benchmark
             - all-tests-pass
       - job-publish-release:
@@ -100,6 +85,7 @@ workflows:
           requires:
             - prep-deps
             - prep-build
+            - job-build-lavamoat
             - all-tests-pass
       - job-publish-storybook:
           filters:
@@ -107,14 +93,16 @@ workflows:
               only: develop
           requires:
             - prep-build-storybook
+      - coveralls-upload:
+          requires:
+            - test-unit
 
 jobs:
   create_release_pull_request:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
-      - attach_workspace:
-          at: .
       - run:
           name: Create GitHub Pull Request for version
           command: |
@@ -123,20 +111,18 @@ jobs:
             .circleci/scripts/release-create-release-pr
 
   prep-deps:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
       - run:
           name: Install deps
           command: |
             .circleci/scripts/deps-install.sh
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - node_modules/
-            - build-artifacts/yarn-install-har/
+      - run:
+          name: Collect yarn install HAR logs
+          command: |
+            .circleci/scripts/collect-har-artifact.sh
       - persist_to_workspace:
           root: .
           paths:
@@ -144,7 +130,8 @@ jobs:
           - build-artifacts
 
   prep-build:
-    executor: node-browsers-medium-plus
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -162,7 +149,8 @@ jobs:
             - builds
 
   prep-build-test:
-    executor: node-browsers-medium-plus
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -173,38 +161,29 @@ jobs:
       - run:
           name: Move test build to 'dist-test' to avoid conflict with production build
           command: mv ./dist ./dist-test
-      - run:
-          name: Move test zips to 'builds-test' to avoid conflict with production build
-          command: mv ./builds ./builds-test
       - persist_to_workspace:
           root: .
           paths:
             - dist-test
-            - builds-test
 
-  prep-build-test-metrics:
-    executor: node-browsers-medium-plus
+  job-build-lavamoat:
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
           at: .
       - run:
-          name: Build extension for testing metrics
-          command: yarn build:test:metrics
-      - run:
-          name: Move test build to 'dist-test-metrics' to avoid conflict with production build
-          command: mv ./dist ./dist-test-metrics
-      - run:
-          name: Move test zips to 'builds-test' to avoid conflict with production build
-          command: mv ./builds ./builds-test-metrics
+          name: Build lavamoat dashboard
+          command: ./.circleci/scripts/create-lavamoat-dashboard.sh
       - persist_to_workspace:
           root: .
           paths:
-            - dist-test-metrics
-            - builds-test-metrics
+            - build-artifacts
 
   prep-build-storybook:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -215,10 +194,30 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - storybook-build
+            - .out
+
+  prep-scss:
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Get Scss Cache key
+          # this allows us to checksum against a whole directory
+          command: find ui/app/css -type f -exec md5sum {} \; | sort -k 2 > scss_checksum
+      - run:
+          name: Build for integration tests
+          command: yarn test:integration:build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ui/app/css/output
 
   test-lint:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -231,16 +230,18 @@ jobs:
           command: yarn verify-locales --quiet
 
   test-lint-shellcheck:
-    executor: shellcheck
+    docker:
+      - image: koalaman/shellcheck-alpine@sha256:169a51b086af0ab181e32801c15deb78944bb433d4f2c0a21cc30d4e60547065
     steps:
       - checkout
       - run: apk add --no-cache bash jq yarn
       - run:
-          name: ShellCheck Lint
-          command: ./development/shellcheck.sh
+          name: Shellcheck Lint
+          command: yarn lint:shellcheck
 
   test-lint-lockfile:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -250,7 +251,8 @@ jobs:
           command: yarn lint:lockfile
 
   test-deps:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -260,61 +262,26 @@ jobs:
           command: .circleci/scripts/yarn-audit
 
   test-e2e-chrome:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
-      - run:
-          name: Re-Install Chrome
-          command: ./.circleci/scripts/chrome-install.sh
       - attach_workspace:
           at: .
       - run:
           name: Move test build to dist
           command: mv ./dist-test ./dist
       - run:
-          name: Move test zips to builds
-          command: mv ./builds-test ./builds
-      - run:
           name: test:e2e:chrome
-          command: |
-            if .circleci/scripts/test-run-e2e
-            then
-              yarn test:e2e:chrome
-            fi
-          no_output_timeout: 20m
-      - store_artifacts:
-          path: test-artifacts
-          destination: test-artifacts
-
-  test-e2e-chrome-metrics:
-    executor: node-browsers
-    steps:
-      - checkout
-      - run:
-          name: Re-Install Chrome
-          command: ./.circleci/scripts/chrome-install.sh
-      - attach_workspace:
-          at: .
-      - run:
-          name: Move test build to dist
-          command: mv ./dist-test-metrics ./dist
-      - run:
-          name: Move test zips to builds
-          command: mv ./builds-test-metrics ./builds
-      - run:
-          name: test:e2e:chrome:metrics
-          command: |
-            if .circleci/scripts/test-run-e2e
-            then
-              yarn test:e2e:chrome:metrics
-            fi
+          command: yarn test:e2e:chrome
           no_output_timeout: 20m
       - store_artifacts:
           path: test-artifacts
           destination: test-artifacts
 
   test-e2e-firefox:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - run:
@@ -326,62 +293,23 @@ jobs:
           name: Move test build to dist
           command: mv ./dist-test ./dist
       - run:
-          name: Move test zips to builds
-          command: mv ./builds-test ./builds
-      - run:
           name: test:e2e:firefox
-          command: |
-            if .circleci/scripts/test-run-e2e
-            then
-              yarn test:e2e:firefox
-            fi
-          no_output_timeout: 20m
-      - store_artifacts:
-          path: test-artifacts
-          destination: test-artifacts
-
-  test-e2e-firefox-metrics:
-    executor: node-browsers
-    steps:
-      - checkout
-      - run:
-          name: Install Firefox
-          command: ./.circleci/scripts/firefox-install
-      - attach_workspace:
-          at: .
-      - run:
-          name: Move test build to dist
-          command: mv ./dist-test-metrics ./dist
-      - run:
-          name: Move test zips to builds
-          command: mv ./builds-test-metrics ./builds
-      - run:
-          name: test:e2e:firefox:metrics
-          command: |
-            if .circleci/scripts/test-run-e2e
-            then
-              yarn test:e2e:firefox:metrics
-            fi
+          command: yarn test:e2e:firefox
           no_output_timeout: 20m
       - store_artifacts:
           path: test-artifacts
           destination: test-artifacts
 
   benchmark:
-    executor: node-browsers-medium-plus
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
-      - run:
-          name: Re-Install Chrome
-          command: ./.circleci/scripts/chrome-install.sh
       - attach_workspace:
           at: .
       - run:
           name: Move test build to dist
           command: mv ./dist-test ./dist
-      - run:
-          name: Move test zips to builds
-          command: mv ./builds-test ./builds
       - run:
           name: Run page load benchmark
           command: yarn benchmark:chrome --out test-artifacts/chrome/benchmark/pageload.json
@@ -394,7 +322,8 @@ jobs:
             - test-artifacts
 
   job-publish-prerelease:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -409,29 +338,18 @@ jobs:
           path: builds
           destination: builds
       - store_artifacts:
-          path: coverage
-          destination: coverage
-      - store_artifacts:
           path: test-artifacts
           destination: test-artifacts
-      # important: generate lavamoat viz AFTER uploading builds as artifacts
-      # Temporarily disabled until we can update to a version of `sesify` with
-      # this fix included: https://github.com/LavaMoat/LavaMoat/pull/121
-      - run:
-          name: build:lavamoat-viz
-          command: ./.circleci/scripts/create-lavamoat-viz
       - store_artifacts:
           path: build-artifacts
           destination: build-artifacts
-      - store_artifacts:
-          path: storybook-build
-          destination: storybook
       - run:
           name: build:announce
           command: ./development/metamaskbot-build-announce.js
 
   job-publish-release:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -448,7 +366,8 @@ jobs:
           command: .circleci/scripts/release-create-master-pr
 
   job-publish-storybook:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - add_ssh_keys:
           fingerprints:
@@ -463,7 +382,8 @@ jobs:
             yarn storybook:deploy
 
   test-unit:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -477,7 +397,8 @@ jobs:
             - .nyc_output
             - coverage
   test-unit-global:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -485,19 +406,9 @@ jobs:
       - run:
           name: test:unit:global
           command: yarn test:unit:global
-
-  validate-source-maps:
-    executor: node-browsers
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - run:
-          name: Validate source maps
-          command: yarn validate-source-maps
-
   test-mozilla-lint:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - checkout
       - attach_workspace:
@@ -506,9 +417,48 @@ jobs:
           name: test:mozilla-lint
           command: NODE_OPTIONS=--max_old_space_size=3072 yarn mozilla-lint
 
+  test-integration-flat-firefox:
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install Firefox
+          command: ./.circleci/scripts/firefox-install
+      - run:
+          name: test:integration:flat
+          command: yarn test:flat
+
+  test-integration-flat-chrome:
+    environment:
+      browsers: '["Chrome"]'
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: test:integration:flat
+          command: yarn test:flat
+
   all-tests-pass:
-    executor: node-browsers
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
     steps:
       - run:
           name: All Tests Passed
           command: echo 'weew - everything passed!'
+
+  coveralls-upload:
+    docker:
+      - image: circleci/node@sha256:e16740707de2ebed45c05d507f33ef204902349c7356d720610b5ec6a35d3d88
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Coveralls upload
+          command: yarn test:coveralls-upload
