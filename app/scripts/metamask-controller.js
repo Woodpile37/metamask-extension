@@ -2651,6 +2651,7 @@ export default class MetamaskController extends EventEmitter {
     // connect features
     this.setupControllerConnection(mux.createStream('controller'));
     this.setupProviderConnection(mux.createStream('provider'), sender, true);
+    this.setupProviderConnection(mux.createStream('1193'), sender);
   }
 
   /**

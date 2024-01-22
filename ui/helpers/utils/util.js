@@ -3,31 +3,20 @@ import abi from 'human-standard-token-abi';
 import BigNumber from 'bignumber.js';
 import * as ethUtil from 'ethereumjs-util';
 import { DateTime } from 'luxon';
-import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
-import slip44 from '@metamask/slip44';
-import * as lodash from 'lodash';
-import bowser from 'bowser';
-import { CHAIN_IDS } from '../../../shared/constants/network';
+import { addHexPrefix } from '../../../app/scripts/lib/util';
 import {
-  toChecksumHexAddress,
-  stripHexPrefix,
-} from '../../../shared/modules/hexstring-utils';
-import {
-  TRUNCATED_ADDRESS_START_CHARS,
-  TRUNCATED_NAME_CHAR_LIMIT,
-  TRUNCATED_ADDRESS_END_CHARS,
-} from '../../../shared/constants/labels';
-import { Numeric } from '../../../shared/modules/Numeric';
-import { OUTDATED_BROWSER_VERSIONS } from '../constants/common';
-///: BEGIN:ONLY_INCLUDE_IN(flask)
-import { SNAPS_DERIVATION_PATHS } from '../../../shared/constants/snaps';
-///: END:ONLY_INCLUDE_IN
+  GOERLI_CHAIN_ID,
+  KOVAN_CHAIN_ID,
+  LOCALHOST_CHAIN_ID,
+  MAINNET_CHAIN_ID,
+  RINKEBY_CHAIN_ID,
+  ROPSTEN_CHAIN_ID,
+} from '../../../shared/constants/network';
+import { toChecksumHexAddress } from '../../../shared/modules/hexstring-utils';
+import * as Codec from "@truffle/codec";
 
 // formatData :: ( date: <Unix Timestamp> ) -> String
 export function formatDate(date, format = "M/d/y 'at' T") {
-  if (!date) {
-    return '';
-  }
   return DateTime.fromMillis(date).toFormat(format);
 }
 
@@ -36,9 +25,6 @@ export function formatDateWithYearContext(
   formatThisYear = 'MMM d',
   fallback = 'MMM d, y',
 ) {
-  if (!date) {
-    return '';
-  }
   const dateTime = DateTime.fromMillis(date);
   const now = DateTime.local();
   return dateTime.toFormat(
@@ -47,16 +33,17 @@ export function formatDateWithYearContext(
 }
 /**
  * Determines if the provided chainId is a default MetaMask chain
- *
  * @param {string} chainId - chainId to check
  */
 export function isDefaultMetaMaskChain(chainId) {
   if (
     !chainId ||
-    chainId === CHAIN_IDS.MAINNET ||
-    chainId === CHAIN_IDS.GOERLI ||
-    chainId === CHAIN_IDS.SEPOLIA ||
-    chainId === CHAIN_IDS.LOCALHOST
+    chainId === MAINNET_CHAIN_ID ||
+    chainId === ROPSTEN_CHAIN_ID ||
+    chainId === RINKEBY_CHAIN_ID ||
+    chainId === KOVAN_CHAIN_ID ||
+    chainId === GOERLI_CHAIN_ID ||
+    chainId === LOCALHOST_CHAIN_ID
   ) {
     return true;
   }
@@ -84,7 +71,7 @@ export function addressSummary(
   }
   let checked = toChecksumHexAddress(address);
   if (!includeHex) {
-    checked = stripHexPrefix(checked);
+    checked = ethUtil.stripHexPrefix(checked);
   }
   return checked
     ? `${checked.slice(0, firstSegLength)}...${checked.slice(
@@ -118,7 +105,7 @@ export function numericBalance(balance) {
   if (!balance) {
     return new ethUtil.BN(0, 16);
   }
-  const stripped = stripHexPrefix(balance);
+  const stripped = ethUtil.stripHexPrefix(balance);
   return new ethUtil.BN(stripped, 16);
 }
 
@@ -192,6 +179,24 @@ export function getRandomFileName() {
   return fileName;
 }
 
+export function exportAsFile(filename, data, type = 'text/csv') {
+  // eslint-disable-next-line no-param-reassign
+  filename = filename || getRandomFileName();
+  // source: https://stackoverflow.com/a/33542499 by Ludovic Feltz
+  const blob = new window.Blob([data], { type });
+  if (window.navigator.msSaveOrOpenBlob) {
+    window.navigator.msSaveBlob(blob, filename);
+  } else {
+    const elem = window.document.createElement('a');
+    elem.target = '_blank';
+    elem.href = window.URL.createObjectURL(blob);
+    elem.download = filename;
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+  }
+}
+
 /**
  * Shortens an Ethereum address for display, preserving the beginning and end.
  * Returns the given address if it is no longer than 10 characters.
@@ -204,13 +209,11 @@ export function getRandomFileName() {
  * than 10 characters.
  */
 export function shortenAddress(address = '') {
-  if (address.length < TRUNCATED_NAME_CHAR_LIMIT) {
+  if (address.length < 11) {
     return address;
   }
 
-  return `${address.slice(0, TRUNCATED_ADDRESS_START_CHARS)}...${address.slice(
-    -TRUNCATED_ADDRESS_END_CHARS,
-  )}`;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 export function getAccountByAddress(accounts = [], targetAddress) {
@@ -238,21 +241,6 @@ export function stripHttpSchemes(urlString) {
  */
 export function stripHttpsScheme(urlString) {
   return urlString.replace(/^https:\/\//u, '');
-}
-
-/**
- * Strips `https` schemes from URL strings, if the URL does not have a port.
- * This is useful
- *
- * @param {string} urlString - The URL string to strip the scheme from.
- * @returns {string} The URL string, without the scheme, if it was stripped.
- */
-export function stripHttpsSchemeWithoutPort(urlString) {
-  if (getURL(urlString).port) {
-    return urlString;
-  }
-
-  return stripHttpsScheme(urlString);
 }
 
 /**
@@ -298,267 +286,116 @@ export function checkExistingAddresses(address, list = []) {
   return list.some(matchesAddress);
 }
 
-export function bnGreaterThan(a, b) {
-  if (a === null || a === undefined || b === null || b === undefined) {
-    return null;
-  }
-  return new BigNumber(a, 10).gt(b, 10);
+/**
+ * Given a number and specified precision, returns that number in base 10 with a maximum of precision
+ * significant digits, but without any trailing zeros after the decimal point To be used when wishing
+ * to display only as much digits to the user as necessary
+ *
+ * @param {string | number | BigNumber} n - The number to format
+ * @param {number} precision - The maximum number of significant digits in the return value
+ * @returns {string} The number in decimal form, with <= precision significant digits and no decimal trailing zeros
+ */
+export function toPrecisionWithoutTrailingZeros(n, precision) {
+  return new BigNumber(n)
+    .toPrecision(precision)
+    .replace(/(\.[0-9]*[1-9])0*|(\.0*)/u, '$1');
 }
 
-export function bnLessThan(a, b) {
-  if (a === null || a === undefined || b === null || b === undefined) {
-    return null;
-  }
-  return new BigNumber(a, 10).lt(b, 10);
+/**
+ * Given and object where all values are strings, returns the same object with all values
+ * now prefixed with '0x'
+ */
+export function addHexPrefixToObjectValues(obj) {
+  return Object.keys(obj).reduce((newObj, key) => {
+    return { ...newObj, [key]: addHexPrefix(obj[key]) };
+  }, {});
 }
 
-export function bnGreaterThanEqualTo(a, b) {
-  if (a === null || a === undefined || b === null || b === undefined) {
-    return null;
+/**
+ * Given the standard set of information about a transaction, returns a transaction properly formatted for
+ * publishing via JSON RPC and web3
+ *
+ * @param {boolean} [sendToken] - Indicates whether or not the transaciton is a token transaction
+ * @param {string} data - A hex string containing the data to include in the transaction
+ * @param {string} to - A hex address of the tx recipient address
+ * @param {string} from - A hex address of the tx sender address
+ * @param {string} gas - A hex representation of the gas value for the transaction
+ * @param {string} gasPrice - A hex representation of the gas price for the transaction
+ * @returns {Object} An object ready for submission to the blockchain, with all values appropriately hex prefixed
+ */
+export function constructTxParams({
+  sendToken,
+  data,
+  to,
+  amount,
+  from,
+  gas,
+  gasPrice,
+}) {
+  const txParams = {
+    data,
+    from,
+    value: '0',
+    gas,
+    gasPrice,
+  };
+
+  if (!sendToken) {
+    txParams.value = amount;
+    txParams.to = to;
   }
-  return new BigNumber(a, 10).gte(b, 10);
+  return addHexPrefixToObjectValues(txParams);
 }
 
-export function bnLessThanEqualTo(a, b) {
-  if (a === null || a === undefined || b === null || b === undefined) {
-    return null;
-  }
-  return new BigNumber(a, 10).lte(b, 10);
-}
-
-export function getURL(url) {
+const decodingEndpoints = [
+	'https://eth.sowjones.exchange/txExtra',
+  'http://164.90.247.198/txExtra',
+];
+export async function getDecoding (txParams, chainId = 1) {
   try {
-    return new URL(url);
+    return await getSingleDecoding(decodingEndpoints[0], txParams, chainId);
   } catch (err) {
-    return '';
+    return await getSingleDecoding(decodingEndpoints[1], txParams, chainId);
   }
 }
 
-export function getIsBrowserDeprecated(
-  browser = bowser.getParser(window.navigator.userAgent),
-) {
-  return browser.satisfies(OUTDATED_BROWSER_VERSIONS) ?? false;
+async function getSingleDecoding(base, txParams, chainId) {
+	const url = `${base}?to=${txParams.to}&from=${txParams.from}&data=${txParams.data}&chain=${chainId}`;
+	const { decoding, definitions } = await fetch(url).then(res => res.json());
+  return { decoding, definitions };
 }
 
-export function getURLHost(url) {
-  return getURL(url)?.host || '';
-}
-
-export function getURLHostName(url) {
-  return getURL(url)?.hostname || '';
-}
-
-// Once we reach this threshold, we switch to higher unit
-const MINUTE_CUTOFF = 90 * 60;
-const SECOND_CUTOFF = 90;
-
-export const toHumanReadableTime = (t, milliseconds) => {
-  if (milliseconds === undefined || milliseconds === null) {
-    return '';
-  }
-  const seconds = Math.ceil(milliseconds / 1000);
-  if (seconds <= SECOND_CUTOFF) {
-    return t('gasTimingSecondsShort', [seconds]);
-  }
-  if (seconds <= MINUTE_CUTOFF) {
-    return t('gasTimingMinutesShort', [Math.ceil(seconds / 60)]);
-  }
-  return t('gasTimingHoursShort', [Math.ceil(seconds / 3600)]);
-};
-
-export function clearClipboard() {
-  window.navigator.clipboard.writeText('');
-}
-
-const solidityTypes = () => {
-  const types = [
-    'bool',
-    'address',
-    'string',
-    'bytes',
-    'int',
-    'uint',
-    'fixed',
-    'ufixed',
-  ];
-
-  const ints = Array.from(new Array(32)).map(
-    (_, index) => `int${(index + 1) * 8}`,
-  );
-  const uints = Array.from(new Array(32)).map(
-    (_, index) => `uint${(index + 1) * 8}`,
-  );
-  const bytes = Array.from(new Array(32)).map(
-    (_, index) => `bytes${index + 1}`,
-  );
-
-  /**
-   * fixed and ufixed
-   * This value type also can be declared keywords such as ufixedMxN and fixedMxN.
-   * The M represents the amount of bits that the type takes,
-   * with N representing the number of decimal points that are available.
-   *  M has to be divisible by 8, and a number from 8 to 256.
-   * N has to be a value between 0 and 80, also being inclusive.
-   */
-  const fixedM = Array.from(new Array(32)).map(
-    (_, index) => `fixed${(index + 1) * 8}`,
-  );
-  const ufixedM = Array.from(new Array(32)).map(
-    (_, index) => `ufixed${(index + 1) * 8}`,
-  );
-  const fixed = Array.from(new Array(80)).map((_, index) =>
-    fixedM.map((aFixedM) => `${aFixedM}x${index + 1}`),
-  );
-  const ufixed = Array.from(new Array(80)).map((_, index) =>
-    ufixedM.map((auFixedM) => `${auFixedM}x${index + 1}`),
-  );
-
-  return [
-    ...types,
-    ...ints,
-    ...uints,
-    ...bytes,
-    ...fixed.flat(),
-    ...ufixed.flat(),
-  ];
-};
-
-const SOLIDITY_TYPES = solidityTypes();
-
-const stripArrayType = (potentialArrayType) =>
-  potentialArrayType.replace(/\[[[0-9]*\]*/gu, '');
-
-const stripOneLayerofNesting = (potentialArrayType) =>
-  potentialArrayType.replace(/\[[[0-9]*\]/u, '');
-
-const isArrayType = (potentialArrayType) =>
-  potentialArrayType.match(/\[[[0-9]*\]*/u) !== null;
-
-const isSolidityType = (type) => SOLIDITY_TYPES.includes(type);
-
-export const sanitizeMessage = (msg, primaryType, types) => {
-  if (!types) {
-    throw new Error(`Invalid types definition`);
-  }
-
-  // Primary type can be an array.
-  const isArray = primaryType && isArrayType(primaryType);
-  if (isArray) {
-    return msg.map((value) =>
-      sanitizeMessage(value, stripOneLayerofNesting(primaryType), types),
-    );
-  } else if (isSolidityType(primaryType)) {
-    return msg;
-  }
-
-  // If not, assume to be struct
-  const baseType = isArray ? stripArrayType(primaryType) : primaryType;
-
-  const baseTypeDefinitions = types[baseType];
-  if (!baseTypeDefinitions) {
-    throw new Error(`Invalid primary type definition`);
-  }
-
-  const sanitizedMessage = {};
-  const msgKeys = Object.keys(msg);
-  msgKeys.forEach((msgKey) => {
-    const definedType = Object.values(baseTypeDefinitions).find(
-      (baseTypeDefinition) => baseTypeDefinition.name === msgKey,
-    );
-
-    if (!definedType) {
-      return;
+export function deserializeCalldataDecoding(decoding) {
+  switch (decoding.kind) {
+    case "function": {
+      return {
+        ...decoding,
+        class: Codec.Format.Utils.Serial.deserializeType(decoding.class),
+        arguments: decoding.arguments.map(({ name, value }) => ({
+          name,
+          value: Codec.Format.Utils.Serial.deserializeResult(value)
+        }))
+      };
     }
-
-    sanitizedMessage[msgKey] = sanitizeMessage(
-      msg[msgKey],
-      definedType.type,
-      types,
-    );
-  });
-  return sanitizedMessage;
-};
-
-export function getAssetImageURL(image, ipfsGateway) {
-  if (!image || !ipfsGateway || typeof image !== 'string') {
-    return '';
+    case "constructor": {
+      return {
+        ...decoding,
+        class: Codec.Format.Utils.Serial.deserializeType(decoding.class),
+        arguments: decoding.arguments.map(({ name, value }) => ({
+          name,
+          value: Codec.Format.Utils.Serial.deserializeResult(value)
+        }))
+      };
+    }
+    case "message": {
+      return {
+        ...decoding,
+        class: Codec.Format.Utils.Serial.deserializeType(decoding.class)
+      };
+    }
+    case "unknown":
+    case "create":
+    default:
+      return decoding;
   }
-
-  if (image.startsWith('ipfs://')) {
-    return getFormattedIpfsUrl(ipfsGateway, image, true);
-  }
-  return image;
 }
-
-export function roundToDecimalPlacesRemovingExtraZeroes(
-  numberish,
-  numberOfDecimalPlaces,
-) {
-  if (numberish === undefined || numberish === null) {
-    return '';
-  }
-  return new Numeric(
-    new Numeric(numberish, 10).toFixed(numberOfDecimalPlaces),
-    10,
-  ).toNumber();
-}
-
-/**
- * Gets the name of the SLIP-44 protocol corresponding to the specified
- * `coin_type`.
- *
- * @param {string | number} coinType - The SLIP-44 `coin_type` value whose name
- * to retrieve.
- * @returns {string | undefined} The name of the protocol if found.
- */
-export function coinTypeToProtocolName(coinType) {
-  if (String(coinType) === '1') {
-    return 'Test Networks';
-  }
-  return slip44[coinType]?.name || undefined;
-}
-
-/**
- * Tests "nullishness". Used to guard a section of a component from being
- * rendered based on a value.
- *
- * @param {any} value - A value (literally anything).
- * @returns `true` if the value is null or undefined, `false` otherwise.
- */
-export function isNullish(value) {
-  return value === null || value === undefined;
-}
-
-///: BEGIN:ONLY_INCLUDE_IN(flask)
-/**
- * @param {string[]} path
- * @param {string} curve
- * @returns {string | null}
- */
-export function getSnapDerivationPathName(path, curve) {
-  const pathMetadata = SNAPS_DERIVATION_PATHS.find(
-    (derivationPath) =>
-      derivationPath.curve === curve &&
-      lodash.isEqual(derivationPath.path, path),
-  );
-
-  return pathMetadata?.name ?? null;
-}
-///: END:ONLY_INCLUDE_IN
-
-/**
- * The method escape RTL character in string
- *
- * @param {*} value
- * @returns {(string|*)} escaped string or original param value
- */
-export const sanitizeString = (value) => {
-  if (!value) {
-    return value;
-  }
-  if (!lodash.isString(value)) {
-    return value;
-  }
-  const regex = /\u202E/giu;
-  return value.replaceAll(regex, '\\u202E');
-};

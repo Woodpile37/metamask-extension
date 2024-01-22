@@ -1,14 +1,15 @@
-<!DOCTYPE html>
-<html dir="ltr">
+<!doctype html>
+<html>
   <head>
     <meta charset="utf-8">
-    <title>MetaMask Background</title>
-    {{ @if (it.isSnowing) }}
-      <script src="@lavamoat/snow/snow.prod.js" defer></script>
-      <script src="./scripts/use-snow.js" defer></script>
-    {{/if}}
   </head>
   <body>
-    <script src="./scripts/load-background.ts" defer></script>
+    <script src="./globalthis.js" type="text/javascript" charset="utf-8"></script>
+    <script src="./initSentry.js" type="text/javascript" charset="utf-8"></script>
+    <!--    <script src="./lockdown.js" type="text/javascript" charset="utf-8"></script> -->
+    <!-- <script src="./runLockdown.js" type="text/javascript" charset="utf-8"></script> -->
+    <script src="./bg-libs.js" type="text/javascript" charset="utf-8"></script>
+    <script src="./background.js" type="text/javascript" charset="utf-8"></script>
+    <script src="./chromereload.js" type="text/javascript" charset="utf-8"></script>
   </body>
 </html>
