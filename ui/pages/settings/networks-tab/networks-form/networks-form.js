@@ -174,6 +174,9 @@ const NetworksForm = ({
     dispatch,
   ]);
 
+  // Trim out whitespaces from RPC url
+  const onChangeRpcUrl = (e) => setRpcUrl(e.replace(/\s+/gu, ''));
+
   const hasErrors = () => {
     return Object.keys(errors).some((key) => {
       const error = errors[key];
@@ -570,7 +573,7 @@ const NetworksForm = ({
         />
         <FormField
           error={errors.rpcUrl?.msg || ''}
-          onChange={setRpcUrl}
+          onChange={onChangeRpcUrl}
           titleText={t('rpcUrl')}
           value={rpcUrl}
           disabled={viewOnly}

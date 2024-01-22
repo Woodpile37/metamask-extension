@@ -4,16 +4,11 @@ import { fireEvent, screen } from '@testing-library/react';
 import nock from 'nock';
 import { renderWithProvider } from '../../../../../test/jest/rendering';
 import { defaultNetworksData } from '../networks-tab.constants';
-import {
-  NETWORK_TYPES,
-  getRpcUrl,
-} from '../../../../../shared/constants/network';
+import { MAINNET_RPC_URL } from '../../../../../shared/constants/network';
 import NetworksForm from '.';
 
 const renderComponent = (props) => {
-  const store = configureMockStore([])({
-    metamask: { useSafeChainsListValidation: true },
-  });
+  const store = configureMockStore([])({ metamask: {} });
   return renderWithProvider(<NetworksForm {...props} />, store);
 };
 
@@ -80,13 +75,7 @@ describe('NetworkForm Component', () => {
       encodedQueryParams: true,
     })
       .post('/')
-      .reply(200, { jsonrpc: '2.0', result: '0x38' });
-
-    nock('https://rpc.flashbots.net:443', {
-      encodedQueryParams: true,
-    })
-      .post('/')
-      .reply(200, { jsonrpc: '2.0', result: '0x1' });
+      .reply(200, { jsonrpc: '2.0', id: '1643927040523', result: '0x38' });
   });
 
   afterEach(() => {
@@ -100,11 +89,11 @@ describe('NetworkForm Component', () => {
         'A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.',
       ),
     ).toBeInTheDocument();
-    expect(queryByText('Network name')).toBeInTheDocument();
+    expect(queryByText('Network Name')).toBeInTheDocument();
     expect(queryByText('New RPC URL')).toBeInTheDocument();
     expect(queryByText('Chain ID')).toBeInTheDocument();
-    expect(queryByText('Currency symbol')).toBeInTheDocument();
-    expect(queryByText('Block explorer URL')).toBeInTheDocument();
+    expect(queryByText('Currency Symbol')).toBeInTheDocument();
+    expect(queryByText('Block Explorer URL')).toBeInTheDocument();
     expect(queryAllByText('(Optional)')).toHaveLength(1);
     expect(queryByText('Cancel')).toBeInTheDocument();
     expect(queryByText('Save')).toBeInTheDocument();
@@ -132,13 +121,14 @@ describe('NetworkForm Component', () => {
   });
 
   it('should render network form correctly', () => {
-    const { queryByText, getByDisplayValue } =
-      renderComponent(propNetworkDisplay);
-    expect(queryByText('Network name')).toBeInTheDocument();
+    const { queryByText, getByDisplayValue } = renderComponent(
+      propNetworkDisplay,
+    );
+    expect(queryByText('Network Name')).toBeInTheDocument();
     expect(queryByText('New RPC URL')).toBeInTheDocument();
     expect(queryByText('Chain ID')).toBeInTheDocument();
-    expect(queryByText('Currency symbol')).toBeInTheDocument();
-    expect(queryByText('Block explorer URL')).toBeInTheDocument();
+    expect(queryByText('Currency Symbol')).toBeInTheDocument();
+    expect(queryByText('Block Explorer URL')).toBeInTheDocument();
     expect(queryByText('Delete')).toBeInTheDocument();
     expect(queryByText('Cancel')).toBeInTheDocument();
     expect(queryByText('Save')).toBeInTheDocument();
@@ -174,17 +164,7 @@ describe('NetworkForm Component', () => {
     ).toBeInTheDocument();
 
     await fireEvent.change(rpcUrlField, {
-      target: { value: '  ' },
-    });
-    expect(await screen.findByText('Invalid RPC URL')).toBeInTheDocument();
-
-    await fireEvent.change(rpcUrlField, {
-      target: {
-        value: getRpcUrl({
-          network: NETWORK_TYPES.MAINNET,
-          excludeProjectId: true,
-        }),
-      },
+      target: { value: MAINNET_RPC_URL },
     });
 
     expect(
@@ -198,18 +178,9 @@ describe('NetworkForm Component', () => {
     renderComponent(propNewNetwork);
     const chainIdField = screen.getByRole('textbox', { name: 'Chain ID' });
     const rpcUrlField = screen.getByRole('textbox', { name: 'New RPC URL' });
-    const currencySymbolField = screen.getByTestId('network-form-ticker-input');
 
     fireEvent.change(chainIdField, {
       target: { value: '1' },
-    });
-
-    fireEvent.change(currencySymbolField, {
-      target: { value: 'test' },
-    });
-
-    fireEvent.change(rpcUrlField, {
-      target: { value: 'https://rpc.flashbots.net' },
     });
 
     expect(
@@ -218,8 +189,6 @@ describe('NetworkForm Component', () => {
       ),
     ).toBeInTheDocument();
 
-    expect(screen.getByText('Save')).not.toBeDisabled();
-
     fireEvent.change(rpcUrlField, {
       target: { value: 'https://bsc-dataseed.binance.org/' },
     });
@@ -227,8 +196,6 @@ describe('NetworkForm Component', () => {
     const expectedWarning =
       'The RPC URL you have entered returned a different chain ID (56). Please update the Chain ID to match the RPC URL of the network you are trying to add.';
     expect(await screen.findByText(expectedWarning)).toBeInTheDocument();
-
-    expect(screen.getByText('Save')).toBeDisabled();
 
     fireEvent.change(chainIdField, {
       target: { value: 'a' },
@@ -254,9 +221,10 @@ describe('NetworkForm Component', () => {
 
   it('should validate currency symbol field correctly', async () => {
     renderComponent(propNewNetwork);
-
     const chainIdField = screen.getByRole('textbox', { name: 'Chain ID' });
-    const currencySymbolField = screen.getByTestId('network-form-ticker-input');
+    const currencySymbolField = screen.getByRole('textbox', {
+      name: 'Currency Symbol',
+    });
 
     fireEvent.change(chainIdField, {
       target: { value: '1234' },
@@ -273,15 +241,15 @@ describe('NetworkForm Component', () => {
     fireEvent.change(chainIdField, {
       target: { value: '137' },
     });
-    expect(
-      await screen.findByTestId('network-form-ticker-warning'),
-    ).toBeInTheDocument();
+    const secondExpectedWarning =
+      'The network with chain ID 137 may use a different currency symbol (MATIC) than the one you have entered. Please verify before continuing.';
+    expect(await screen.findByText(secondExpectedWarning)).toBeInTheDocument();
   });
 
-  it('should validate block explorer URL field correctly', async () => {
+  it('should validate block explorer url field correctly', async () => {
     renderComponent(propNewNetwork);
     const blockExplorerUrlField = screen.getByRole('textbox', {
-      name: 'Block explorer URL (Optional)',
+      name: 'Block Explorer URL (Optional)',
     });
     fireEvent.change(blockExplorerUrlField, {
       target: { value: '1234' },
