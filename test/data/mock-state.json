@@ -1,189 +1,25 @@
 {
-  "DNS": {
-    "resolution": null
-  },
   "appState": {
-    "networkDropdownOpen": false,
-    "gasIsLoading": false,
     "isLoading": false,
-    "modal": {
-      "open": false,
-      "modalState": {
-        "name": null,
-        "props": {}
-      },
-      "previousModalState": {
-        "name": null
-      }
-    },
-    "warning": null
-  },
-  "history": {
-    "mostRecentOverviewPage": "/mostRecentOverviewPage"
+    "gasIsLoading": false,
+    "currentView": {
+      "name": "accountDetail",
+      "detailView": null,
+      "context": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc"
+    }
   },
   "metamask": {
-    "knownMethodData": {
-      "0x095ea7b3": {
-        "name": "Approve"
-      }
-    },
-    "ipfsGateway": "dweb.link",
-    "dismissSeedBackUpReminder": false,
-    "usePhishDetect": true,
-    "useMultiAccountBalanceChecker": false,
-    "participateInMetaMetrics": false,
-    "gasEstimateType": "fee-market",
-    "showBetaHeader": false,
-    "gasFeeEstimates": {
-      "low": {
-        "minWaitTimeEstimate": 180000,
-        "maxWaitTimeEstimate": 300000,
-        "suggestedMaxPriorityFeePerGas": "3",
-        "suggestedMaxFeePerGas": "53"
-      },
-      "medium": {
-        "minWaitTimeEstimate": 15000,
-        "maxWaitTimeEstimate": 60000,
-        "suggestedMaxPriorityFeePerGas": "7",
-        "suggestedMaxFeePerGas": "70"
-      },
-      "high": {
-        "minWaitTimeEstimate": 0,
-        "maxWaitTimeEstimate": 15000,
-        "suggestedMaxPriorityFeePerGas": "10",
-        "suggestedMaxFeePerGas": "100"
-      },
-      "estimatedBaseFee": "50",
-      "historicalBaseFeeRange": ["28.533098435", "70.351148354"],
-      "baseFeeTrend": "up",
-      "latestPriorityFeeRange": ["1", "40"],
-      "historicalPriorityFeeRange": ["0.1458417", "700.156384646"],
-      "priorityFeeTrend": "down",
-      "networkCongestion": 0.90625
-    },
-    "snaps": [{}],
-    "preferences": {
-      "hideZeroBalanceTokens": false,
-      "showExtensionInFullSizeView": false,
-      "showFiatInTestnets": false,
-      "showTestNetworks": true,
-      "useNativeCurrencyAsPrimaryCurrency": true
-    },
-    "ensResolutionsByAddress": {},
-    "isAccountMenuOpen": false,
-    "isUnlocked": true,
-    "alertEnabledness": {
-      "unconnectedAccount": true
-    },
     "featureFlags": {
       "showIncomingTransactions": true
     },
-    "network": "5",
+    "network": "4",
     "provider": {
-      "type": "rpc",
-      "chainId": "0x5",
-      "ticker": "ETH"
-    },
-    "internalAccounts": {
-      "accounts": {
-        "cf8dace4-9439-4bd4-b3a8-88c821c8fcb3": {
-          "address": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc",
-          "id": "cf8dace4-9439-4bd4-b3a8-88c821c8fcb3",
-          "metadata": {
-            "name": "Test Account",
-            "keyring": {
-              "type": "HD Key Tree"
-            }
-          },
-          "options": {},
-          "methods": [
-            "personal_sign",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4"
-          ],
-          "type": "eip155:eoa"
-        },
-        "07c2cfec-36c9-46c4-8115-3836d3ac9047": {
-          "address": "0xec1adf982415d2ef5ec55899b9bfb8bc0f29251b",
-          "id": "07c2cfec-36c9-46c4-8115-3836d3ac9047",
-          "metadata": {
-            "name": "Test Account 2",
-            "keyring": {
-              "type": "HD Key Tree"
-            }
-          },
-          "options": {},
-          "methods": [
-            "personal_sign",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4"
-          ],
-          "type": "eip155:eoa"
-        },
-        "15e69915-2a1a-4019-93b3-916e11fd432f": {
-          "address": "0xc42edfcc21ed14dda456aa0756c153f7985d8813",
-          "id": "15e69915-2a1a-4019-93b3-916e11fd432f",
-          "metadata": {
-            "name": "Ledger Hardware 2",
-            "keyring": {
-              "type": "Ledger Hardware"
-            }
-          },
-          "options": {},
-          "methods": [
-            "personal_sign",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4"
-          ],
-          "type": "eip155:eoa"
-        },
-        "784225f4-d30b-4e77-a900-c8bbce735b88": {
-          "address": "0xeb9e64b93097bc15f01f13eae97015c57ab64823",
-          "id": "784225f4-d30b-4e77-a900-c8bbce735b88",
-          "metadata": {
-            "name": "Test Account 3",
-            "keyring": {
-              "type": "HD Key Tree"
-            }
-          },
-          "options": {},
-          "methods": [
-            "personal_sign",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4"
-          ],
-          "type": "eip155:eoa"
-        }
-      },
-      "selectedAccount": "cf8dace4-9439-4bd4-b3a8-88c821c8fcb3"
+      "chainId": "0x4"
     },
     "keyrings": [
       {
-        "type": "HD Key Tree",
-        "accounts": [
-          "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc",
-          "0xec1adf982415d2ef5ec55899b9bfb8bc0f29251b"
-        ]
-      },
-      {
         "type": "Ledger Hardware",
-        "accounts": ["0xc42edfcc21ed14dda456aa0756c153f7985d8813"]
-      },
-      {
-        "type": "Simple Key Pair",
-        "accounts": ["0xeb9e64b93097bc15f01f13eae97015c57ab64823"]
+        "accounts": ["0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc"]
       }
     ],
     "identities": {
@@ -191,17 +27,9 @@
         "address": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc",
         "name": "Test Account"
       },
-      "0xec1adf982415d2ef5ec55899b9bfb8bc0f29251b": {
-        "address": "0xec1adf982415d2ef5ec55899b9bfb8bc0f29251b",
-        "name": "Test Account 2"
-      },
       "0xc42edfcc21ed14dda456aa0756c153f7985d8813": {
         "address": "0xc42edfcc21ed14dda456aa0756c153f7985d8813",
-        "name": "Test Ledger 1"
-      },
-      "0xeb9e64b93097bc15f01f13eae97015c57ab64823": {
-        "name": "Test Account 3",
-        "address": "0xeb9e64b93097bc15f01f13eae97015c57ab64823"
+        "name": "Test Account 2"
       }
     },
     "networkDetails": {
@@ -209,36 +37,16 @@
         "1559": true
       }
     },
-    "frequentRpcListDetail": [],
-    "subjectMetadata": {},
-    "notifications": {
-      "test": {
-        "id": "test",
-        "origin": "local:http://localhost:8086/",
-        "createdDate": 1652967897732,
-        "readDate": null,
-        "message": "Hello, http://localhost:8086!"
-      },
-      "test2": {
-        "id": "test2",
-        "origin": "local:http://localhost:8086/",
-        "createdDate": 1652967897732,
-        "readDate": 1652967897732,
-        "message": "Hello, http://localhost:8086!"
-      }
-    },
     "cachedBalances": {},
     "incomingTransactions": {},
     "unapprovedTxs": {
       "8393540981007587": {
-        "chainId": "0x5",
         "id": 8393540981007587,
         "time": 1536268017676,
         "status": "unapproved",
         "metamaskNetworkId": "4",
         "loadingDefaults": false,
         "txParams": {
-          "data": "0xa9059cbb000000000000000000000000b19ac54efa18cc3a14a5b821bfec73d284bf0c5e0000000000000000000000000000000000000000000000003782dace9d900000",
           "from": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc",
           "to": "0xc42edfcc21ed14dda456aa0756c153f7985d8813",
           "value": "0x0",
@@ -278,7 +86,7 @@
             }
           ]
         ],
-        "origin": "metamask"
+        "origin": "MetaMask"
       }
     },
     "selectedAddress": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc",
@@ -287,16 +95,8 @@
         "balance": "0x0",
         "address": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc"
       },
-      "0xec1adf982415d2ef5ec55899b9bfb8bc0f29251b": {
-        "address": "0xec1adf982415d2ef5ec55899b9bfb8bc0f29251b",
-        "balance": "0x0"
-      },
       "0xc42edfcc21ed14dda456aa0756c153f7985d8813": {
         "address": "0xc42edfcc21ed14dda456aa0756c153f7985d8813",
-        "balance": "0x0"
-      },
-      "0xeb9e64b93097bc15f01f13eae97015c57ab64823": {
-        "address": "0xeb9e64b93097bc15f01f13eae97015c57ab64823",
         "balance": "0x0"
       }
     },
@@ -326,10 +126,10 @@
     "nativeCurrency": "ETH",
     "conversionRate": 556.12,
     "addressBook": {
-      "0x5": {
+      "0x4": {
         "0xc42edfcc21ed14dda456aa0756c153f7985d8813": {
           "address": "0xc42edfcc21ed14dda456aa0756c153f7985d8813",
-          "chainId": "0x5",
+          "chainId": "0x4",
           "isEns": false,
           "memo": "",
           "name": "Address Book Account 1"
@@ -346,168 +146,25 @@
     "unapprovedEncryptionPublicKeyMsgCount": 0,
     "unapprovedTypedMessages": {},
     "unapprovedTypedMessagesCount": 0,
+    "send": {
+      "gasLimit": "0x5208",
+      "gasPrice": "0xee6b2800",
+      "gasTotal": "0x4c65c6294000",
+      "tokenBalance": null,
+      "from": "0xc42edfcc21ed14dda456aa0756c153f7985d8813",
+      "to": "",
+      "amount": "1bc16d674ec80000",
+      "memo": "",
+      "errors": {},
+      "maxModeOn": false,
+      "editingTransactionId": null,
+      "toNickname": ""
+    },
     "useTokenDetection": true,
-    "useCurrencyRateCheck": true,
     "advancedGasFee": {
-      "0x4": {
-        "maxBaseFee": "75",
-        "priorityFee": "2"
-      }
-    },
-    "collectiblesDropdownState": {
-      "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc": {
-        "0x5": {
-          "0x495f947276749Ce646f68AC8c248420045cb7b5e": false
-        }
-      }
-    },
-    "allNftContracts": {
-      "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc": {
-        "1": [
-          {
-            "address": "0xDc7382Eb0Bc9C352A4CbA23c909bDA01e0206414",
-            "tokenId": "1",
-            "name": "MUNK #1",
-            "description": null,
-            "image": "ipfs://QmTSZUNt8AKyDabkyXXXP4oHWDnaVXgNdXoJGEyaYzLbeL",
-            "standard": "ERC721"
-          }
-        ],
-        "137": [
-          {
-            "address": "0xDc7382Eb0Bc9C352A4CbA23c909bDA01e0206414",
-            "tokenId": "1",
-            "name": "MUNK #1",
-            "description": null,
-            "image": "ipfs://QmTSZUNt8AKyDabkyXXXP4oHWDnaVXgNdXoJGEyaYzLbeL",
-            "standard": "ERC721"
-          }
-        ],
-        "11155111": [
-          {
-            "address": "0xDc7382Eb0Bc9C352A4CbA23c909bDA01e0206414",
-            "tokenId": "1",
-            "name": "MUNK #1",
-            "description": null,
-            "image": "ipfs://QmTSZUNt8AKyDabkyXXXP4oHWDnaVXgNdXoJGEyaYzLbeL",
-            "standard": "ERC721"
-          }
-        ],
-        "5": [
-          {
-            "address": "0x495f947276749Ce646f68AC8c248420045cb7b5e",
-            "tokenId": "58076532811975507823669075598676816378162417803895263482849101575514658701313",
-            "name": "Punk #4",
-            "creator": {
-              "user": {
-                "username": null
-              },
-              "profile_img_url": null,
-              "address": "0x806627172af48bd5b0765d3449a7def80d6576ff",
-              "config": ""
-            },
-            "description": "Red Mohawk bam!",
-            "image": "https://lh3.googleusercontent.com/BdxvLseXcfl57BiuQcQYdJ64v-aI8din7WPk0Pgo3qQFhAUH-B6i-dCqqc_mCkRIzULmwzwecnohLhrcH8A9mpWIZqA7ygc52Sr81hE",
-            "standard": "ERC1155"
-          },
-          {
-            "address": "0x495f947276749Ce646f68AC8c248420045cb7b5e",
-            "tokenId": "58076532811975507823669075598676816378162417803895263482849101574415147073537",
-            "name": "Punk #3",
-            "creator": {
-              "user": {
-                "username": null
-              },
-              "profile_img_url": null,
-              "address": "0x806627172af48bd5b0765d3449a7def80d6576ff",
-              "config": ""
-            },
-            "description": "Clown PUNK!!!",
-            "image": "https://lh3.googleusercontent.com/H7VrxaalZv4PF1B8U7ADuc8AfuqTVyzmMEDQ5OXKlx0Tqu5XiwsKYj4j_pAF6wUJjLMQbSN_0n3fuj84lNyRhFW9hyrxqDfY1IiQEQ",
-            "standard": "ERC1155"
-          },
-          {
-            "address": "0x495f947276749Ce646f68AC8c248420045cb7b5e",
-            "tokenId": "58076532811975507823669075598676816378162417803895263482849101573315635445761",
-            "name": "Punk #2",
-            "creator": {
-              "user": {
-                "username": null
-              },
-              "profile_img_url": null,
-              "address": "0x806627172af48bd5b0765d3449a7def80d6576ff",
-              "config": ""
-            },
-            "description": "Got glasses and black hair!",
-            "image": "https://lh3.googleusercontent.com/CHNTSlKB_Gob-iwTq8jcag6XwBkTqBMLt_vEKeBv18Q4AoPFAEPceqK6mRzkad2s5djx6CT5zbGQwDy81WwtNzViK5dQbG60uAWv",
-            "standard": "ERC1155"
-          },
-          {
-            "address": "0x495f947276749Ce646f68AC8c248420045cb7b5e",
-            "tokenId": "58076532811975507823669075598676816378162417803895263482849101572216123817985",
-            "name": "Punk #1",
-            "creator": {
-              "user": {
-                "username": null
-              },
-              "profile_img_url": null,
-              "address": "0x806627172af48bd5b0765d3449a7def80d6576ff",
-              "config": ""
-            },
-            "image": "https://lh3.googleusercontent.com/4jfPi-nQNWCUXD5qVNVWX7LX2UufU_elEJcvICFlsTdcBXv70asnDEOlI8oKECZxlXq1wseeIXMwmP5tLyOUxMKk",
-            "standard": "ERC1155"
-          },
-          {
-            "address": "0x495f947276749Ce646f68AC8c248420045cb7b5e",
-            "tokenId": "58076532811975507823669075598676816378162417803895263482849101571116612190209",
-            "name": "Punk #4651",
-            "creator": {
-              "user": {
-                "username": null
-              },
-              "profile_img_url": null,
-              "address": "0x806627172af48bd5b0765d3449a7def80d6576ff",
-              "config": ""
-            },
-            "image": "https://lh3.googleusercontent.com/BdxvLseXcfl57BiuQcQYdJ64v-aI8din7WPk0Pgo3qQFhAUH-B6i-dCqqc_mCkRIzULmwzwecnohLhrcH8A9mpWIZqA7ygc52Sr81hE",
-            "standard": "ERC1155"
-          },
-          {
-            "address": "0xDc7382Eb0Bc9C352A4CbA23c909bDA01e0206414",
-            "tokenId": "1",
-            "name": "MUNK #1",
-            "description": null,
-            "image": "ipfs://QmTSZUNt8AKyDabkyXXXP4oHWDnaVXgNdXoJGEyaYzLbeL",
-            "standard": "ERC721"
-          },
-          {
-            "address": "0xDc7382Eb0Bc9C352A4CbA23c909bDA01e0206414",
-            "tokenId": "2",
-            "name": "MUNK #2",
-            "description": null,
-            "image": "ipfs://QmTSZUNt8AKyDabkyXXXP4oHWDnaVXgNdXoJGEyaYzLbeL",
-            "standard": "ERC721"
-          },
-          {
-            "address": "0xDc7382Eb0Bc9C352A4CbA23c909bDA01e0206414",
-            "tokenId": "3",
-            "name": "MUNK #3",
-            "description": null,
-            "image": "ipfs://QmTSZUNt8AKyDabkyXXXP4oHWDnaVXgNdXoJGEyaYzLbeL",
-            "standard": "ERC721"
-          }
-        ],
-        "153": [
-          {
-            "address": "0xDc7382Eb0Bc9C352A4CbA23c909bDA01e0206414",
-            "tokenId": "1",
-            "name": "MUNK #1",
-            "description": null,
-            "image": "ipfs://QmTSZUNt8AKyDabkyXXXP4oHWDnaVXgNdXoJGEyaYzLbeL",
-            "standard": "ERC721"
-          }
-        ]
-      }
+      "maxBaseFeeMultiplier": "1.5",
+      "maxBaseFeeGWEI": "100",
+      "priorityFee": "2"
     },
     "tokenList": {
       "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599": {
@@ -1533,24 +1190,5 @@
         "origin": "tmashuang.github.io"
       }
     ]
-  },
-  "send": {
-    "amountMode": "INPUT",
-    "currentTransactionUUID": null,
-    "draftTransactions": {},
-    "eip1559support": false,
-    "gasEstimateIsLoading": true,
-    "gasEstimatePollToken": null,
-    "gasIsSetInModal": false,
-    "gasPriceEstimate": "0x0",
-    "gasLimitMinimum": "0x5208",
-    "gasTotalForLayer1": "0x0",
-    "recipientMode": "CONTACT_LIST",
-    "recipientInput": "",
-    "selectedAccount": {
-      "address": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc",
-      "balance": "0x0"
-    },
-    "stage": "INACTIVE"
   }
 }

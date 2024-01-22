@@ -1,111 +1,81 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { useTransactionEventFragment } from '../../../../hooks/useTransactionEventFragment';
-import { EDIT_GAS_MODES } from '../../../../../shared/constants/gas';
 import Box from '../../../ui/box';
 import Typography from '../../../ui/typography';
 import CheckBox from '../../../ui/check-box';
+import I18nValue from '../../../ui/i18n-value';
 import {
   COLORS,
   DISPLAY,
   FLEX_DIRECTION,
   TYPOGRAPHY,
 } from '../../../../helpers/constants/design-system';
-import { getAdvancedGasFeeValues, getProvider } from '../../../../selectors';
+import { getAdvancedGasFeeValues } from '../../../../selectors';
 import { setAdvancedGasFee } from '../../../../store/actions';
-import { useGasFeeContext } from '../../../../contexts/gasFee';
 
 import { useAdvancedGasFeePopoverContext } from '../context';
 import { useI18nContext } from '../../../../hooks/useI18nContext';
-import { NETWORK_TYPE_RPC } from '../../../../../shared/constants/network';
 
 const AdvancedGasFeeDefaults = () => {
   const t = useI18nContext();
   const dispatch = useDispatch();
+
   const {
-    gasErrors,
-    maxBaseFee,
+    hasErrors,
+    baseFeeGWEI,
+    baseFeeMultiplier,
     maxPriorityFeePerGas,
   } = useAdvancedGasFeePopoverContext();
   const advancedGasFeeValues = useSelector(getAdvancedGasFeeValues);
-  const { updateTransactionEventFragment } = useTransactionEventFragment();
-  const { editGasMode } = useGasFeeContext();
-  const [isDefaultSettingsSelected, setDefaultSettingsSelected] = useState(
-    Boolean(advancedGasFeeValues) &&
-      advancedGasFeeValues.maxBaseFee === maxBaseFee &&
-      advancedGasFeeValues.priorityFee === maxPriorityFeePerGas,
-  );
-  const currentProvider = useSelector(getProvider);
 
-  useEffect(() => {
-    setDefaultSettingsSelected(
-      Boolean(advancedGasFeeValues) &&
-        advancedGasFeeValues.maxBaseFee === maxBaseFee &&
-        advancedGasFeeValues.priorityFee === maxPriorityFeePerGas,
-    );
-  }, [advancedGasFeeValues, maxBaseFee, maxPriorityFeePerGas]);
-
-  const handleUpdateDefaultSettings = () => {
-    if (isDefaultSettingsSelected) {
-      dispatch(setAdvancedGasFee(null));
-      setDefaultSettingsSelected(false);
-      updateTransactionEventFragment({
-        properties: {
-          advanced_gas_defaults_updated_maxbasefee: null,
-          advanced_gas_defaults_updated_priorityfee: null,
-        },
-      });
-    } else {
+  const updateDefaultSettings = (value) => {
+    if (value) {
       dispatch(
         setAdvancedGasFee({
-          maxBaseFee,
+          maxBaseFeeMultiplier: baseFeeMultiplier,
+          maxBaseFeeGWEI: baseFeeGWEI,
           priorityFee: maxPriorityFeePerGas,
         }),
       );
-      updateTransactionEventFragment({
-        properties: {
-          advanced_gas_defaults_updated_maxbasefee: maxBaseFee,
-          advanced_gas_defaults_updated_priorityfee: maxPriorityFeePerGas,
-        },
-      });
+    } else {
+      dispatch(setAdvancedGasFee(null));
     }
   };
+  const isDefaultSettingsSelected =
+    Boolean(advancedGasFeeValues) &&
+    advancedGasFeeValues.maxBaseFeeMultiplier === baseFeeMultiplier &&
+    advancedGasFeeValues.maxBaseFeeGWEI === baseFeeGWEI &&
+    advancedGasFeeValues.priorityFee === maxPriorityFeePerGas;
 
-  if (editGasMode === EDIT_GAS_MODES.SWAPS) {
-    return null;
-  }
+  const handleUpdateDefaultSettings = () =>
+    updateDefaultSettings(!isDefaultSettingsSelected);
 
   return (
     <Box
       display={DISPLAY.FLEX}
       flexDirection={FLEX_DIRECTION.ROW}
-      margin={[4, 2, 0, 2]}
+      marginRight={4}
       className="advanced-gas-fee-defaults"
     >
-      <label className="advanced-gas-fee-defaults__label">
-        <CheckBox
-          checked={isDefaultSettingsSelected}
-          className="advanced-gas-fee-defaults__checkbox"
-          onClick={handleUpdateDefaultSettings}
-          disabled={gasErrors.maxFeePerGas || gasErrors.maxPriorityFeePerGas}
-        />
-        <Typography
-          variant={TYPOGRAPHY.H7}
-          color={COLORS.TEXT_ALTERNATIVE}
-          margin={0}
-        >
-          {isDefaultSettingsSelected
-            ? t('advancedFeeDefaultOptOut', [
-                currentProvider.type === NETWORK_TYPE_RPC
-                  ? currentProvider.nickname ?? t('privateNetwork')
-                  : t(currentProvider.type),
-              ])
-            : t('advancedGasFeeDefaultOptIn', [
-                <strong key="default-value-change">{t('newValues')}</strong>,
-              ])}
-        </Typography>
-      </label>
+      <CheckBox
+        checked={isDefaultSettingsSelected}
+        className="advanced-gas-fee-defaults__checkbox"
+        onClick={handleUpdateDefaultSettings}
+        disabled={hasErrors}
+      />
+      <Typography variant={TYPOGRAPHY.H7} color={COLORS.UI4} margin={0}>
+        {Boolean(advancedGasFeeValues) && !isDefaultSettingsSelected ? (
+          <I18nValue
+            messageKey="advancedGasFeeDefaultOptIn"
+            options={[
+              <strong key="default-value-change">{t('newValues')}</strong>,
+            ]}
+          />
+        ) : (
+          <I18nValue messageKey="advancedGasFeeDefaultOptOut" />
+        )}
+      </Typography>
     </Box>
   );
 };

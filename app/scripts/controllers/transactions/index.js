@@ -39,7 +39,10 @@ import {
   CUSTOM_GAS_ESTIMATE,
   PRIORITY_LEVELS,
 } from '../../../../shared/constants/gas';
-import { decGWEIToHexWEI } from '../../../../shared/modules/conversion.utils';
+import {
+  decGWEIToHexWEI,
+  multiplyCurrencies,
+} from '../../../../shared/modules/conversion.utils';
 import {
   HARDFORKS,
   MAINNET,
@@ -436,11 +439,13 @@ export default class TransactionController extends EventEmitter {
       gasPrice: defaultGasPrice,
       maxFeePerGas: defaultMaxFeePerGas,
       maxPriorityFeePerGas: defaultMaxPriorityFeePerGas,
+      estimatedBaseFee: defaultEstimatedBaseFee,
     } = await this._getDefaultGasFees(txMeta, eip1559Compatibility);
     const {
       gasLimit: defaultGasLimit,
       simulationFails,
     } = await this._getDefaultGasLimit(txMeta, getCodeResponse);
+    const advancedGasFeeDefaultValues = this.getAdvancedGasFee();
 
     // eslint-disable-next-line no-param-reassign
     txMeta = this.txStateManager.getTransaction(txMeta.id);
@@ -449,13 +454,33 @@ export default class TransactionController extends EventEmitter {
     }
 
     if (eip1559Compatibility) {
-      // If the dapp has suggested a gas price, but no maxFeePerGas or maxPriorityFeePerGas
-      //  then we set maxFeePerGas and maxPriorityFeePerGas to the suggested gasPrice.
-      if (
+      if (process.env.EIP_1559_V2 && Boolean(advancedGasFeeDefaultValues)) {
+        txMeta.userFeeLevel = CUSTOM_GAS_ESTIMATE;
+        const {
+          maxBaseFeeGWEI,
+          maxBaseFeeMultiplier,
+        } = advancedGasFeeDefaultValues;
+        if (maxBaseFeeGWEI) {
+          txMeta.txParams.maxFeePerGas = decGWEIToHexWEI(maxBaseFeeGWEI);
+        } else if (maxBaseFeeMultiplier) {
+          txMeta.txParams.maxFeePerGas = decGWEIToHexWEI(
+            multiplyCurrencies(maxBaseFeeMultiplier, defaultEstimatedBaseFee, {
+              toNumericBase: 'dec',
+              multiplicandBase: 10,
+              multiplierBase: 10,
+            }),
+          );
+        }
+        txMeta.txParams.maxPriorityFeePerGas = decGWEIToHexWEI(
+          advancedGasFeeDefaultValues.priorityFee,
+        );
+      } else if (
         txMeta.txParams.gasPrice &&
         !txMeta.txParams.maxFeePerGas &&
         !txMeta.txParams.maxPriorityFeePerGas
       ) {
+        // If the dapp has suggested a gas price, but no maxFeePerGas or maxPriorityFeePerGas
+        //  then we set maxFeePerGas and maxPriorityFeePerGas to the suggested gasPrice.
         txMeta.txParams.maxFeePerGas = txMeta.txParams.gasPrice;
         txMeta.txParams.maxPriorityFeePerGas = txMeta.txParams.gasPrice;
         if (process.env.EIP_1559_V2) {
@@ -550,9 +575,11 @@ export default class TransactionController extends EventEmitter {
    * @returns {Promise<string|undefined>} The default gas price
    */
   async _getDefaultGasFees(txMeta, eip1559Compatibility) {
+    const advancedGasFee = this.getAdvancedGasFee();
     if (
       (!eip1559Compatibility && txMeta.txParams.gasPrice) ||
       (eip1559Compatibility &&
+        !advancedGasFee &&
         txMeta.txParams.maxFeePerGas &&
         txMeta.txParams.maxPriorityFeePerGas)
     ) {
@@ -570,14 +597,16 @@ export default class TransactionController extends EventEmitter {
       ) {
         const {
           medium: { suggestedMaxPriorityFeePerGas, suggestedMaxFeePerGas } = {},
+          estimatedBaseFee,
         } = gasFeeEstimates;
-
+        console.log(gasFeeEstimates);
         if (suggestedMaxPriorityFeePerGas && suggestedMaxFeePerGas) {
           return {
             maxFeePerGas: decGWEIToHexWEI(suggestedMaxFeePerGas),
             maxPriorityFeePerGas: decGWEIToHexWEI(
               suggestedMaxPriorityFeePerGas,
             ),
+            estimatedBaseFee,
           };
         }
       } else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
@@ -1287,6 +1316,10 @@ export default class TransactionController extends EventEmitter {
      * @param opts
      */
     this.getTransactions = (opts) => this.txStateManager.getTransactions(opts);
+
+    /** @returns {object} the saved default values for advancedGasFee */
+    this.getAdvancedGasFee = () =>
+      this.preferencesStore.getState().advancedGasFee;
   }
 
   // called once on startup
