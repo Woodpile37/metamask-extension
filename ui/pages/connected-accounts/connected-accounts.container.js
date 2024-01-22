@@ -4,8 +4,8 @@ import {
   getOrderedConnectedAccountsForActiveTab,
   getOriginOfCurrentTab,
   getPermissionsForActiveTab,
+  getSelectedInternalAccount,
   getPermissionSubjects,
-  getSelectedAddress,
   getSubjectMetadata,
   getInternalAccounts,
 } from '../../selectors';
@@ -40,7 +40,7 @@ const mapStateToProps = (state) => {
     )?.metadata.name,
   };
   const permissions = getPermissionsForActiveTab(state);
-  const selectedAddress = getSelectedAddress(state);
+  const { address: selectedAddress } = getSelectedInternalAccount(state);
   const subjectMetadata = getSubjectMetadata(state);
   const originOfActiveTab = getOriginOfCurrentTab(state);
   const permissionSubjects = getPermissionSubjects(state);

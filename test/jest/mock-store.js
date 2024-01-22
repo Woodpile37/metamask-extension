@@ -1,57 +1,115 @@
-import { MAINNET_CHAIN_ID } from '../../shared/constants/network';
+import { NetworkType } from '@metamask/controller-utils';
+import { NetworkStatus } from '@metamask/network-controller';
+import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import { CHAIN_IDS } from '../../shared/constants/network';
+import { KeyringType } from '../../shared/constants/keyring';
 
 const createGetSmartTransactionFeesApiResponse = () => {
   return {
-    cancelFees: [
-      { maxFeePerGas: 2100001000, maxPriorityFeePerGas: 466503987 },
-      { maxFeePerGas: 2310003200, maxPriorityFeePerGas: 513154852 },
-      { maxFeePerGas: 2541005830, maxPriorityFeePerGas: 564470851 },
-      { maxFeePerGas: 2795108954, maxPriorityFeePerGas: 620918500 },
-      { maxFeePerGas: 3074622644, maxPriorityFeePerGas: 683010971 },
-      { maxFeePerGas: 3382087983, maxPriorityFeePerGas: 751312751 },
-      { maxFeePerGas: 3720300164, maxPriorityFeePerGas: 826444778 },
-      { maxFeePerGas: 4092333900, maxPriorityFeePerGas: 909090082 },
-      { maxFeePerGas: 4501571383, maxPriorityFeePerGas: 1000000000 },
-      { maxFeePerGas: 4951733023, maxPriorityFeePerGas: 1100001000 },
-      { maxFeePerGas: 5446911277, maxPriorityFeePerGas: 1210002200 },
-      { maxFeePerGas: 5991607851, maxPriorityFeePerGas: 1331003630 },
-      { maxFeePerGas: 6590774628, maxPriorityFeePerGas: 1464105324 },
-      { maxFeePerGas: 7249858682, maxPriorityFeePerGas: 1610517320 },
-      { maxFeePerGas: 7974851800, maxPriorityFeePerGas: 1771570663 },
-      { maxFeePerGas: 8772344955, maxPriorityFeePerGas: 1948729500 },
-      { maxFeePerGas: 9649588222, maxPriorityFeePerGas: 2143604399 },
-      { maxFeePerGas: 10614556694, maxPriorityFeePerGas: 2357966983 },
-      { maxFeePerGas: 11676022978, maxPriorityFeePerGas: 2593766039 },
-    ],
-    feeEstimate: 42000000000000,
-    fees: [
-      { maxFeePerGas: 2310003200, maxPriorityFeePerGas: 513154852 },
-      { maxFeePerGas: 2541005830, maxPriorityFeePerGas: 564470850 },
-      { maxFeePerGas: 2795108954, maxPriorityFeePerGas: 620918500 },
-      { maxFeePerGas: 3074622644, maxPriorityFeePerGas: 683010970 },
-      { maxFeePerGas: 3382087983, maxPriorityFeePerGas: 751312751 },
-      { maxFeePerGas: 3720300163, maxPriorityFeePerGas: 826444777 },
-      { maxFeePerGas: 4092333900, maxPriorityFeePerGas: 909090082 },
-      { maxFeePerGas: 4501571382, maxPriorityFeePerGas: 999999999 },
-      { maxFeePerGas: 4951733022, maxPriorityFeePerGas: 1100001000 },
-      { maxFeePerGas: 5446911277, maxPriorityFeePerGas: 1210002200 },
-      { maxFeePerGas: 5991607851, maxPriorityFeePerGas: 1331003630 },
-      { maxFeePerGas: 6590774627, maxPriorityFeePerGas: 1464105324 },
-      { maxFeePerGas: 7249858681, maxPriorityFeePerGas: 1610517320 },
-      { maxFeePerGas: 7974851800, maxPriorityFeePerGas: 1771570662 },
-      { maxFeePerGas: 8772344954, maxPriorityFeePerGas: 1948729500 },
-      { maxFeePerGas: 9649588222, maxPriorityFeePerGas: 2143604398 },
-      { maxFeePerGas: 10614556693, maxPriorityFeePerGas: 2357966982 },
-      { maxFeePerGas: 11676022977, maxPriorityFeePerGas: 2593766039 },
-      { maxFeePerGas: 12843636951, maxPriorityFeePerGas: 2853145236 },
-    ],
-    gasLimit: 21000,
-    gasUsed: 21000,
+    tradeTxFees: {
+      // Approval tx.
+      cancelFees: [
+        { maxFeePerGas: 2100001000, maxPriorityFeePerGas: 466503987 },
+        { maxFeePerGas: 2310003200, maxPriorityFeePerGas: 513154852 },
+        { maxFeePerGas: 2541005830, maxPriorityFeePerGas: 564470851 },
+        { maxFeePerGas: 2795108954, maxPriorityFeePerGas: 620918500 },
+        { maxFeePerGas: 3074622644, maxPriorityFeePerGas: 683010971 },
+        { maxFeePerGas: 3382087983, maxPriorityFeePerGas: 751312751 },
+        { maxFeePerGas: 3720300164, maxPriorityFeePerGas: 826444778 },
+        { maxFeePerGas: 4092333900, maxPriorityFeePerGas: 909090082 },
+        { maxFeePerGas: 4501571383, maxPriorityFeePerGas: 1000000000 },
+        { maxFeePerGas: 4951733023, maxPriorityFeePerGas: 1100001000 },
+        { maxFeePerGas: 5446911277, maxPriorityFeePerGas: 1210002200 },
+        { maxFeePerGas: 5991607851, maxPriorityFeePerGas: 1331003630 },
+        { maxFeePerGas: 6590774628, maxPriorityFeePerGas: 1464105324 },
+        { maxFeePerGas: 7249858682, maxPriorityFeePerGas: 1610517320 },
+        { maxFeePerGas: 7974851800, maxPriorityFeePerGas: 1771570663 },
+        { maxFeePerGas: 8772344955, maxPriorityFeePerGas: 1948729500 },
+        { maxFeePerGas: 9649588222, maxPriorityFeePerGas: 2143604399 },
+        { maxFeePerGas: 10614556694, maxPriorityFeePerGas: 2357966983 },
+        { maxFeePerGas: 11676022978, maxPriorityFeePerGas: 2593766039 },
+      ],
+      feeEstimate: 42000000000000,
+      fees: [
+        { maxFeePerGas: 2310003200, maxPriorityFeePerGas: 513154852 },
+        { maxFeePerGas: 2541005830, maxPriorityFeePerGas: 564470850 },
+        { maxFeePerGas: 2795108954, maxPriorityFeePerGas: 620918500 },
+        { maxFeePerGas: 3074622644, maxPriorityFeePerGas: 683010970 },
+        { maxFeePerGas: 3382087983, maxPriorityFeePerGas: 751312751 },
+        { maxFeePerGas: 3720300163, maxPriorityFeePerGas: 826444777 },
+        { maxFeePerGas: 4092333900, maxPriorityFeePerGas: 909090082 },
+        { maxFeePerGas: 4501571382, maxPriorityFeePerGas: 999999999 },
+        { maxFeePerGas: 4951733022, maxPriorityFeePerGas: 1100001000 },
+        { maxFeePerGas: 5446911277, maxPriorityFeePerGas: 1210002200 },
+        { maxFeePerGas: 5991607851, maxPriorityFeePerGas: 1331003630 },
+        { maxFeePerGas: 6590774627, maxPriorityFeePerGas: 1464105324 },
+        { maxFeePerGas: 7249858681, maxPriorityFeePerGas: 1610517320 },
+        { maxFeePerGas: 7974851800, maxPriorityFeePerGas: 1771570662 },
+        { maxFeePerGas: 8772344954, maxPriorityFeePerGas: 1948729500 },
+        { maxFeePerGas: 9649588222, maxPriorityFeePerGas: 2143604398 },
+        { maxFeePerGas: 10614556693, maxPriorityFeePerGas: 2357966982 },
+        { maxFeePerGas: 11676022977, maxPriorityFeePerGas: 2593766039 },
+        { maxFeePerGas: 12843636951, maxPriorityFeePerGas: 2853145236 },
+      ],
+      gasLimit: 21000,
+      gasUsed: 21000,
+    },
+    approvalTxFees: {
+      // Trade tx.
+      cancelFees: [
+        { maxFeePerGas: 2100001000, maxPriorityFeePerGas: 466503987 },
+        { maxFeePerGas: 2310003200, maxPriorityFeePerGas: 513154852 },
+        { maxFeePerGas: 2541005830, maxPriorityFeePerGas: 564470851 },
+        { maxFeePerGas: 2795108954, maxPriorityFeePerGas: 620918500 },
+        { maxFeePerGas: 3074622644, maxPriorityFeePerGas: 683010971 },
+        { maxFeePerGas: 3382087983, maxPriorityFeePerGas: 751312751 },
+        { maxFeePerGas: 3720300164, maxPriorityFeePerGas: 826444778 },
+        { maxFeePerGas: 4092333900, maxPriorityFeePerGas: 909090082 },
+        { maxFeePerGas: 4501571383, maxPriorityFeePerGas: 1000000000 },
+        { maxFeePerGas: 4951733023, maxPriorityFeePerGas: 1100001000 },
+        { maxFeePerGas: 5446911277, maxPriorityFeePerGas: 1210002200 },
+        { maxFeePerGas: 5991607851, maxPriorityFeePerGas: 1331003630 },
+        { maxFeePerGas: 6590774628, maxPriorityFeePerGas: 1464105324 },
+        { maxFeePerGas: 7249858682, maxPriorityFeePerGas: 1610517320 },
+        { maxFeePerGas: 7974851800, maxPriorityFeePerGas: 1771570663 },
+        { maxFeePerGas: 8772344955, maxPriorityFeePerGas: 1948729500 },
+        { maxFeePerGas: 9649588222, maxPriorityFeePerGas: 2143604399 },
+        { maxFeePerGas: 10614556694, maxPriorityFeePerGas: 2357966983 },
+        { maxFeePerGas: 11676022978, maxPriorityFeePerGas: 2593766039 },
+      ],
+      feeEstimate: 42000000000000,
+      fees: [
+        { maxFeePerGas: 2310003200, maxPriorityFeePerGas: 513154852 },
+        { maxFeePerGas: 2541005830, maxPriorityFeePerGas: 564470850 },
+        { maxFeePerGas: 2795108954, maxPriorityFeePerGas: 620918500 },
+        { maxFeePerGas: 3074622644, maxPriorityFeePerGas: 683010970 },
+        { maxFeePerGas: 3382087983, maxPriorityFeePerGas: 751312751 },
+        { maxFeePerGas: 3720300163, maxPriorityFeePerGas: 826444777 },
+        { maxFeePerGas: 4092333900, maxPriorityFeePerGas: 909090082 },
+        { maxFeePerGas: 4501571382, maxPriorityFeePerGas: 999999999 },
+        { maxFeePerGas: 4951733022, maxPriorityFeePerGas: 1100001000 },
+        { maxFeePerGas: 5446911277, maxPriorityFeePerGas: 1210002200 },
+        { maxFeePerGas: 5991607851, maxPriorityFeePerGas: 1331003630 },
+        { maxFeePerGas: 6590774627, maxPriorityFeePerGas: 1464105324 },
+        { maxFeePerGas: 7249858681, maxPriorityFeePerGas: 1610517320 },
+        { maxFeePerGas: 7974851800, maxPriorityFeePerGas: 1771570662 },
+        { maxFeePerGas: 8772344954, maxPriorityFeePerGas: 1948729500 },
+        { maxFeePerGas: 9649588222, maxPriorityFeePerGas: 2143604398 },
+        { maxFeePerGas: 10614556693, maxPriorityFeePerGas: 2357966982 },
+        { maxFeePerGas: 11676022977, maxPriorityFeePerGas: 2593766039 },
+        { maxFeePerGas: 12843636951, maxPriorityFeePerGas: 2853145236 },
+      ],
+      gasLimit: 21000,
+      gasUsed: 21000,
+    },
   };
 };
 
 export const createSwapsMockStore = () => {
   return {
+    confirmTransaction: {
+      txData: {},
+    },
     swaps: {
       customGas: {
         limit: '0x0',
@@ -69,23 +127,104 @@ export const createSwapsMockStore = () => {
         },
       },
       fromToken: 'ETH',
+      toToken: {
+        symbol: 'USDC',
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        occurances: 4,
+      },
+      swapsSTXLoading: false,
     },
     metamask: {
-      networkDetails: {
-        EIPS: {
-          1559: false,
+      selectedNetworkClientId: NetworkType.mainnet,
+      networksMetadata: {
+        [NetworkType.mainnet]: {
+          EIPS: {
+            1559: false,
+          },
+          status: NetworkStatus.Available,
         },
       },
-      provider: {
-        chainId: MAINNET_CHAIN_ID,
+      providerConfig: {
+        chainId: CHAIN_IDS.MAINNET,
+        ticker: 'ETH',
       },
       cachedBalances: {
-        [MAINNET_CHAIN_ID]: 5,
+        [CHAIN_IDS.MAINNET]: 5,
       },
       preferences: {
         showFiatInTestnets: true,
       },
       currentCurrency: 'ETH',
+      transactions: [
+        {
+          id: 6571648590592143,
+          time: 1667403993369,
+          status: 'confirmed',
+          originalGasEstimate: '0x7548',
+          userEditedGasLimit: false,
+          chainId: CHAIN_IDS.MAINNET,
+          loadingDefaults: false,
+          dappSuggestedGasFees: null,
+          sendFlowHistory: null,
+          txParams: {
+            from: '0x806627172af48bd5b0765d3449a7def80d6576ff',
+            to: '0x881d40237659c251811cec9c364ef91dc08d300c',
+            nonce: '0x30',
+            value: '0x5af3107a4000',
+            gas: '0x7548',
+            maxFeePerGas: '0x19286f704d',
+            maxPriorityFeePerGas: '0x77359400',
+          },
+          origin: 'metamask',
+          actionId: 1667403993358.877,
+          type: 'swap',
+          userFeeLevel: 'medium',
+          defaultGasEstimates: {
+            estimateType: 'medium',
+            gas: '0x7548',
+            maxFeePerGas: '0x19286f704d',
+            maxPriorityFeePerGas: '0x77359400',
+          },
+          sourceTokenSymbol: 'ETH',
+          destinationTokenSymbol: 'USDC',
+          destinationTokenDecimals: 6,
+          destinationTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+          swapMetaData: {
+            token_from: 'ETH',
+            token_from_amount: '0.0001',
+            token_to: 'USDC',
+            token_to_amount: '0.15471500',
+            slippage: 2,
+            custom_slippage: false,
+            best_quote_source: 'pmm',
+            other_quote_selected: false,
+            other_quote_selected_source: '',
+            gas_fees: '3.016697',
+            estimated_gas: '30024',
+            used_gas_price: '0',
+            is_hardware_wallet: false,
+            stx_enabled: false,
+            current_stx_enabled: false,
+            stx_user_opt_in: false,
+            reg_tx_fee_in_usd: 3.02,
+            reg_tx_fee_in_eth: 0.00193,
+            reg_tx_max_fee_in_usd: 5.06,
+            reg_tx_max_fee_in_eth: 0.00324,
+            max_fee_per_gas: '19286f704d',
+            max_priority_fee_per_gas: '77359400',
+            base_and_priority_fee_per_gas: 'efd93d95a',
+          },
+          swapTokenValue: '0.0001',
+          estimatedBaseFee: 'e865e455a',
+          hash: '0x8216e3696e7deb7ca794703015f17d5114a09362ae98f6a1611203e4c9509243',
+          submittedTime: 1667403996143,
+          firstRetryBlockNumber: '0x7838fe',
+          baseFeePerGas: '0xe0ef7d207',
+          blockTimestamp: '636290e8',
+          postTxBalance: '19a61aaaf06e4bd1',
+        },
+      ],
+      useCurrencyRateCheck: true,
       conversionRate: 1,
       contractExchangeRates: {
         '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': 2,
@@ -109,6 +248,63 @@ export const createSwapsMockStore = () => {
           name: 'Send Account 4',
         },
       },
+      internalAccounts: {
+        accounts: {
+          'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3': {
+            address: '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc',
+            id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+            metadata: {
+              name: 'Test Account',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [...Object.values(EthMethod)],
+            type: EthAccountType.Eoa,
+          },
+          '07c2cfec-36c9-46c4-8115-3836d3ac9047': {
+            address: '0xc5b8dbac4c1d3f152cdeb400e2313f309c410acb',
+            id: '07c2cfec-36c9-46c4-8115-3836d3ac9047',
+            metadata: {
+              name: 'Test Account 2',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [...Object.values(EthMethod)],
+            type: EthAccountType.Eoa,
+          },
+          '15e69915-2a1a-4019-93b3-916e11fd432f': {
+            address: '0x2f8d4a878cfa04a6e60d46362f5644deab66572d',
+            id: '15e69915-2a1a-4019-93b3-916e11fd432f',
+            metadata: {
+              name: 'Ledger Hardware 2',
+              keyring: {
+                type: 'Ledger Hardware',
+              },
+            },
+            options: {},
+            methods: [...Object.values(EthMethod)],
+            type: EthAccountType.Eoa,
+          },
+          '784225f4-d30b-4e77-a900-c8bbce735b88': {
+            address: '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc',
+            id: '784225f4-d30b-4e77-a900-c8bbce735b88',
+            metadata: {
+              name: 'Test Account 3',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [...Object.values(EthMethod)],
+            type: EthAccountType.Eoa,
+          },
+        },
+        selectedAccount: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+      },
       accounts: {
         '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc': {
           address: '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc',
@@ -120,10 +316,10 @@ export const createSwapsMockStore = () => {
         },
       },
       selectedAddress: '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc',
-      keyringTypes: ['Simple Key Pair', 'HD Key Tree'],
+      currentLocale: 'en',
       keyrings: [
         {
-          type: 'HD Key Tree',
+          type: KeyringType.hdKeyTree,
           accounts: [
             '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc',
             'c5b8dbac4c1d3f152cdeb400e2313f309c410acb',
@@ -131,11 +327,11 @@ export const createSwapsMockStore = () => {
           ],
         },
         {
-          type: 'Simple Key Pair',
+          type: KeyringType.imported,
           accounts: ['0xd85a4b6a394794842887b8284293d69163007bbb'],
         },
       ],
-      frequentRpcListDetail: [],
+      networkConfigurations: {},
       tokens: [
         {
           erc20: true,
@@ -152,9 +348,13 @@ export const createSwapsMockStore = () => {
       ],
       swapsState: {
         swapsFeatureFlags: {
-          smart_transactions: {
-            mobile_active: true,
-            extension_active: true,
+          smartTransactions: {
+            mobileActive: true,
+            extensionActive: true,
+          },
+          swapRedesign: {
+            mobileActive: true,
+            extensionActive: true,
           },
         },
         quotes: {
@@ -244,6 +444,7 @@ export const createSwapsMockStore = () => {
             fetchTime: 1354,
             aggregator: 'TEST_AGG_2',
             aggType: 'AGG',
+            isBestQuote: true,
             slippage: 2,
             sourceTokenInfo: {
               address: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -262,10 +463,10 @@ export const createSwapsMockStore = () => {
         fetchParams: {
           metaData: {
             sourceTokenInfo: {
-              symbol: 'BAT',
+              symbol: 'ETH',
             },
             destinationTokenInfo: {
-              symbol: 'ETH',
+              symbol: 'USDC',
             },
           },
         },
@@ -274,6 +475,10 @@ export const createSwapsMockStore = () => {
         quotesLastFetched: 1519211809934,
         swapsQuoteRefreshTime: 60000,
         swapsQuotePrefetchingRefreshTime: 60000,
+        swapsStxBatchStatusRefreshTime: 5000,
+        swapsStxGetTransactionsRefreshTime: 5000,
+        swapsStxMaxFeeMultiplier: 1.5,
+        swapsStxStatusDeadline: 150000,
         customMaxGas: '',
         customGasPrice: null,
         selectedAggId: 'TEST_AGG_2',
@@ -353,11 +558,15 @@ export const createSwapsMockStore = () => {
       },
       smartTransactionsState: {
         userOptIn: true,
+        userOptInV2: true,
+        liveness: true,
+        fees: createGetSmartTransactionFeesApiResponse(),
         smartTransactions: {
-          [MAINNET_CHAIN_ID]: [
+          [CHAIN_IDS.MAINNET]: [
             {
               uuid: 'uuid2',
               status: 'success',
+              cancellable: false,
               statusMetadata: {
                 cancellationFeeWei: 36777567771000,
                 cancellationReason: 'not_cancelled',
@@ -370,6 +579,7 @@ export const createSwapsMockStore = () => {
             {
               uuid: 'uuid2',
               status: 'pending',
+              cancellable: true,
               statusMetadata: {
                 cancellationFeeWei: 36777567771000,
                 cancellationReason: 'not_cancelled',
@@ -384,7 +594,6 @@ export const createSwapsMockStore = () => {
       },
     },
     appState: {
-      smartTransactionFees: createGetSmartTransactionFeesApiResponse(),
       modal: {
         open: true,
         modalState: {
@@ -396,7 +605,6 @@ export const createSwapsMockStore = () => {
         },
       },
       gasLoadingAnimationIsShowing: false,
-      smartTransactionsLiveness: true,
     },
   };
 };

@@ -1,143 +1,139 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import sinon from 'sinon';
-import Identicon from '../../ui/identicon';
+import configureStore from 'redux-mock-store';
+import { fireEvent } from '@testing-library/react';
+import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import { renderWithProvider } from '../../../../test/lib/render-helpers';
+import mockState from '../../../../test/data/mock-state.json';
 import AccountListItem from './account-list-item';
 
-const mockAddress = '0x829bd824b016326a401d083b33d0922933330000';
-const mockChecksumAddress = '0x829BD824B016326a401D083b33d0922933330000';
-
 describe('AccountListItem Component', () => {
-  let wrapper, propsMethodSpies;
+  const store = configureStore()(mockState);
 
   describe('render', () => {
-    beforeAll(() => {
-      propsMethodSpies = {
-        handleClick: sinon.spy(),
-      };
-    });
-    beforeEach(() => {
-      wrapper = shallow(
-        <AccountListItem
-          account={{
-            address: mockAddress,
-            name: 'mockName',
-            balance: 'mockBalance',
-          }}
-          className="mockClassName"
-          displayAddress={false}
-          handleClick={propsMethodSpies.handleClick}
-          icon={<i className="mockIcon" />}
-        />,
-        { context: { t: (str) => `${str}_t` } },
+    const props = {
+      account: {
+        address: 'mockAddress',
+        balance: 'mockBalance',
+        id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+        metadata: {
+          name: 'mockName',
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+        options: {},
+        methods: [...Object.values(EthMethod)],
+        type: EthAccountType.Eoa,
+      },
+      className: 'mockClassName',
+      displayAddress: false,
+      icon: <i className="mockIcon" />,
+      handleClick: jest.fn(),
+    };
+
+    it('should match snapshot', () => {
+      const { container } = renderWithProvider(
+        <AccountListItem {...props} />,
+        store,
       );
-    });
 
-    afterEach(() => {
-      propsMethodSpies.handleClick.resetHistory();
-    });
-
-    afterAll(() => {
-      sinon.restore();
-    });
-
-    it('should render a div with the passed className', () => {
-      expect(wrapper.find('.mockClassName')).toHaveLength(1);
-      expect(wrapper.find('.mockClassName').is('div')).toStrictEqual(true);
-      expect(
-        wrapper.find('.mockClassName').hasClass('account-list-item'),
-      ).toStrictEqual(true);
+      expect(container).toMatchSnapshot();
     });
 
     it('should call handleClick with the expected props when the root div is clicked', () => {
-      const { onClick } = wrapper.find('.mockClassName').props();
-      expect(propsMethodSpies.handleClick.callCount).toStrictEqual(0);
-      onClick();
-      expect(propsMethodSpies.handleClick.callCount).toStrictEqual(1);
-      expect(propsMethodSpies.handleClick.getCall(0).args).toStrictEqual([
-        { address: mockAddress, name: 'mockName', balance: 'mockBalance' },
-      ]);
-    });
-
-    it('should have a top row div', () => {
-      expect(
-        wrapper.find('.mockClassName > .account-list-item__top-row'),
-      ).toHaveLength(1);
-      expect(
-        wrapper.find('.mockClassName > .account-list-item__top-row').is('div'),
-      ).toStrictEqual(true);
-    });
-
-    it('should have an identicon, name and icon in the top row', () => {
-      const topRow = wrapper.find(
-        '.mockClassName > .account-list-item__top-row',
+      const { getByTestId } = renderWithProvider(
+        <AccountListItem {...props} />,
+        store,
       );
-      expect(topRow.find(Identicon)).toHaveLength(1);
-      expect(topRow.find('.account-list-item__account-name')).toHaveLength(1);
-      expect(topRow.find('.account-list-item__icon')).toHaveLength(1);
+      const accountListItem = getByTestId('account-list-item');
+      fireEvent.click(accountListItem);
+
+      expect(props.handleClick).toHaveBeenCalledWith({
+        address: 'mockAddress',
+        name: 'mockName',
+        balance: 'mockBalance',
+      });
     });
 
     it('should show the account name if it exists', () => {
-      const topRow = wrapper.find(
-        '.mockClassName > .account-list-item__top-row',
+      const { queryByText } = renderWithProvider(
+        <AccountListItem {...props} />,
+        store,
       );
-      expect(
-        topRow.find('.account-list-item__account-name').text(),
-      ).toStrictEqual('mockName');
+      expect(queryByText('mockName')).toBeInTheDocument();
     });
 
     it('should show the account address if there is no name', () => {
-      wrapper.setProps({ account: { address: 'addressButNoName' } });
-      const topRow = wrapper.find(
-        '.mockClassName > .account-list-item__top-row',
-      );
-      expect(
-        topRow.find('.account-list-item__account-name').text(),
-      ).toStrictEqual('addressButNoName');
-    });
+      const noAccountNameProps = {
+        ...props,
+        account: {
+          address: 'addressButNoName',
+          balance: 'mockBalance',
+          id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+          metadata: {
+            name: '',
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+          options: {},
+          methods: [...Object.values(EthMethod)],
+          type: EthAccountType.Eoa,
+        },
+      };
 
-    it('should render the passed icon', () => {
-      const topRow = wrapper.find(
-        '.mockClassName > .account-list-item__top-row',
+      const { queryByText } = renderWithProvider(
+        <AccountListItem {...noAccountNameProps} />,
+        store,
       );
-      expect(
-        topRow.find('.account-list-item__icon').childAt(0).is('i'),
-      ).toStrictEqual(true);
-      expect(
-        topRow.find('.account-list-item__icon').childAt(0).hasClass('mockIcon'),
-      ).toStrictEqual(true);
+      expect(queryByText('addressButNoName')).toBeInTheDocument();
     });
 
     it('should not render an icon if none is passed', () => {
-      wrapper.setProps({ icon: null });
-      const topRow = wrapper.find(
-        '.mockClassName > .account-list-item__top-row',
+      const noIconProps = {
+        ...props,
+        icon: null,
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AccountListItem {...noIconProps} />,
+        store,
       );
-      expect(topRow.find('.account-list-item__icon')).toHaveLength(0);
+      const accountListItemIcon = queryByTestId('account-list-item-icon');
+
+      expect(accountListItemIcon).not.toBeInTheDocument();
     });
 
     it('should render the account address as a checksumAddress if displayAddress is true and name is provided', () => {
-      wrapper.setProps({ displayAddress: true });
-      expect(wrapper.find('.account-list-item__account-address')).toHaveLength(
-        1,
+      const { queryByText, rerender } = renderWithProvider(
+        <AccountListItem {...props} />,
+        store,
       );
-      expect(
-        wrapper.find('.account-list-item__account-address').text(),
-      ).toStrictEqual(mockChecksumAddress);
+      expect(queryByText('0xmockAddress')).not.toBeInTheDocument();
+
+      const displayAddressProps = {
+        ...props,
+        displayAddress: true,
+      };
+
+      rerender(<AccountListItem {...displayAddressProps} />);
+
+      expect(queryByText('0xmockAddress')).toBeInTheDocument();
     });
 
-    it('should not render the account address as a checksumAddress if displayAddress is false', () => {
-      wrapper.setProps({ displayAddress: false });
-      expect(wrapper.find('.account-list-item__account-address')).toHaveLength(
-        0,
+    it('render without <AccountMismatchWarning /> if hideDefaultMismatchWarning is true', () => {
+      const { getByTestId, rerender } = renderWithProvider(
+        <AccountListItem {...props} />,
+        store,
       );
-    });
 
-    it('should not render the account address as a checksumAddress if name is not provided', () => {
-      wrapper.setProps({ account: { address: 'someAddressButNoName' } });
-      expect(wrapper.find('.account-list-item__account-address')).toHaveLength(
-        0,
-      );
+      const infoIcon = getByTestId('account-mismatch-warning-tooltip');
+
+      expect(infoIcon).toBeInTheDocument();
+
+      rerender(<AccountListItem {...props} hideDefaultMismatchWarning />);
+
+      expect(infoIcon).not.toBeInTheDocument();
     });
   });
 });

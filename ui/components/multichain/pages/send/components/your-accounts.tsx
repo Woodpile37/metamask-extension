@@ -19,7 +19,7 @@ export const SendPageYourAccounts = () => {
     <SendPageRow>
       {accounts.map((account: any) => (
         <AccountListItem
-          identity={account}
+          account={account}
           key={account.address}
           onClick={() => {
             dispatch(

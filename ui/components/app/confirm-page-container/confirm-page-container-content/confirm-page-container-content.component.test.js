@@ -85,6 +85,10 @@ describe('Confirm Page Container Content', () => {
         selectedAccount: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
       },
       tokenList: {},
+      internalAccounts: {
+        accounts: {},
+        selectedAccount: '',
+      },
     },
     confirmTransaction: {
       txData: {

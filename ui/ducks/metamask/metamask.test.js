@@ -1,6 +1,7 @@
 import { NetworkType } from '@metamask/controller-utils';
 import { NetworkStatus } from '@metamask/network-controller';
-import { TransactionStatus } from '@metamask/transaction-controller';
+import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import { TransactionStatus } from '../../../shared/constants/transaction';
 import * as actionConstants from '../../store/actionConstants';
 import reduceMetamask, {
   getBlockGasLimit,
@@ -37,16 +38,68 @@ describe('MetaMask Reducers', () => {
             name: 'Send Account 4',
           },
         },
-        currentBlockGasLimit: '0x4c1878',
-        currentBlockGasLimitByChainId: {
-          '0x5': '0x4c1878',
-        },
-        useCurrencyRateCheck: true,
-        currencyRates: {
-          TestETH: {
-            conversionRate: 1200.88200327,
+        internalAccounts: {
+          accounts: {
+            'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3': {
+              address: '0xfdea65c8e26263f6d9a1b5de9555d2931a33b825',
+              id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+              metadata: {
+                name: 'Send Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+            '07c2cfec-36c9-46c4-8115-3836d3ac9047': {
+              address: '0xc5b8dbac4c1d3f152cdeb400e2313f309c410acb',
+              id: '07c2cfec-36c9-46c4-8115-3836d3ac9047',
+              metadata: {
+                name: 'Send Account 2',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+            '15e69915-2a1a-4019-93b3-916e11fd432f': {
+              address: '0x2f8d4a878cfa04a6e60d46362f5644deab66572d',
+              id: '15e69915-2a1a-4019-93b3-916e11fd432f',
+              metadata: {
+                name: 'Send Account 3',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+            '784225f4-d30b-4e77-a900-c8bbce735b88': {
+              address: '0xd85a4b6a394794842887b8284293d69163007bbb',
+              id: '784225f4-d30b-4e77-a900-c8bbce735b88',
+              metadata: {
+                name: 'Send Account 4',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
           },
+          selectedAccount: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
         },
+        cachedBalances: {},
+        currentBlockGasLimit: '0x4c1878',
+        conversionRate: 1200.88200327,
+        nativeCurrency: 'ETH',
+        useCurrencyRateCheck: true,
         selectedNetworkClientId: NetworkType.goerli,
         networksMetadata: {
           [NetworkType.goerli]: {
@@ -83,34 +136,6 @@ describe('MetaMask Reducers', () => {
             balance: '0x0',
             nonce: '0x0',
             address: '0xd85a4b6a394794842887b8284293d69163007bbb',
-          },
-        },
-        accountsByChainId: {
-          '0x5': {
-            '0xfdea65c8e26263f6d9a1b5de9555d2931a33b825': {
-              code: '0x',
-              balance: '0x47c9d71831c76efe',
-              nonce: '0x1b',
-              address: '0xfdea65c8e26263f6d9a1b5de9555d2931a33b825',
-            },
-            '0xc5b8dbac4c1d3f152cdeb400e2313f309c410acb': {
-              code: '0x',
-              balance: '0x37452b1315889f80',
-              nonce: '0xa',
-              address: '0xc5b8dbac4c1d3f152cdeb400e2313f309c410acb',
-            },
-            '0x2f8d4a878cfa04a6e60d46362f5644deab66572d': {
-              code: '0x',
-              balance: '0x30c9d71831c76efe',
-              nonce: '0x1c',
-              address: '0x2f8d4a878cfa04a6e60d46362f5644deab66572d',
-            },
-            '0xd85a4b6a394794842887b8284293d69163007bbb': {
-              code: '0x',
-              balance: '0x0',
-              nonce: '0x0',
-              address: '0xd85a4b6a394794842887b8284293d69163007bbb',
-            },
           },
         },
         addressBook: {
@@ -163,36 +188,6 @@ describe('MetaMask Reducers', () => {
     });
 
     expect(lockMetaMask.isUnlocked).toStrictEqual(false);
-  });
-
-  it('sets network target', () => {
-    const state = reduceMetamask(
-      {},
-      {
-        type: actionConstants.UPDATE_NETWORK_TARGET,
-        value: {
-          rpcUrl: 'https://custom.rpc',
-          networkConfigurationId: 'test-networkConfigurationId',
-        },
-      },
-    );
-
-    expect(state.provider.rpcUrl).toStrictEqual('https://custom.rpc');
-    expect(state.provider.networkConfigurationId).toStrictEqual(
-      'test-networkConfigurationId',
-    );
-  });
-
-  it('sets provider type', () => {
-    const state = reduceMetamask(
-      {},
-      {
-        type: actionConstants.SET_PROVIDER_TYPE,
-        value: 'provider type',
-      },
-    );
-
-    expect(state.provider.type).toStrictEqual('provider type');
   });
 
   it('sets account label', () => {
@@ -326,7 +321,7 @@ describe('MetaMask Reducers', () => {
 
     describe('getNativeCurrency()', () => {
       it('should return nativeCurrency when useCurrencyRateCheck is true', () => {
-        expect(getNativeCurrency(mockState)).toStrictEqual('TestETH');
+        expect(getNativeCurrency(mockState)).toStrictEqual('ETH');
       });
 
       it('should return the ticker symbol of the selected network when useCurrencyRateCheck is false', () => {
@@ -352,32 +347,68 @@ describe('MetaMask Reducers', () => {
       it('should return an array including all the users accounts and the address book', () => {
         expect(getSendToAccounts(mockState)).toStrictEqual([
           {
+            id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+            metadata: {
+              name: 'Send Account 1',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [...Object.values(EthMethod)],
+            type: EthAccountType.Eoa,
             code: '0x',
             balance: '0x47c9d71831c76efe',
             nonce: '0x1b',
             address: '0xfdea65c8e26263f6d9a1b5de9555d2931a33b825',
-            name: 'Send Account 1',
           },
           {
+            id: '07c2cfec-36c9-46c4-8115-3836d3ac9047',
+            metadata: {
+              name: 'Send Account 2',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [...Object.values(EthMethod)],
+            type: EthAccountType.Eoa,
             code: '0x',
             balance: '0x37452b1315889f80',
             nonce: '0xa',
             address: '0xc5b8dbac4c1d3f152cdeb400e2313f309c410acb',
-            name: 'Send Account 2',
           },
           {
+            id: '15e69915-2a1a-4019-93b3-916e11fd432f',
+            metadata: {
+              name: 'Send Account 3',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [...Object.values(EthMethod)],
+            type: EthAccountType.Eoa,
             code: '0x',
             balance: '0x30c9d71831c76efe',
             nonce: '0x1c',
             address: '0x2f8d4a878cfa04a6e60d46362f5644deab66572d',
-            name: 'Send Account 3',
           },
           {
+            id: '784225f4-d30b-4e77-a900-c8bbce735b88',
+            metadata: {
+              name: 'Send Account 4',
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [...Object.values(EthMethod)],
+            type: EthAccountType.Eoa,
             code: '0x',
             balance: '0x0',
             nonce: '0x0',
             address: '0xd85a4b6a394794842887b8284293d69163007bbb',
-            name: 'Send Account 4',
           },
           {
             address: '0x06195827297c7a80a443b6894d3bdb8824b43896',

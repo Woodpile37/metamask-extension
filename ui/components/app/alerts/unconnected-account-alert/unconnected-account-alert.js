@@ -12,9 +12,7 @@ import {
 import {
   getOriginOfCurrentTab,
   getOrderedConnectedAccountsForActiveTab,
-  getSelectedAddress,
-  getSelectedIdentity,
-  getInternalAccounts,
+  getSelectedInternalAccount,
 } from '../../../../selectors';
 import { isExtensionUrl, getURLHost } from '../../../../helpers/utils/util';
 import Popover from '../../../ui/popover';
@@ -34,28 +32,9 @@ const UnconnectedAccountAlert = () => {
   const connectedAccounts = useSelector(
     getOrderedConnectedAccountsForActiveTab,
   );
-  const internalAccounts = useSelector(getInternalAccounts);
-  // Temporary fix until https://github.com/MetaMask/metamask-extension/pull/21553
-  const internalAccountsMap = new Map(
-    internalAccounts.map((acc) => [acc.address, acc]),
-  );
-
-  const connectedAccountsWithName = connectedAccounts.map((account) => ({
-    ...account,
-    name: internalAccountsMap.get(account.address)?.metadata.name,
-  }));
-
   const origin = useSelector(getOriginOfCurrentTab);
-  const selectedIdentity = useSelector(getSelectedIdentity);
-  // Temporary fix until https://github.com/MetaMask/metamask-extension/pull/21553
-  const selectedIdentityWithName = {
-    ...selectedIdentity,
-    name: internalAccounts.find(
-      (internalAccount) =>
-        internalAccount.address === selectedIdentity?.address,
-    )?.metadata.name,
-  };
-  const selectedAddress = useSelector(getSelectedAddress);
+  const account = useSelector(getSelectedInternalAccount);
+  const { address: selectedAddress } = account;
   const [dontShowThisAgain, setDontShowThisAgain] = useState(false);
 
   const onClose = async () => {
@@ -118,11 +97,11 @@ const UnconnectedAccountAlert = () => {
       footer={footer}
     >
       <ConnectedAccountsList
-        accountToConnect={selectedIdentityWithName}
+        accountToConnect={account}
         connectAccount={() => dispatch(connectAccount(selectedAddress))}
-        connectedAccounts={connectedAccountsWithName}
+        connectedAccounts={connectedAccounts}
         selectedAddress={selectedAddress}
-        setSelectedAddress={(address) => dispatch(switchToAccount(address))}
+        setSelectedAccount={(accountId) => dispatch(switchToAccount(accountId))}
         shouldRenderListOptions={false}
       />
     </Popover>

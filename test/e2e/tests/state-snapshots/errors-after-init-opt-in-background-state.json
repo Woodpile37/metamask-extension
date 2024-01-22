@@ -91,8 +91,7 @@
     "eventsBeforeMetricsOptIn": "object",
     "traits": "object",
     "fragments": "object",
-    "segmentApiCalls": "object",
-    "previousUserTraits": "object"
+    "segmentApiCalls": "object"
   },
   "NetworkController": {
     "selectedNetworkClientId": "string",
@@ -148,12 +147,12 @@
     "dismissSeedBackUpReminder": true,
     "disabledRpcMethodPreferences": { "eth_sign": false },
     "useMultiAccountBalanceChecker": true,
-    "useRequestQueue": false,
     "useSafeChainsListValidation": "boolean",
     "useTokenDetection": false,
     "useNftDetection": false,
     "use4ByteResolution": true,
     "useCurrencyRateCheck": true,
+    "useRequestQueue": false,
     "openSeaEnabled": false,
     "securityAlertsEnabled": "boolean",
     "addSnapAccountEnabled": "boolean",
@@ -183,9 +182,7 @@
     "selectedAddress": "string"
   },
   "SelectedNetworkController": {
-    "domains": {
-      "metamask": "networkConfigurationId"
-    },
+    "domains": { "metamask": "networkConfigurationId" },
     "perDomainNetwork": "boolean"
   },
   "SignatureController": {

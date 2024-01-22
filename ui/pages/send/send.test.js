@@ -83,6 +83,24 @@ const baseStore = {
       fast: '2',
     },
     selectedAddress: '0x0',
+    internalAccounts: {
+      accounts: {
+        'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3': {
+          address: '0x0',
+          id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+          metadata: {
+            name: 'Test Account',
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+          options: {},
+          methods: [...Object.values(EthMethod)],
+          type: EthAccountType.Eoa,
+        },
+      },
+      selectedAccount: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+    },
     keyrings: [
       {
         type: KeyringType.hdKeyTree,
@@ -249,6 +267,7 @@ describe('Send Page', () => {
             id: 3111025347726181,
             time: 1620723786838,
             status: 'unapproved',
+            metamaskNetworkId: '5',
             chainId: '0x5',
             loadingDefaults: false,
             txParams: {
@@ -292,6 +311,7 @@ describe('Send Page', () => {
             id: 3111025347726181,
             time: 1620723786838,
             status: 'unapproved',
+            metamaskNetworkId: '5',
             chainId: '0x5',
             loadingDefaults: false,
             txParams: {

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 
@@ -10,39 +10,36 @@ import { shortenAddress } from '../../../helpers/utils/util';
 import { AccountListItemMenu, AvatarGroup } from '..';
 import {
   AvatarAccount,
-  AvatarAccountVariant,
-  AvatarFavicon,
-  AvatarToken,
-  AvatarTokenSize,
   Box,
+  AvatarFavicon,
+  Tag,
   ButtonIcon,
   IconName,
   IconSize,
-  Tag,
+  AvatarAccountVariant,
   Text,
+  AvatarToken,
+  AvatarTokenSize,
 } from '../../component-library';
 import {
-  AlignItems,
-  BackgroundColor,
-  BlockSize,
-  BorderColor,
-  BorderRadius,
   Color,
-  Display,
+  TextAlign,
+  AlignItems,
+  TextVariant,
   FlexDirection,
+  BorderRadius,
   JustifyContent,
   Size,
-  TextAlign,
-  TextVariant,
+  BorderColor,
+  Display,
+  BackgroundColor,
+  BlockSize,
 } from '../../../helpers/constants/design-system';
 import { HardwareKeyringNames } from '../../../../shared/constants/hardware-wallets';
 import { KeyringType } from '../../../../shared/constants/keyring';
 import UserPreferencedCurrencyDisplay from '../../app/user-preferenced-currency-display/user-preferenced-currency-display.component';
-import { PRIMARY, SECONDARY } from '../../../helpers/constants/common';
-import {
-  findKeyringForAddress,
-  getNativeCurrency,
-} from '../../../ducks/metamask/metamask';
+import { SECONDARY, PRIMARY } from '../../../helpers/constants/common';
+import { getNativeCurrency } from '../../../ducks/metamask/metamask';
 import Tooltip from '../../ui/tooltip/tooltip';
 import {
   MetaMetricsEventCategory,
@@ -55,7 +52,8 @@ import { useAccountTotalFiatBalance } from '../../../hooks/useAccountTotalFiatBa
 const MAXIMUM_CURRENCY_DECIMALS = 3;
 const MAXIMUM_CHARACTERS_WITHOUT_TOOLTIP = 17;
 
-function getLabel(t, { type }) {
+function getLabel(keyring = {}, t) {
+  const { type } = keyring;
   switch (type) {
     case KeyringType.qr:
       return HardwareKeyringNames.qr;
@@ -67,17 +65,17 @@ function getLabel(t, { type }) {
       return HardwareKeyringNames.ledger;
     case KeyringType.lattice:
       return HardwareKeyringNames.lattice;
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IN(keyring-snaps)
     case KeyringType.snap:
       return `${t('snaps')} (${t('beta')})`;
-    ///: END:ONLY_INCLUDE_IF
+    ///: END:ONLY_INCLUDE_IN
     default:
       return null;
   }
 }
 
 export const AccountListItem = ({
-  identity,
+  account,
   selected = false,
   onClick,
   closeMenu,
@@ -96,9 +94,11 @@ export const AccountListItem = ({
   };
 
   const { totalWeiBalance, orderedTokenList } = useAccountTotalFiatBalance(
-    identity.address,
+    account.address,
   );
-  const balanceToTranslate = totalWeiBalance;
+  const balanceToTranslate = process.env.MULTICHAIN
+    ? totalWeiBalance
+    : account.balance;
 
   // If this is the selected item in the Account menu,
   // scroll the item into view
@@ -109,10 +109,8 @@ export const AccountListItem = ({
     }
   }, [itemRef, selected]);
 
-  const keyring = useSelector((state) =>
-    findKeyringForAddress(state, identity.address),
-  );
-  const label = getLabel(t, keyring);
+  const { keyring } = account.metadata;
+  const label = getLabel(keyring, t);
 
   const trackEvent = useContext(MetaMetricsContext);
   const primaryTokenImage = useSelector(getNativeCurrencyImage);
@@ -146,7 +144,7 @@ export const AccountListItem = ({
       <AvatarAccount
         borderColor={BorderColor.transparent}
         size={Size.SM}
-        address={identity.address}
+        address={account.address}
         variant={
           useBlockie
             ? AvatarAccountVariant.Blockies
@@ -168,23 +166,6 @@ export const AccountListItem = ({
               className="multichain-account-list-item__account-name"
               marginInlineEnd={2}
             >
-<<<<<<< HEAD
-=======
-              {isPinned ? (
-                <Icon
-                  name={IconName.Pin}
-                  size={IconSize.Xs}
-                  className="account-pinned-icon"
-                />
-              ) : null}
-              {isHidden ? (
-                <Icon
-                  name={IconName.EyeSlash}
-                  size={IconSize.Xs}
-                  className="account-hidden-icon"
-                />
-              ) : null}
->>>>>>> circle-retry
               <Text
                 as="button"
                 onClick={(e) => {
@@ -199,16 +180,17 @@ export const AccountListItem = ({
                 textAlign={TextAlign.Left}
                 ellipsis
               >
-                {identity.name.length > MAXIMUM_CHARACTERS_WITHOUT_TOOLTIP ? (
+                {account.metadata.name.length >
+                MAXIMUM_CHARACTERS_WITHOUT_TOOLTIP ? (
                   <Tooltip
-                    title={identity.name}
+                    title={account.metadata.name}
                     position="bottom"
                     wrapperClassName="multichain-account-list-item__tooltip"
                   >
-                    {identity.name}
+                    {account.metadata.name}
                   </Tooltip>
                 ) : (
-                  identity.name
+                  account.metadata.name
                 )}
               </Text>
             </Box>
@@ -244,7 +226,7 @@ export const AccountListItem = ({
               />
             ) : null}
             <Text variant={TextVariant.bodySm} color={Color.textAlternative}>
-              {shortenAddress(toChecksumHexAddress(identity.address))}
+              {shortenAddress(toChecksumHexAddress(account.address))}
             </Text>
           </Box>
           {process.env.MULTICHAIN ? (
@@ -306,7 +288,7 @@ export const AccountListItem = ({
       </Box>
       {showOptions ? (
         <ButtonIcon
-          ariaLabel={`${identity.name} ${t('options')}`}
+          ariaLabel={`${account.metadata.name} ${t('options')}`}
           iconName={IconName.MoreVertical}
           size={IconSize.Sm}
           ref={setAccountListItemMenuRef}
@@ -329,18 +311,11 @@ export const AccountListItem = ({
       {showOptions ? (
         <AccountListItemMenu
           anchorElement={accountListItemMenuElement}
-          identity={identity}
+          account={account}
           onClose={() => setAccountOptionsMenuOpen(false)}
           isOpen={accountOptionsMenuOpen}
-<<<<<<< HEAD
           isRemovable={keyring?.type !== KeyringType.hdKeyTree}
           closeMenu={closeMenu}
-=======
-          isRemovable={identity.keyring.type !== KeyringType.hdKeyTree}
-          closeMenu={closeMenu}
-          isPinned={isPinned}
-          isHidden={isHidden}
->>>>>>> circle-retry
         />
       ) : null}
     </Box>
@@ -349,12 +324,23 @@ export const AccountListItem = ({
 
 AccountListItem.propTypes = {
   /**
-   * Identity of the account
+   * An account object that has name, address, and balance data
    */
-  identity: PropTypes.shape({
-    name: PropTypes.string.isRequired,
+  account: PropTypes.shape({
+    id: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
     balance: PropTypes.string.isRequired,
+    metadata: PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      snap: PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        name: PropTypes.string,
+        enabled: PropTypes.bool,
+      }),
+      keyring: PropTypes.shape({
+        type: PropTypes.string.isRequired,
+      }).isRequired,
+    }).isRequired,
   }).isRequired,
   /**
    * Represents if this account is currently selected
