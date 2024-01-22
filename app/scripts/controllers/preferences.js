@@ -1,23 +1,10 @@
 import { ObservableStore } from '@metamask/obs-store';
 import { normalize as normalizeAddress } from 'eth-sig-util';
-import {
-  CHAIN_IDS,
-  IPFS_DEFAULT_GATEWAY_URL,
-} from '../../../shared/constants/network';
+import { IPFS_DEFAULT_GATEWAY_URL } from '../../../shared/constants/network';
+import { isPrefixedFormattedHexString } from '../../../shared/modules/network.utils';
 import { LedgerTransportTypes } from '../../../shared/constants/hardware-wallets';
 import { ThemeType } from '../../../shared/constants/preferences';
-import { shouldShowLineaMainnet } from '../../../shared/modules/network.utils';
-
-const mainNetworks = {
-  [CHAIN_IDS.MAINNET]: true,
-  [CHAIN_IDS.LINEA_MAINNET]: true,
-};
-
-const testNetworks = {
-  [CHAIN_IDS.GOERLI]: true,
-  [CHAIN_IDS.SEPOLIA]: true,
-  [CHAIN_IDS.LINEA_GOERLI]: true,
-};
+import { NETWORK_EVENTS } from './network';
 
 export default class PreferencesController {
   /**
@@ -25,6 +12,7 @@ export default class PreferencesController {
    * @typedef {object} PreferencesController
    * @param {object} opts - Overrides the defaults for the initial state of this.store
    * @property {object} store The stored object containing a users preferences, stored in local storage
+   * @property {Array} store.frequentRpcList A list of custom rpcs to provide the user
    * @property {boolean} store.useBlockie The users preference for blockie identicons within the UI
    * @property {boolean} store.useNonceField The users preference for nonce field within the UI
    * @property {object} store.featureFlags A key-boolean map, where keys refer to features and booleans to whether the
@@ -36,14 +24,8 @@ export default class PreferencesController {
    * @property {string} store.selectedAddress A hex string that matches the currently selected address in the app
    */
   constructor(opts = {}) {
-    const addedNonMainNetwork = Object.values(
-      opts.networkConfigurations,
-    ).reduce((acc, element) => {
-      acc[element.chainId] = true;
-      return acc;
-    }, {});
-
     const initState = {
+      frequentRpcListDetail: [],
       useBlockie: false,
       useNonceField: false,
       usePhishDetect: true,
@@ -52,32 +34,21 @@ export default class PreferencesController {
         eth_sign: false,
       },
       useMultiAccountBalanceChecker: true,
-      useSafeChainsListValidation: true,
+
       // set to true means the dynamic list from the API is being used
       // set to false will be using the static list from contract-metadata
       useTokenDetection: false,
       useNftDetection: false,
-      use4ByteResolution: true,
       useCurrencyRateCheck: true,
-      useRequestQueue: false,
       openSeaEnabled: false,
-      ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
-      securityAlertsEnabled: true,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      addSnapAccountEnabled: false,
-      ///: END:ONLY_INCLUDE_IF
-      advancedGasFee: {},
+      advancedGasFee: null,
 
       // WARNING: Do not use feature flags for security-sensitive things.
       // Feature flag toggling is available in the global namespace
       // for convenient testing of pre-release features, and should never
       // perform sensitive operations.
-      featureFlags: {},
-      incomingTransactionsPreferences: {
-        ...mainNetworks,
-        ...addedNonMainNetwork,
-        ...testNetworks,
+      featureFlags: {
+        showIncomingTransactions: true,
       },
       knownMethodData: {},
       currentLocale: opts.initLangCode,
@@ -86,43 +57,33 @@ export default class PreferencesController {
       forgottenPassword: false,
       preferences: {
         autoLockTimeLimit: undefined,
-        showExtensionInFullSizeView: false,
         showFiatInTestnets: false,
         showTestNetworks: false,
         useNativeCurrencyAsPrimaryCurrency: true,
         hideZeroBalanceTokens: false,
-        petnamesEnabled: true,
       },
       // ENS decentralized website resolution
       ipfsGateway: IPFS_DEFAULT_GATEWAY_URL,
-      useAddressBarEnsResolution: true,
-      // Ledger transport type is deprecated. We currently only support webhid
-      // on chrome, and u2f on firefox.
+      infuraBlocked: null,
       ledgerTransportType: window.navigator.hid
         ? LedgerTransportTypes.webhid
         : LedgerTransportTypes.u2f,
-      snapRegistryList: {},
       transactionSecurityCheckEnabled: false,
       theme: ThemeType.os,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      snapsAddSnapAccountModalDismissed: false,
-      ///: END:ONLY_INCLUDE_IF
-      isLineaMainnetReleased: false,
-      useExternalNameSources: true,
       ...opts.initState,
     };
 
     this.network = opts.network;
-
     this.store = new ObservableStore(initState);
     this.store.setMaxListeners(13);
+    this.openPopup = opts.openPopup;
     this.tokenListController = opts.tokenListController;
+
+    this._subscribeToInfuraAvailability();
 
     global.setPreference = (key, value) => {
       return this.setFeatureFlag(key, value);
     };
-
-    this._showShouldLineaMainnetNetwork();
   }
   // PUBLIC METHODS
 
@@ -172,15 +133,6 @@ export default class PreferencesController {
   }
 
   /**
-   * Setter for the `useSafeChainsListValidation` property
-   *
-   * @param {boolean} val - Whether or not the user prefers to turn off/on validation for manually adding networks
-   */
-  setUseSafeChainsListValidation(val) {
-    this.store.updateState({ useSafeChainsListValidation: val });
-  }
-
-  /**
    * Setter for the `useTokenDetection` property
    *
    * @param {boolean} val - Whether or not the user prefers to use the static token list or dynamic token list from the API
@@ -199,19 +151,10 @@ export default class PreferencesController {
   /**
    * Setter for the `useNftDetection` property
    *
-   * @param {boolean} useNftDetection - Whether or not the user prefers to autodetect NFTs.
+   * @param {boolean} useNftDetection - Whether or not the user prefers to autodetect collectibles.
    */
   setUseNftDetection(useNftDetection) {
     this.store.updateState({ useNftDetection });
-  }
-
-  /**
-   * Setter for the `use4ByteResolution` property
-   *
-   * @param {boolean} use4ByteResolution - (Privacy) Whether or not the user prefers to have smart contract name details resolved with 4byte.directory
-   */
-  setUse4ByteResolution(use4ByteResolution) {
-    this.store.updateState({ use4ByteResolution });
   }
 
   /**
@@ -224,18 +167,9 @@ export default class PreferencesController {
   }
 
   /**
-   * Setter for the `useRequestQueue` property
-   *
-   * @param {boolean} val - Whether or not the user wants to have requests queued if network change is required.
-   */
-  setUseRequestQueue(val) {
-    this.store.updateState({ useRequestQueue: val });
-  }
-
-  /**
    * Setter for the `openSeaEnabled` property
    *
-   * @param {boolean} openSeaEnabled - Whether or not the user prefers to use the OpenSea API for NFTs data.
+   * @param {boolean} openSeaEnabled - Whether or not the user prefers to use the OpenSea API for collectibles data.
    */
   setOpenSeaEnabled(openSeaEnabled) {
     this.store.updateState({
@@ -243,59 +177,13 @@ export default class PreferencesController {
     });
   }
 
-  ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
-  /**
-   * Setter for the `securityAlertsEnabled` property
-   *
-   * @param {boolean} securityAlertsEnabled - Whether or not the user prefers to use the security alerts.
-   */
-  setSecurityAlertsEnabled(securityAlertsEnabled) {
-    this.store.updateState({
-      securityAlertsEnabled,
-    });
-  }
-  ///: END:ONLY_INCLUDE_IF
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  /**
-   * Setter for the `addSnapAccountEnabled` property.
-   *
-   * @param {boolean} addSnapAccountEnabled - Whether or not the user wants to
-   * enable the "Add Snap accounts" button.
-   */
-  setAddSnapAccountEnabled(addSnapAccountEnabled) {
-    this.store.updateState({
-      addSnapAccountEnabled,
-    });
-  }
-  ///: END:ONLY_INCLUDE_IF
-
-  /**
-   * Setter for the `useExternalNameSources` property
-   *
-   * @param {boolean} useExternalNameSources - Whether or not to use external name providers in the name controller.
-   */
-  setUseExternalNameSources(useExternalNameSources) {
-    this.store.updateState({
-      useExternalNameSources,
-    });
-  }
-
   /**
    * Setter for the `advancedGasFee` property
    *
-   * @param {object} options
-   * @param {string} options.chainId - The chainId the advancedGasFees should be set on
-   * @param {object} options.gasFeePreferences - The advancedGasFee options to set
+   * @param {object} val - holds the maxBaseFee and PriorityFee that the user set as default advanced settings.
    */
-  setAdvancedGasFee({ chainId, gasFeePreferences }) {
-    const { advancedGasFee } = this.store.getState();
-    this.store.updateState({
-      advancedGasFee: {
-        ...advancedGasFee,
-        [chainId]: gasFeePreferences,
-      },
-    });
+  setAdvancedGasFee(val) {
+    this.store.updateState({ advancedGasFee: val });
   }
 
   /**
@@ -385,7 +273,6 @@ export default class PreferencesController {
       const [selected] = Object.keys(identities);
       this.setSelectedAddress(selected);
     }
-
     return address;
   }
 
@@ -414,7 +301,7 @@ export default class PreferencesController {
    * Removes any unknown identities, and returns the resulting selected address.
    *
    * @param {Array<string>} addresses - known to the vault.
-   * @returns {string} selectedAddress the selected address.
+   * @returns {Promise<string>} selectedAddress the selected address.
    */
   syncAddresses(addresses) {
     if (!Array.isArray(addresses) || addresses.length === 0) {
@@ -481,15 +368,6 @@ export default class PreferencesController {
   }
 
   /**
-   * Getter for the `useRequestQueue` property
-   *
-   * @returns {boolean} whether this option is on or off.
-   */
-  getUseRequestQueue() {
-    return this.store.getState().useRequestQueue;
-  }
-
-  /**
    * Sets a custom label for an account
    *
    * @param {string} account - the account to set a label for
@@ -508,6 +386,67 @@ export default class PreferencesController {
     identities[address].name = label;
     this.store.updateState({ identities });
     return label;
+  }
+
+  /**
+   * Adds custom RPC url to state.
+   *
+   * @param {string} rpcUrl - The RPC url to add to frequentRpcList.
+   * @param {string} chainId - The chainId of the selected network.
+   * @param {string} [ticker] - Ticker symbol of the selected network.
+   * @param {string} [nickname] - Nickname of the selected network.
+   * @param {object} [rpcPrefs] - Optional RPC preferences, such as the block explorer URL
+   */
+  upsertToFrequentRpcList(
+    rpcUrl,
+    chainId,
+    ticker = 'ETH',
+    nickname = '',
+    rpcPrefs = {},
+  ) {
+    const rpcList = this.getFrequentRpcListDetail();
+
+    const index = rpcList.findIndex((element) => {
+      return element.rpcUrl === rpcUrl;
+    });
+    if (index !== -1) {
+      rpcList.splice(index, 1, { rpcUrl, chainId, ticker, nickname, rpcPrefs });
+      return;
+    }
+
+    if (!isPrefixedFormattedHexString(chainId)) {
+      throw new Error(`Invalid chainId: "${chainId}"`);
+    }
+
+    rpcList.push({ rpcUrl, chainId, ticker, nickname, rpcPrefs });
+    this.store.updateState({ frequentRpcListDetail: rpcList });
+  }
+
+  /**
+   * Removes custom RPC url from state.
+   *
+   * @param {string} url - The RPC url to remove from frequentRpcList.
+   * @returns {Promise<Array>} Promise resolving to updated frequentRpcList.
+   */
+  async removeFromFrequentRpcList(url) {
+    const rpcList = this.getFrequentRpcListDetail();
+    const index = rpcList.findIndex((element) => {
+      return element.rpcUrl === url;
+    });
+    if (index !== -1) {
+      rpcList.splice(index, 1);
+    }
+    this.store.updateState({ frequentRpcListDetail: rpcList });
+    return rpcList;
+  }
+
+  /**
+   * Getter for the `frequentRpcListDetail` property.
+   *
+   * @returns {Array<Array>} An array of rpc urls.
+   */
+  getFrequentRpcListDetail() {
+    return this.store.getState().frequentRpcListDetail;
   }
 
   /**
@@ -534,7 +473,7 @@ export default class PreferencesController {
    * found in the settings page.
    *
    * @param {string} preference - The preference to enable or disable.
-   * @param {boolean |object} value - Indicates whether or not the preference should be enabled or disabled.
+   * @param {boolean} value - Indicates whether or not the preference should be enabled or disabled.
    * @returns {Promise<object>} Promises a new object; the updated preferences object.
    */
   async setPreference(preference, value) {
@@ -578,25 +517,23 @@ export default class PreferencesController {
   }
 
   /**
-   * A setter for the `useAddressBarEnsResolution` property
-   *
-   * @param {boolean} useAddressBarEnsResolution - Whether or not user prefers IPFS resolution for domains
-   */
-  async setUseAddressBarEnsResolution(useAddressBarEnsResolution) {
-    this.store.updateState({ useAddressBarEnsResolution });
-  }
-
-  /**
    * A setter for the `ledgerTransportType` property.
    *
-   * @deprecated We no longer support specifying a ledger transport type other
-   * than webhid, therefore managing a preference is no longer necessary.
-   * @param {LedgerTransportTypes.webhid} ledgerTransportType - 'webhid'
+   * @param {string} ledgerTransportType - Either 'ledgerLive', 'webhid' or 'u2f'
    * @returns {string} The transport type that was set.
    */
   setLedgerTransportPreference(ledgerTransportType) {
     this.store.updateState({ ledgerTransportType });
     return ledgerTransportType;
+  }
+
+  /**
+   * A getter for the `ledgerTransportType` property.
+   *
+   * @returns {string} The current preferred Ledger transport type.
+   */
+  getLedgerTransportPreference() {
+    return this.store.getState().ledgerTransportType;
   }
 
   /**
@@ -629,33 +566,36 @@ export default class PreferencesController {
     });
   }
 
-  /**
-   * A setter for the incomingTransactions in preference to be updated
-   *
-   * @param {string} chainId - chainId of the network
-   * @param {bool} value - preference of certain network, true to be enabled
-   */
-  setIncomingTransactionsPreferences(chainId, value) {
-    const previousValue = this.store.getState().incomingTransactionsPreferences;
-    const updatedValue = { ...previousValue, [chainId]: value };
-    this.store.updateState({ incomingTransactionsPreferences: updatedValue });
-  }
-
   getRpcMethodPreferences() {
     return this.store.getState().disabledRpcMethodPreferences;
   }
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  setSnapsAddSnapAccountModalDismissed(value) {
-    this.store.updateState({ snapsAddSnapAccountModalDismissed: value });
+  //
+  // PRIVATE METHODS
+  //
+
+  _subscribeToInfuraAvailability() {
+    this.network.on(NETWORK_EVENTS.INFURA_IS_BLOCKED, () => {
+      this._setInfuraBlocked(true);
+    });
+    this.network.on(NETWORK_EVENTS.INFURA_IS_UNBLOCKED, () => {
+      this._setInfuraBlocked(false);
+    });
   }
-  ///: END:ONLY_INCLUDE_IF
 
   /**
-   * A method to check is the linea mainnet network should be displayed
+   *
+   * A setter for the `infuraBlocked` property
+   *
+   * @param {boolean} isBlocked - Bool indicating whether Infura is blocked
    */
-  _showShouldLineaMainnetNetwork() {
-    const showLineaMainnet = shouldShowLineaMainnet();
-    this.store.updateState({ isLineaMainnetReleased: showLineaMainnet });
+  _setInfuraBlocked(isBlocked) {
+    const { infuraBlocked } = this.store.getState();
+
+    if (infuraBlocked === isBlocked) {
+      return;
+    }
+
+    this.store.updateState({ infuraBlocked: isBlocked });
   }
 }

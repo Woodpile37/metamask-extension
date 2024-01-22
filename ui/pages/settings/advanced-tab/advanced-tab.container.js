@@ -8,14 +8,15 @@ import {
   setShowFiatConversionOnTestnetsPreference,
   setShowTestNetworks,
   setAutoLockTimeLimit,
-  setThreeBoxSyncingPermission,
-  turnThreeBoxSyncingOnAndInitialize,
   setUseNonceField,
-  setIpfsGateway,
-  setLedgerLivePreference,
+  setLedgerTransportPreference,
   setDismissSeedBackUpReminder,
+  setDisabledRpcMethodPreference,
+  backupUserData,
+  restoreUserData,
 } from '../../../store/actions';
 import { getPreferences } from '../../../selectors';
+import { doesUserHaveALedgerAccount } from '../../../ducks/metamask/metamask';
 import AdvancedTab from './advanced-tab.component';
 
 export const mapStateToProps = (state) => {
@@ -25,18 +26,18 @@ export const mapStateToProps = (state) => {
   } = state;
   const {
     featureFlags: { sendHexData, advancedInlineGas } = {},
-    threeBoxSyncingAllowed,
-    threeBoxDisabled,
+    disabledRpcMethodPreferences,
     useNonceField,
-    ipfsGateway,
-    useLedgerLive,
+    ledgerTransportType,
     dismissSeedBackUpReminder,
   } = metamask;
   const {
     showFiatInTestnets,
     showTestNetworks,
-    autoLockTimeLimit,
+    autoLockTimeLimit = 0,
   } = getPreferences(state);
+
+  const userHasALedgerAccount = doesUserHaveALedgerAccount(state);
 
   return {
     warning,
@@ -45,17 +46,18 @@ export const mapStateToProps = (state) => {
     showFiatInTestnets,
     showTestNetworks,
     autoLockTimeLimit,
-    threeBoxSyncingAllowed,
-    threeBoxDisabled,
     useNonceField,
-    ipfsGateway,
-    useLedgerLive,
+    ledgerTransportType,
     dismissSeedBackUpReminder,
+    userHasALedgerAccount,
+    disabledRpcMethodPreferences,
   };
 };
 
 export const mapDispatchToProps = (dispatch) => {
   return {
+    backupUserData: () => backupUserData(),
+    restoreUserData: (jsonString) => restoreUserData(jsonString),
     setHexDataFeatureFlag: (shouldShow) =>
       dispatch(setFeatureFlag('sendHexData', shouldShow)),
     displayWarning: (warning) => dispatch(displayWarning(warning)),
@@ -73,21 +75,14 @@ export const mapDispatchToProps = (dispatch) => {
     setAutoLockTimeLimit: (value) => {
       return dispatch(setAutoLockTimeLimit(value));
     },
-    setThreeBoxSyncingPermission: (newThreeBoxSyncingState) => {
-      if (newThreeBoxSyncingState) {
-        dispatch(turnThreeBoxSyncingOnAndInitialize());
-      } else {
-        dispatch(setThreeBoxSyncingPermission(newThreeBoxSyncingState));
-      }
-    },
-    setIpfsGateway: (value) => {
-      return dispatch(setIpfsGateway(value));
-    },
-    setLedgerLivePreference: (value) => {
-      return dispatch(setLedgerLivePreference(value));
+    setLedgerTransportPreference: (value) => {
+      return dispatch(setLedgerTransportPreference(value));
     },
     setDismissSeedBackUpReminder: (value) => {
       return dispatch(setDismissSeedBackUpReminder(value));
+    },
+    setDisabledRpcMethodPreference: (methodName, isEnabled) => {
+      return dispatch(setDisabledRpcMethodPreference(methodName, isEnabled));
     },
   };
 };

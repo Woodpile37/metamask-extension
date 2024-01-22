@@ -27,10 +27,14 @@ const t = (key) => {
       return 'State logs';
     case 'stateLogsDescription':
       return 'State logs contain your public account addresses and sent transactions.';
-    case 'clearActivity':
-      return 'Clear activity and nonce data';
-    case 'clearActivityDescription':
-      return "This resets the account's nonce and erases data from the activity tab in your wallet. Only the current account and network will be affected. Your balances and incoming transactions won't change.";
+    case 'syncWithMobile':
+      return 'Sync with mobile';
+    case 'resetAccount':
+      return 'Reset account';
+    case 'resetAccountDescription':
+      return 'Resetting your account will clear your transaction history. This will not change the balances in your accounts or require you to re-enter your Secret Recovery Phrase.';
+    case 'showAdvancedGasInline':
+      return 'Advanced gas controls';
     case 'showAdvancedGasInlineDescription':
       return 'Select this to show gas price and limit controls directly on the send and confirm screens.';
     case 'showHexData':
@@ -57,6 +61,8 @@ const t = (key) => {
       return 'IPFS Gateway';
     case 'ipfsGatewayDescription':
       return 'Enter the URL of the IPFS CID gateway to use for ENS content resolution.';
+    case 'preferredLedgerConnectionType':
+      return 'Preferred ledger connection type';
     case 'dismissReminderField':
       return 'Dismiss Secret Recovery Phrase backup reminder';
     case 'dismissReminderDescriptionField':
@@ -69,6 +75,8 @@ const t = (key) => {
       return 'Reveal Secret Recovery Phrase';
     case 'showIncomingTransactions':
       return 'Show incoming transactions';
+    case 'showIncomingTransactionsDescription':
+      return 'Select this to use Etherscan to show incoming transactions in the transactions list';
     case 'usePhishingDetection':
       return 'Use phishing detection';
     case 'usePhishingDetectionDescription':
@@ -99,13 +107,13 @@ const t = (key) => {
       return 'Autodetect tokens';
     case 'autoDetectTokensDescription':
       return 'We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.';
-    case 'displayNftMedia':
-      return 'Display NFT media';
-    case 'displayNftMediaDescription':
-      return "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. This can allow attackers to associate your IP address with your Ethereum address. NFT autodetection relies on this setting, and won't be available when this is turned off.";
-    case 'useNftDetection':
+    case 'enableOpenSeaAPI':
+      return 'Enable OpenSea API';
+    case 'enableOpenSeaAPIDescription':
+      return "Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off.";
+    case 'useCollectibleDetection':
       return 'Autodetect NFTs';
-    case 'useNftDetectionDescriptionText':
+    case 'useCollectibleDetectionDescription':
       return 'Displaying NFTs media & data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don’t want the app to pull data from those those services.';
     case 'about':
       return 'About';
@@ -151,7 +159,7 @@ describe('Settings Search Utils', () => {
     });
 
     it('should get good advanced section number', () => {
-      expect(getNumberOfSettingsInSection(t, t('advanced'))).toStrictEqual(12);
+      expect(getNumberOfSettingsInSection(t, t('advanced'))).toStrictEqual(14);
     });
 
     it('should get good contact section number', () => {
@@ -161,7 +169,7 @@ describe('Settings Search Utils', () => {
     it('should get good security & privacy section number', () => {
       expect(
         getNumberOfSettingsInSection(t, t('securityAndPrivacy')),
-      ).toStrictEqual(13);
+      ).toStrictEqual(9);
     });
 
     it('should get good alerts section number', () => {
@@ -169,7 +177,7 @@ describe('Settings Search Utils', () => {
     });
 
     it('should get good network section number', () => {
-      expect(getNumberOfSettingsInSection(t, t('networks'))).toStrictEqual(6);
+      expect(getNumberOfSettingsInSection(t, t('networks'))).toStrictEqual(4);
     });
 
     it('should get good experimental section number', () => {
