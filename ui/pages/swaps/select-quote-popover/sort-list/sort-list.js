@@ -1,5 +1,4 @@
 import React, { useState, useContext, useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import BigNumber from 'bignumber.js';
@@ -7,7 +6,6 @@ import SunCheckIcon from '../../../../components/ui/icon/sun-check-icon.componen
 import { I18nContext } from '../../../../contexts/i18n';
 import { QUOTE_DATA_ROWS_PROPTYPES_SHAPE } from '../select-quote-popover-constants';
 import InfoTooltip from '../../../../components/ui/info-tooltip';
-import { getUseCurrencyRateCheck } from '../../../../selectors';
 
 const ToggleArrows = () => (
   <svg
@@ -19,7 +17,7 @@ const ToggleArrows = () => (
   >
     <path
       d="M0.7948 4.96973C0.365112 4.96973 0.150269 5.47754 0.462769 5.77051L2.78699 8.09473C2.96277 8.29004 3.25574 8.29004 3.45105 8.09473L5.77527 5.77051C6.06824 5.47754 5.85339 4.96973 5.44324 4.96973H0.7948ZM5.77527 2.91895L3.45105 0.594727C3.25574 0.418945 2.96277 0.418945 2.78699 0.594727L0.462769 2.91895C0.150269 3.23145 0.365112 3.71973 0.7948 3.71973H5.44324C5.85339 3.71973 6.06824 3.23145 5.77527 2.91895Z"
-      fill="var(--color-primary-default)"
+      fill="#037DD6"
     />
   </svg>
 );
@@ -38,7 +36,6 @@ export default function SortList({
 }) {
   const t = useContext(I18nContext);
   const [noRowHover, setRowNowHover] = useState(false);
-  const useCurrencyRateCheck = useSelector(getUseCurrencyRateCheck);
 
   const onColumnHeaderClick = (nextSortColumn) => {
     if (nextSortColumn === sortColumn) {
@@ -83,7 +80,6 @@ export default function SortList({
       <div className="select-quote-popover__column-headers">
         <div
           className="select-quote-popover__column-header select-quote-popover__receiving"
-          data-testid="select-quote-popover__receiving"
           onClick={() => onColumnHeaderClick('destinationTokenValue')}
         >
           <span className="select-quote-popover__receiving-symbol">
@@ -100,10 +96,9 @@ export default function SortList({
         </div>
         <div
           className="select-quote-popover__column-header select-quote-popover__network-fees select-quote-popover__network-fees-header"
-          data-testid="select-quote-popover__network-fees-header"
           onClick={() => onColumnHeaderClick('rawNetworkFees')}
         >
-          {!hideEstimatedGasFee && useCurrencyRateCheck && (
+          {!hideEstimatedGasFee && (
             <>
               <span>{t('swapEstimatedNetworkFees')}</span>
               <InfoTooltip
@@ -116,7 +111,6 @@ export default function SortList({
         </div>
         <div
           className="select-quote-popover__column-header select-quote-popover__quote-source"
-          data-testid="select-quote-popover__quote-source"
           onClick={() => onColumnHeaderClick('quoteSource')}
         >
           {t('swapQuoteSource')}
@@ -143,7 +137,6 @@ export default function SortList({
             })}
             onClick={() => onSelect(aggId)}
             key={`select-quote-popover-row-${i}`}
-            data-testid={`select-quote-popover-row-${i}`}
           >
             <div className="select-quote-popover__receiving">
               <div className="select-quote-popover__receiving-value">
@@ -164,7 +157,7 @@ export default function SortList({
               )}
             </div>
             <div className="select-quote-popover__network-fees">
-              {!hideEstimatedGasFee && useCurrencyRateCheck && networkFees}
+              {!hideEstimatedGasFee && networkFees}
             </div>
             <div className="select-quote-popover__quote-source">
               <div
@@ -185,7 +178,6 @@ export default function SortList({
             </div>
             <div
               className="select-quote-popover__caret-right"
-              data-testid={`select-quote-popover__caret-right-${i}`}
               onClick={(event) => {
                 event.stopPropagation();
                 onCaretClick(aggId);
