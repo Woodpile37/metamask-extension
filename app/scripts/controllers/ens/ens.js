@@ -20,6 +20,12 @@ class Ens {
   reverse (address) {
     return this._ethJsEns.reverse(address)
   }
+
+  async getTextRecord(ensName, recordName) {
+    const resolver = await this._ethProvider.getResolver(ensName);
+    if (!resolver) { return null; }
+    return resolver.getText(recordName)
+  }
 }
 
 module.exports = Ens
