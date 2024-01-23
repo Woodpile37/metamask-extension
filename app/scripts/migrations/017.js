@@ -1,46 +1,45 @@
+const version = 17
+
 /*
 
 This migration sets transactions who were retried and marked as failed to submitted
 
 */
 
-import { TransactionStatus } from '@metamask/transaction-controller';
-import { cloneDeep } from 'lodash';
+const clone = require('clone')
 
-const version = 17;
-
-export default {
+module.exports = {
   version,
 
-  migrate(originalVersionedData) {
-    const versionedData = cloneDeep(originalVersionedData);
-    versionedData.meta.version = version;
+  migrate: function (originalVersionedData) {
+    const versionedData = clone(originalVersionedData)
+    versionedData.meta.version = version
     try {
-      const state = versionedData.data;
-      const newState = transformState(state);
-      versionedData.data = newState;
+      const state = versionedData.data
+      const newState = transformState(state)
+      versionedData.data = newState
     } catch (err) {
-      console.warn(`MetaMask Migration #${version}${err.stack}`);
+      console.warn(`MetaMask Migration #${version}` + err.stack)
     }
-    return Promise.resolve(versionedData);
+    return Promise.resolve(versionedData)
   },
-};
+}
 
-function transformState(state) {
-  const newState = state;
-  const { TransactionController } = newState;
+function transformState (state) {
+  const newState = state
+  const { TransactionController } = newState
   if (TransactionController && TransactionController.transactions) {
-    const { transactions } = newState.TransactionController;
+    const transactions = newState.TransactionController.transactions
     newState.TransactionController.transactions = transactions.map((txMeta) => {
-      if (!txMeta.status === TransactionStatus.failed) {
-        return txMeta;
+      if (!txMeta.status === 'failed') {
+        return txMeta
       }
       if (txMeta.retryCount > 0 && txMeta.retryCount < 2) {
-        txMeta.status = TransactionStatus.submitted;
-        delete txMeta.err;
+        txMeta.status = 'submitted'
+        delete txMeta.err
       }
-      return txMeta;
-    });
+      return txMeta
+    })
   }
-  return newState;
+  return newState
 }

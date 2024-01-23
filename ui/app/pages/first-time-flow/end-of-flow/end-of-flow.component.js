@@ -10,11 +10,11 @@ export default class EndOfFlowScreen extends PureComponent {
   static contextTypes = {
     t: PropTypes.func,
     metricsEvent: PropTypes.func,
-    trackEvent: PropTypes.func,
   }
 
   static propTypes = {
     history: PropTypes.object,
+    completeOnboarding: PropTypes.func,
     completionMetaMetricsName: PropTypes.string,
     onboardingInitiator: PropTypes.exact({
       location: PropTypes.string,
@@ -23,22 +23,14 @@ export default class EndOfFlowScreen extends PureComponent {
   }
 
   onComplete = async () => {
-    const { history, completionMetaMetricsName, onboardingInitiator } = this.props
+    const { history, completeOnboarding, completionMetaMetricsName, onboardingInitiator } = this.props
 
+    await completeOnboarding()
     this.context.metricsEvent({
       eventOpts: {
         category: 'Onboarding',
         action: 'Onboarding Complete',
         name: completionMetaMetricsName,
-      },
-    })
-    this.context.trackEvent({
-      event: 'Onboarding Completed',
-      category: 'Onboarding',
-      isOptIn: true,
-      breadcrumb: {
-        id: 'onboarding-completed',
-        isComplete: true,
       },
     })
 
@@ -66,23 +58,22 @@ export default class EndOfFlowScreen extends PureComponent {
           { t('endOfFlowMessage2') }
         </div>
         <div className="end-of-flow__text-3">
-          { `• ${t('endOfFlowMessage3')}` }
+          { '• ' + t('endOfFlowMessage3') }
         </div>
         <div className="end-of-flow__text-3">
-          { `• ${t('endOfFlowMessage4')}` }
+          { '• ' + t('endOfFlowMessage4') }
         </div>
         <div className="end-of-flow__text-3">
-          { `• ${t('endOfFlowMessage5')}` }
+          { '• ' + t('endOfFlowMessage5') }
         </div>
         <div className="end-of-flow__text-3">
-          { `• ${t('endOfFlowMessage6')}` }
+          { '• ' + t('endOfFlowMessage6') }
         </div>
         <div className="end-of-flow__text-3">
-          { `• ${t('endOfFlowMessage7')}` }
+          { '• ' + t('endOfFlowMessage7') }
         </div>
         <div className="first-time-flow__text-block end-of-flow__text-4">
-          { `*${t('endOfFlowMessage8')}` }&nbsp;
-          <a
+          { '*' + t('endOfFlowMessage8') } <a
             href="https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-Tips"
             target="_blank"
             rel="noopener noreferrer"
@@ -100,11 +91,11 @@ export default class EndOfFlowScreen extends PureComponent {
           { t('endOfFlowMessage10') }
         </Button>
         {
-          onboardingInitiator ? (
+          onboardingInitiator ?
             <Snackbar
               content={t('onboardingReturnNotice', [t('endOfFlowMessage10'), onboardingInitiator.location])}
-            />
-          ) : null
+            /> :
+            null
         }
       </div>
     )

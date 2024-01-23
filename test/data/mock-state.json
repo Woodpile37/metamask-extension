@@ -1,132 +1,9 @@
 {
-  "appState": {
-    "isLoading": false,
-    "gasIsLoading": false,
-    "currentView": {
-      "name": "accountDetail",
-      "detailView": null,
-      "context": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc"
-    }
-  },
   "metamask": {
     "featureFlags": {
       "showIncomingTransactions": true
     },
     "network": "4",
-    "provider": {
-      "chainId": "0x4"
-    },
-    "internalAccounts": {
-      "accounts": {
-        "cf8dace4-9439-4bd4-b3a8-88c821c8fcb3": {
-          "address": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc",
-          "id": "cf8dace4-9439-4bd4-b3a8-88c821c8fcb3",
-          "metadata": {
-            "name": "Test Account",
-            "keyring": {
-              "type": "HD Key Tree"
-            }
-          },
-          "options": {},
-          "methods": [
-            "personal_sign",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4"
-          ],
-          "type": "eip155:eoa"
-        },
-        "07c2cfec-36c9-46c4-8115-3836d3ac9047": {
-          "address": "0xec1adf982415d2ef5ec55899b9bfb8bc0f29251b",
-          "id": "07c2cfec-36c9-46c4-8115-3836d3ac9047",
-          "metadata": {
-            "name": "Test Account 2",
-            "keyring": {
-              "type": "HD Key Tree"
-            }
-          },
-          "options": {},
-          "methods": [
-            "personal_sign",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4"
-          ],
-          "type": "eip155:eoa"
-        },
-        "15e69915-2a1a-4019-93b3-916e11fd432f": {
-          "address": "0xc42edfcc21ed14dda456aa0756c153f7985d8813",
-          "id": "15e69915-2a1a-4019-93b3-916e11fd432f",
-          "metadata": {
-            "name": "Ledger Hardware 2",
-            "keyring": {
-              "type": "Ledger Hardware"
-            }
-          },
-          "options": {},
-          "methods": [
-            "personal_sign",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4"
-          ],
-          "type": "eip155:eoa"
-        },
-        "784225f4-d30b-4e77-a900-c8bbce735b88": {
-          "address": "0xeb9e64b93097bc15f01f13eae97015c57ab64823",
-          "id": "784225f4-d30b-4e77-a900-c8bbce735b88",
-          "metadata": {
-            "name": "Test Account 3",
-            "keyring": {
-              "type": "HD Key Tree"
-            }
-          },
-          "options": {},
-          "methods": [
-            "personal_sign",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4"
-          ],
-          "type": "eip155:eoa"
-        },
-        "f810ad88-5c16-4e94-b375-b2a747a5213d": {
-          "address": "0xca8f1f0245530118d0cf14a06b01daf8f76cf281",
-          "id": "f810ad88-5c16-4e94-b375-b2a747a5213d",
-          "metadata": {
-            "name": "Custody test",
-            "keyring": {
-              "type": "Custody test"
-            }
-          },
-          "options": {},
-          "methods": [
-            "personal_sign",
-            "eth_sign",
-            "eth_signTransaction",
-            "eth_signTypedData_v1",
-            "eth_signTypedData_v3",
-            "eth_signTypedData_v4"
-          ],
-          "type": "eip155:eoa"
-        }
-      },
-      "selectedAccount": "cf8dace4-9439-4bd4-b3a8-88c821c8fcb3"
-    },
-    "keyrings": [
-      {
-        "type": "Ledger Hardware",
-        "accounts": ["0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc"]
-      }
-    ],
     "identities": {
       "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc": {
         "address": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc",
@@ -135,11 +12,6 @@
       "0xc42edfcc21ed14dda456aa0756c153f7985d8813": {
         "address": "0xc42edfcc21ed14dda456aa0756c153f7985d8813",
         "name": "Test Account 2"
-      }
-    },
-    "networkDetails": {
-      "EIPS": {
-        "1559": true
       }
     },
     "cachedBalances": {},
@@ -179,6 +51,21 @@
               "path": "/loadingDefaults",
               "value": false,
               "timestamp": 1536268017685
+            },
+            {
+              "op": "add",
+              "path": "/gasPriceSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/gasLimitSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/estimatedGas",
+              "value": "0x5208"
             }
           ],
           [
@@ -191,6 +78,9 @@
             }
           ]
         ],
+        "gasPriceSpecified": true,
+        "gasLimitSpecified": true,
+        "estimatedGas": "0x5208",
         "origin": "MetaMask"
       }
     },
@@ -231,24 +121,21 @@
     "nativeCurrency": "ETH",
     "conversionRate": 556.12,
     "addressBook": {
-      "0x4": {
+      "4": {
         "0xc42edfcc21ed14dda456aa0756c153f7985d8813": {
           "address": "0xc42edfcc21ed14dda456aa0756c153f7985d8813",
-          "chainId": "0x4",
+          "chainId": "4",
           "isEns": false,
           "memo": "",
-          "name": "Address Book Account 1"
+          "name": ""
         }
       }
     },
+    "selectedTokenAddress": "0x108cf70c7d384c552f42c07c41c0e1e46d77ea0d",
     "unapprovedMsgs": {},
     "unapprovedMsgCount": 0,
     "unapprovedPersonalMsgs": {},
     "unapprovedPersonalMsgCount": 0,
-    "unapprovedDecryptMsgs": {},
-    "unapprovedDecryptMsgCount": 0,
-    "unapprovedEncryptionPublicKeyMsgs": {},
-    "unapprovedEncryptionPublicKeyMsgCount": 0,
     "unapprovedTypedMessages": {},
     "unapprovedTypedMessagesCount": 0,
     "send": {
@@ -263,61 +150,10 @@
       "errors": {},
       "maxModeOn": false,
       "editingTransactionId": null,
+      "forceGasMin": null,
       "toNickname": ""
     },
-    "useTokenDetection": true,
-    "advancedGasFee": {
-      "maxBaseFeeMultiplier": "1.5",
-      "maxBaseFeeGWEI": "100",
-      "priorityFee": "2"
-    },
-    "tokenList": {
-      "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599": {
-        "address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
-        "symbol": "WBTC",
-        "decimals": 8,
-        "name": "Wrapped Bitcoin",
-        "iconUrl": "https://s3.amazonaws.com/airswap-token-images/WBTC.png",
-        "aggregators": [
-          "airswapLight",
-          "bancor",
-          "cmc",
-          "coinGecko",
-          "kleros",
-          "oneInch",
-          "paraswap",
-          "pmm",
-          "totle",
-          "zapper",
-          "zerion",
-          "zeroEx"
-        ],
-        "occurrences": 12
-      },
-      "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e": {
-        "address": "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e",
-        "symbol": "YFI",
-        "decimals": 18,
-        "name": "yearn.finance",
-        "iconUrl": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e/logo.png",
-        "aggregators": [
-          "airswapLight",
-          "bancor",
-          "cmc",
-          "coinGecko",
-          "kleros",
-          "oneInch",
-          "paraswap",
-          "pmm",
-          "totle",
-          "zapper",
-          "zerion",
-          "zeroEx"
-        ],
-        "occurrences": 12
-      }
-    },
-    "currentNetworkTxList": [
+    "selectedAddressTxList": [
       {
         "id": 3387511061307736,
         "time": 1528133130531,
@@ -353,6 +189,21 @@
               "path": "/loadingDefaults",
               "value": false,
               "timestamp": 1528133130666
+            },
+            {
+              "op": "add",
+              "path": "/gasPriceSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/gasLimitSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/estimatedGas",
+              "value": "0xcf08"
             }
           ],
           [
@@ -470,6 +321,9 @@
             }
           ]
         ],
+        "gasPriceSpecified": true,
+        "gasLimitSpecified": true,
+        "estimatedGas": "0xcf08",
         "origin": "MetaMask",
         "nonceDetails": {
           "params": {
@@ -533,6 +387,21 @@
               "path": "/loadingDefaults",
               "value": false,
               "timestamp": 1528133150011
+            },
+            {
+              "op": "add",
+              "path": "/gasPriceSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/gasLimitSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/estimatedGas",
+              "value": "0xcf08"
             }
           ],
           [
@@ -650,6 +519,9 @@
             }
           ]
         ],
+        "gasPriceSpecified": true,
+        "gasLimitSpecified": true,
+        "estimatedGas": "0xcf08",
         "origin": "MetaMask",
         "nonceDetails": {
           "params": {
@@ -713,6 +585,21 @@
               "path": "/loadingDefaults",
               "value": false,
               "timestamp": 1528133180720
+            },
+            {
+              "op": "add",
+              "path": "/gasPriceSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/gasLimitSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/estimatedGas",
+              "value": "0xcf08"
             }
           ],
           [
@@ -830,6 +717,9 @@
             }
           ]
         ],
+        "gasPriceSpecified": true,
+        "gasLimitSpecified": true,
+        "estimatedGas": "0xcf08",
         "origin": "MetaMask",
         "nonceDetails": {
           "params": {
@@ -899,11 +789,32 @@
               "op": "replace",
               "path": "/loadingDefaults",
               "value": false
+            },
+            {
+              "op": "add",
+              "path": "/gasPriceSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/gasLimitSpecified",
+              "value": false
+            },
+            {
+              "op": "add",
+              "path": "/estimatedGas",
+              "value": "40f14"
             }
           ],
           [
             {
+              "op": "replace",
+              "path": "/estimatedGas",
+              "value": "40f14",
               "note": "#newUnapprovedTransaction - adding the origin",
+              "timestamp": 1528133225492
+            },
+            {
               "op": "add",
               "path": "/origin",
               "value": "crypko.ai"
@@ -1015,6 +926,9 @@
             }
           ]
         ],
+        "gasPriceSpecified": true,
+        "gasLimitSpecified": false,
+        "estimatedGas": "40f14",
         "origin": "crypko.ai",
         "nonceDetails": {
           "params": {
@@ -1080,6 +994,21 @@
               "path": "/loadingDefaults",
               "value": false,
               "timestamp": 1528133291486
+            },
+            {
+              "op": "add",
+              "path": "/gasPriceSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/gasLimitSpecified",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/estimatedGas",
+              "value": "0xd508"
             }
           ],
           [
@@ -1197,6 +1126,9 @@
             }
           ]
         ],
+        "gasPriceSpecified": true,
+        "gasLimitSpecified": true,
+        "estimatedGas": "0xd508",
         "origin": "MetaMask",
         "nonceDetails": {
           "params": {
@@ -1271,6 +1203,26 @@
               "op": "replace",
               "path": "/loadingDefaults",
               "value": false
+            },
+            {
+              "op": "add",
+              "path": "/gasPriceSpecified",
+              "value": false
+            },
+            {
+              "op": "add",
+              "path": "/gasLimitSpecified",
+              "value": false
+            },
+            {
+              "op": "add",
+              "path": "/simpleSend",
+              "value": true
+            },
+            {
+              "op": "add",
+              "path": "/estimatedGas",
+              "value": "0x5208"
             }
           ],
           [
@@ -1292,8 +1244,20 @@
             }
           ]
         ],
+        "gasPriceSpecified": false,
+        "gasLimitSpecified": false,
+        "simpleSend": true,
+        "estimatedGas": "0x5208",
         "origin": "tmashuang.github.io"
       }
     ]
+  },
+  "appState": {
+    "gasIsLoading": false,
+    "currentView": {
+      "name": "accountDetail",
+      "detailView": null,
+      "context": "0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc"
+    }
   }
 }

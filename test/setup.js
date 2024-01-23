@@ -1,7 +1,14 @@
-require('@babel/register');
-require('ts-node').register({ transpileOnly: true });
+require('@babel/register')({
+  ignore: [name => name.includes('node_modules') && !name.includes('obs-store')],
+})
 
-require('./helpers/setup-helper');
+require('./helper')
 
-window.SVGPathElement = window.SVGPathElement || { prototype: {} };
-global.indexedDB = {};
+window.SVGPathElement = window.SVGPathElement || { prototype: {} }
+window.fetch = window.fetch || function fetch () {
+  return Promise.resolve()
+}
+global.indexedDB = {}
+global.fetch = global.fetch || function fetch () {
+  return Promise.resolve()
+}

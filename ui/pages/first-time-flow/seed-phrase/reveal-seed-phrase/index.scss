@@ -1,5 +1,5 @@
 .reveal-seed-phrase {
-  @media screen and (max-width: $break-small) {
+  @media screen and (max-width: 576px) {
     display: flex;
     flex-direction: column;
     width: 96%;
@@ -11,18 +11,17 @@
     position: relative;
     display: flex;
     justify-content: center;
-    border: 1px solid #cdcdcd;
+    border: 1px solid #CDCDCD;
     border-radius: 6px;
-    background-color: var(--white);
+    background-color: $white;
     padding: 18px;
     margin-top: 36px;
     max-width: 350px;
   }
 
   &__secret-words {
-    @include H4;
-
     width: 310px;
+    font-size: 1.25rem;
     text-align: center;
 
     &--hidden {
@@ -36,7 +35,7 @@
     bottom: 0;
     height: 100%;
     width: 100%;
-    background-color: rgba($black, 0.6);
+    background-color: rgba(0,0,0,0.6);
     display: flex;
     flex-flow: column nowrap;
     align-items: center;
@@ -46,9 +45,8 @@
   }
 
   &__reveal-button {
-    @include H7;
-
-    color: var(--white);
+    color: $white;
+    font-size: .75rem;
     font-weight: 500;
     text-transform: uppercase;
     margin-top: 8px;
@@ -56,21 +54,20 @@
   }
 
   &__export-text {
-    color: var(--primary-blue);
+    color: $curious-blue;
     cursor: pointer;
     font-weight: 500;
   }
 
   button {
-    margin-top: 0;
+    margin-top: 0px;
   }
 
   &__buttons {
     display: flex;
-    margin-top: 10px;
 
     .first-time-flow__button:last-of-type {
-      margin-left: 10px;
+      margin-left: 20px;
     }
   }
 }

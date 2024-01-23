@@ -1,45 +1,31 @@
-import { compose } from 'redux';
-import { connect } from 'react-redux';
-import { withRouter } from 'react-router-dom';
+import Home from './home.component'
+import { compose } from 'recompose'
+import { connect } from 'react-redux'
+import { withRouter } from 'react-router-dom'
+import { unconfirmedTransactionsCountSelector } from '../../selectors/confirm-transaction'
 import {
-  activeTabHasPermissions,
+  getDaiV1Token,
   getCurrentEthBalance,
-  getFirstPermissionRequest,
-  getIsMainnet,
-  getOriginOfCurrentTab,
-  getTotalUnapprovedCount,
-  getWeb3ShimUsageStateForOrigin,
-  unconfirmedTransactionsCountSelector,
-  getShowWhatsNewPopup,
-  getSortedNotificationsToShow,
-} from '../../selectors';
-
+  getAllPermissions,
+  getAllPlugins,
+  getPermissionsHistory,
+  getPermissionsLog,
+} from '../../selectors/selectors'
 import {
   restoreFromThreeBox,
   turnThreeBoxSyncingOn,
   getThreeBoxLastUpdated,
+  removePlugin,
+  clearPlugins,
+  clearAllPermissionsData,
   setShowRestorePromptToFalse,
-  setConnectedStatusPopoverHasBeenShown,
-  setDefaultHomeActiveTabName,
-  setWeb3ShimUsageAlertDismissed,
-  setAlertEnabledness,
-} from '../../store/actions';
-import { setThreeBoxLastUpdated, hideWhatsNewPopup } from '../../ducks/app/app';
-import { getWeb3ShimUsageAlertEnabledness } from '../../ducks/metamask/metamask';
-import { getSwapsFeatureLiveness } from '../../ducks/swaps/swaps';
-import { getEnvironmentType } from '../../../../app/scripts/lib/util';
-import {
-  ENVIRONMENT_TYPE_NOTIFICATION,
-  ENVIRONMENT_TYPE_POPUP,
-} from '../../../../shared/constants/app';
-import {
-  ALERT_TYPES,
-  WEB3_SHIM_USAGE_ALERT_STATES,
-} from '../../../../shared/constants/alerts';
-import Home from './home.component';
+} from '../../store/actions'
+import { setThreeBoxLastUpdated } from '../../ducks/app/app'
+import { getEnvironmentType } from '../../../../app/scripts/lib/util'
+import { ENVIRONMENT_TYPE_POPUP } from '../../../../app/scripts/lib/enums'
 
-const mapStateToProps = (state) => {
-  const { metamask, appState } = state;
+const mapStateToProps = state => {
+  const { activeTab, metamask, appState } = state
   const {
     suggestedTokens,
     seedPhraseBackedUp,
@@ -47,89 +33,61 @@ const mapStateToProps = (state) => {
     threeBoxSynced,
     showRestorePrompt,
     selectedAddress,
-    connectedStatusPopoverHasBeenShown,
-    defaultHomeActiveTabName,
-    swapsState,
-    pendingApprovals = {},
-  } = metamask;
-  const accountBalance = getCurrentEthBalance(state);
-  const { forgottenPassword, threeBoxLastUpdated } = appState;
-  const totalUnapprovedCount = getTotalUnapprovedCount(state);
-  const swapsEnabled = getSwapsFeatureLiveness(state);
+    permissionsRequests,
+  } = metamask
+  const accountBalance = getCurrentEthBalance(state)
+  const { forgottenPassword, threeBoxLastUpdated } = appState
 
-  const envType = getEnvironmentType();
-  const isPopup = envType === ENVIRONMENT_TYPE_POPUP;
-  const isNotification = envType === ENVIRONMENT_TYPE_NOTIFICATION;
+  const isPopup = getEnvironmentType(window.location.href) === ENVIRONMENT_TYPE_POPUP
 
-  const firstPermissionsRequest = getFirstPermissionRequest(state);
-  const firstPermissionsRequestId =
-    firstPermissionsRequest && firstPermissionsRequest.metadata
-      ? firstPermissionsRequest.metadata.id
-      : null;
-
-  const originOfCurrentTab = getOriginOfCurrentTab(state);
-  const shouldShowWeb3ShimUsageNotification =
-    isPopup &&
-    getWeb3ShimUsageAlertEnabledness(state) &&
-    activeTabHasPermissions(state) &&
-    getWeb3ShimUsageStateForOrigin(state, originOfCurrentTab) ===
-      WEB3_SHIM_USAGE_ALERT_STATES.RECORDED;
+  // TODO:plugins:prod remove
+  const hasPermissionsData = (
+    Object.keys(getAllPermissions(state)).length > 0 ||
+    Object.keys(getPermissionsHistory(state)).length > 0 ||
+    Object.keys(getPermissionsLog(state)).length > 0
+  )
+  const hasPlugins = Object.keys(getAllPlugins(state)).length > 0
 
   return {
     forgottenPassword,
     suggestedTokens,
-    swapsEnabled,
     unconfirmedTransactionsCount: unconfirmedTransactionsCountSelector(state),
-    shouldShowSeedPhraseReminder:
-      seedPhraseBackedUp === false &&
-      (parseInt(accountBalance, 16) > 0 || tokens.length > 0),
+    activeTab,
+    shouldShowSeedPhraseReminder: !seedPhraseBackedUp && (parseInt(accountBalance, 16) > 0 || tokens.length > 0),
     isPopup,
-    isNotification,
     threeBoxSynced,
     showRestorePrompt,
     selectedAddress,
     threeBoxLastUpdated,
-    firstPermissionsRequestId,
-    totalUnapprovedCount,
-    connectedStatusPopoverHasBeenShown,
-    defaultHomeActiveTabName,
-    haveSwapsQuotes: Boolean(Object.values(swapsState.quotes || {}).length),
-    swapsFetchParams: swapsState.fetchParams,
-    showAwaitingSwapScreen: swapsState.routeState === 'awaiting',
-    isMainnet: getIsMainnet(state),
-    originOfCurrentTab,
-    shouldShowWeb3ShimUsageNotification,
-    pendingApprovals: Object.values(pendingApprovals),
-    notificationsToShow: getSortedNotificationsToShow(state).length > 0,
-    showWhatsNewPopup: getShowWhatsNewPopup(state),
-  };
-};
+    hasDaiV1Token: Boolean(getDaiV1Token(state)),
+    permissionsRequests,
+    // TODO:plugins:prod remove
+    hasPermissionsData,
+    hasPlugins,
+  }
+}
 
 const mapDispatchToProps = (dispatch) => ({
   turnThreeBoxSyncingOn: () => dispatch(turnThreeBoxSyncingOn()),
   setupThreeBox: () => {
-    dispatch(getThreeBoxLastUpdated()).then((lastUpdated) => {
-      if (lastUpdated) {
-        dispatch(setThreeBoxLastUpdated(lastUpdated));
-      } else {
-        dispatch(setShowRestorePromptToFalse());
-        dispatch(turnThreeBoxSyncingOn());
-      }
-    });
+    dispatch(getThreeBoxLastUpdated())
+      .then(lastUpdated => {
+        if (lastUpdated) {
+          dispatch(setThreeBoxLastUpdated(lastUpdated))
+        } else {
+          dispatch(setShowRestorePromptToFalse())
+          dispatch(turnThreeBoxSyncingOn())
+        }
+      })
   },
   restoreFromThreeBox: (address) => dispatch(restoreFromThreeBox(address)),
   setShowRestorePromptToFalse: () => dispatch(setShowRestorePromptToFalse()),
-  setConnectedStatusPopoverHasBeenShown: () =>
-    dispatch(setConnectedStatusPopoverHasBeenShown()),
-  onTabClick: (name) => dispatch(setDefaultHomeActiveTabName(name)),
-  setWeb3ShimUsageAlertDismissed: (origin) =>
-    setWeb3ShimUsageAlertDismissed(origin),
-  disableWeb3ShimUsageAlert: () =>
-    setAlertEnabledness(ALERT_TYPES.web3ShimUsage, false),
-  hideWhatsNewPopup: () => dispatch(hideWhatsNewPopup()),
-});
+  removePlugin: (pluginName) => dispatch(removePlugin(pluginName)),
+  clearPlugins: () => dispatch(clearPlugins()),
+  clearAllPermissionsData: () => dispatch(clearAllPermissionsData()),
+})
 
 export default compose(
   withRouter,
-  connect(mapStateToProps, mapDispatchToProps),
-)(Home);
+  connect(mapStateToProps, mapDispatchToProps)
+)(Home)

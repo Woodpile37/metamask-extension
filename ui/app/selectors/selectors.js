@@ -1,469 +1,428 @@
-import { stripHexPrefix } from 'ethereumjs-util';
-import { createSelector } from 'reselect';
-import { addHexPrefix } from '../../../app/scripts/lib/util';
+import { NETWORK_TYPES } from '../helpers/constants/common'
+import { stripHexPrefix, addHexPrefix } from 'ethereumjs-util'
+
+const abi = require('human-standard-token-abi')
+const {
+  multiplyCurrencies,
+} = require('../helpers/utils/conversion-util')
 import {
-  MAINNET_CHAIN_ID,
-  TEST_CHAINS,
-  NETWORK_TYPE_RPC,
-} from '../../../shared/constants/network';
-import {
-  shortenAddress,
+  addressSlicer,
   checksumAddress,
-  getAccountByAddress,
-} from '../helpers/utils/util';
-import {
-  getValueFromWeiHex,
-  hexToDecimal,
-} from '../helpers/utils/conversions.util';
-import {
-  SWAPS_CHAINID_DEFAULT_TOKEN_MAP,
-  ALLOWED_SWAPS_CHAIN_IDS,
-} from '../../../shared/constants/swaps';
+} from '../helpers/utils/util'
 
-/**
- * One of the only remaining valid uses of selecting the network subkey of the
- * metamask state tree is to determine if the network is currently 'loading'.
- *
- * This will be used for all cases where this state key is accessed only for that
- * purpose.
- * @param {Object} state - redux state object
- */
-export function isNetworkLoading(state) {
-  return state.metamask.network === 'loading';
+const selectors = {
+  getSelectedAddress,
+  getSelectedIdentity,
+  getSelectedAccount,
+  getSelectedToken,
+  getSelectedTokenExchangeRate,
+  getSelectedTokenAssetImage,
+  getAssetImages,
+  getTokenExchangeRate,
+  conversionRateSelector,
+  accountsWithSendEtherInfoSelector,
+  getCurrentAccountWithSendEtherInfo,
+  getGasIsLoading,
+  getForceGasMin,
+  getAddressBook,
+  getSendFrom,
+  getCurrentCurrency,
+  getNativeCurrency,
+  getSendAmount,
+  getSelectedTokenToFiatRate,
+  getSelectedTokenContract,
+  getSendMaxModeState,
+  getCurrentViewContext,
+  getTotalUnapprovedCount,
+  preferencesSelector,
+  getMetaMaskAccounts,
+  getCurrentEthBalance,
+  getNetworkIdentifier,
+  isBalanceCached,
+  getAdvancedInlineGasShown,
+  getUseNonceField,
+  getCustomNonceValue,
+  getIsMainnet,
+  getCurrentNetworkId,
+  getSelectedAsset,
+  getCurrentKeyring,
+  getAccountType,
+  getNumberOfAccounts,
+  getNumberOfTokens,
+  getDaiV1Token,
+  isEthereumNetwork,
+  getAllPermissions,
+  getAllPlugins,
+  getPermissionsRequests,
+  getPermissionsDescriptions,
+  getPermissionsHistory,
+  getPermissionsLog,
+  getSiteMetadata,
+  getActiveTab,
+  getMetaMetricState,
+  getRpcPrefsForCurrentProvider,
+  getKnownMethodData,
+  getAddressBookEntry,
+  getAddressBookEntryName,
+  getFeatureFlags,
 }
 
-export function getNetworkIdentifier(state) {
-  const {
-    metamask: {
-      provider: { type, nickname, rpcUrl },
-    },
-  } = state;
+module.exports = selectors
 
-  return nickname || rpcUrl || type;
+function getNetworkIdentifier (state) {
+  const { metamask: { provider: { type, nickname, rpcTarget } } } = state
+
+  return nickname || rpcTarget || type
 }
 
-export function getMetricsNetworkIdentifier(state) {
-  const { provider } = state.metamask;
-  return provider.type === NETWORK_TYPE_RPC ? provider.rpcUrl : provider.type;
-}
-
-export function getCurrentChainId(state) {
-  const { chainId } = state.metamask.provider;
-  return chainId;
-}
-
-export function getCurrentKeyring(state) {
-  const identity = getSelectedIdentity(state);
+function getCurrentKeyring (state) {
+  const identity = getSelectedIdentity(state)
 
   if (!identity) {
-    return null;
+    return null
   }
 
-  const simpleAddress = stripHexPrefix(identity.address).toLowerCase();
+  const simpleAddress = stripHexPrefix(identity.address).toLowerCase()
 
   const keyring = state.metamask.keyrings.find((kr) => {
-    return (
-      kr.accounts.includes(simpleAddress) ||
+    return kr.accounts.includes(simpleAddress) ||
       kr.accounts.includes(identity.address)
-    );
-  });
+  })
 
-  return keyring;
+  return keyring
 }
 
-export function getAccountType(state) {
-  const currentKeyring = getCurrentKeyring(state);
-  const type = currentKeyring && currentKeyring.type;
+function getAccountType (state) {
+  const currentKeyring = getCurrentKeyring(state)
+  const type = currentKeyring && currentKeyring.type
 
   switch (type) {
     case 'Trezor Hardware':
     case 'Ledger Hardware':
-      return 'hardware';
+      return 'hardware'
     case 'Simple Key Pair':
-      return 'imported';
+      return 'imported'
     default:
-      return 'default';
+      return 'default'
   }
 }
 
-/**
- * get the currently selected networkId which will be 'loading' when the
- * network changes. The network id should not be used in most cases,
- * instead use chainId in most situations. There are a limited number of
- * use cases to use this method still, such as when comparing transaction
- * metadata that predates the switch to using chainId.
- * @deprecated - use getCurrentChainId instead
- * @param {Object} state - redux state object
- */
-export function deprecatedGetCurrentNetworkId(state) {
-  return state.metamask.network;
+function getSelectedAsset (state) {
+  const selectedToken = getSelectedToken(state)
+  return selectedToken && selectedToken.symbol || 'ETH'
 }
 
-export const getMetaMaskAccounts = createSelector(
-  getMetaMaskAccountsRaw,
-  getMetaMaskCachedBalances,
-  (currentAccounts, cachedBalances) =>
-    Object.entries(currentAccounts).reduce(
-      (selectedAccounts, [accountID, account]) => {
-        if (account.balance === null || account.balance === undefined) {
-          return {
-            ...selectedAccounts,
-            [accountID]: {
-              ...account,
-              balance: cachedBalances && cachedBalances[accountID],
-            },
-          };
-        }
-        return {
-          ...selectedAccounts,
-          [accountID]: account,
-        };
-      },
-      {},
-    ),
-);
-
-export function getSelectedAddress(state) {
-  return state.metamask.selectedAddress;
+function getCurrentNetworkId (state) {
+  return state.metamask.network
 }
 
-export function getSelectedIdentity(state) {
-  const selectedAddress = getSelectedAddress(state);
-  const { identities } = state.metamask;
+function getSelectedAddress (state) {
+  const selectedAddress = state.metamask.selectedAddress || Object.keys(getMetaMaskAccounts(state))[0]
 
-  return identities[selectedAddress];
+  return selectedAddress
 }
 
-export function getNumberOfAccounts(state) {
-  return Object.keys(state.metamask.accounts).length;
+function getSelectedIdentity (state) {
+  const selectedAddress = getSelectedAddress(state)
+  const identities = state.metamask.identities
+
+  return identities[selectedAddress]
 }
 
-export function getNumberOfTokens(state) {
-  const { tokens } = state.metamask;
-  return tokens ? tokens.length : 0;
+function getNumberOfAccounts (state) {
+  return Object.keys(state.metamask.accounts).length
 }
 
-export function getMetaMaskKeyrings(state) {
-  return state.metamask.keyrings;
+function getNumberOfTokens (state) {
+  const tokens = state.metamask.tokens
+  return tokens ? tokens.length : 0
 }
 
-export function getMetaMaskIdentities(state) {
-  return state.metamask.identities;
+function getMetaMaskAccounts (state) {
+  const currentAccounts = state.metamask.accounts
+  const cachedBalances = state.metamask.cachedBalances[state.metamask.network]
+  const selectedAccounts = {}
+
+  Object.keys(currentAccounts).forEach(accountID => {
+    const account = currentAccounts[accountID]
+    if (account && account.balance === null || account.balance === undefined) {
+      selectedAccounts[accountID] = {
+        ...account,
+        balance: cachedBalances && cachedBalances[accountID],
+      }
+    } else {
+      selectedAccounts[accountID] = account
+    }
+  })
+  return selectedAccounts
 }
 
-export function getMetaMaskAccountsRaw(state) {
-  return state.metamask.accounts;
+function isBalanceCached (state) {
+  const selectedAccountBalance = state.metamask.accounts[getSelectedAddress(state)].balance
+  const cachedBalance = getSelectedAccountCachedBalance(state)
+
+  return Boolean(!selectedAccountBalance && cachedBalance)
 }
 
-export function getMetaMaskCachedBalances(state) {
-  const chainId = getCurrentChainId(state);
+function getSelectedAccountCachedBalance (state) {
+  const cachedBalances = state.metamask.cachedBalances[state.metamask.network]
+  const selectedAddress = getSelectedAddress(state)
 
-  // Fallback to fetching cached balances from network id
-  // this can eventually be removed
-  const network = deprecatedGetCurrentNetworkId(state);
-
-  return (
-    state.metamask.cachedBalances[chainId] ??
-    state.metamask.cachedBalances[network]
-  );
+  return cachedBalances && cachedBalances[selectedAddress]
 }
 
-/**
- * Get ordered (by keyrings) accounts with identity and balance
- */
-export const getMetaMaskAccountsOrdered = createSelector(
-  getMetaMaskKeyrings,
-  getMetaMaskIdentities,
-  getMetaMaskAccounts,
-  (keyrings, identities, accounts) =>
-    keyrings
-      .reduce((list, keyring) => list.concat(keyring.accounts), [])
-      .filter((address) => Boolean(identities[address]))
-      .map((address) => ({ ...identities[address], ...accounts[address] })),
-);
+function getSelectedAccount (state) {
+  const accounts = getMetaMaskAccounts(state)
+  const selectedAddress = getSelectedAddress(state)
 
-export const getMetaMaskAccountsConnected = createSelector(
-  getMetaMaskAccountsOrdered,
-  (connectedAccounts) =>
-    connectedAccounts.map(({ address }) => address.toLowerCase()),
-);
-
-export function isBalanceCached(state) {
-  const selectedAccountBalance =
-    state.metamask.accounts[getSelectedAddress(state)].balance;
-  const cachedBalance = getSelectedAccountCachedBalance(state);
-
-  return Boolean(!selectedAccountBalance && cachedBalance);
+  return accounts[selectedAddress]
 }
 
-export function getSelectedAccountCachedBalance(state) {
-  const cachedBalances = getMetaMaskCachedBalances(state);
-  const selectedAddress = getSelectedAddress(state);
+function getSelectedToken (state) {
+  const tokens = state.metamask.tokens || []
+  const selectedTokenAddress = state.metamask.selectedTokenAddress
+  const selectedToken = tokens.filter(({ address }) => address === selectedTokenAddress)[0]
+  const sendToken = state.metamask.send && state.metamask.send.token
 
-  return cachedBalances && cachedBalances[selectedAddress];
+  return selectedToken || sendToken || null
 }
 
-export function getSelectedAccount(state) {
-  const accounts = getMetaMaskAccounts(state);
-  const selectedAddress = getSelectedAddress(state);
-
-  return accounts[selectedAddress];
+function getSelectedTokenExchangeRate (state) {
+  const contractExchangeRates = state.metamask.contractExchangeRates
+  const selectedToken = getSelectedToken(state) || {}
+  const { address } = selectedToken
+  return contractExchangeRates[address] || 0
 }
 
-export function getTargetAccount(state, targetAddress) {
-  const accounts = getMetaMaskAccounts(state);
-  return accounts[targetAddress];
+function getSelectedTokenAssetImage (state) {
+  const assetImages = state.metamask.assetImages || {}
+  const selectedToken = getSelectedToken(state) || {}
+  const { address } = selectedToken
+  return assetImages[address]
 }
 
-export const getTokenExchangeRates = (state) =>
-  state.metamask.contractExchangeRates;
-
-export function getAssetImages(state) {
-  const assetImages = state.metamask.assetImages || {};
-  return assetImages;
+function getAssetImages (state) {
+  const assetImages = state.metamask.assetImages || {}
+  return assetImages
 }
 
-export function getAddressBook(state) {
-  const chainId = getCurrentChainId(state);
-  if (!state.metamask.addressBook[chainId]) {
-    return [];
+function getTokenExchangeRate (state, address) {
+  const contractExchangeRates = state.metamask.contractExchangeRates
+  return contractExchangeRates[address] || 0
+}
+
+function conversionRateSelector (state) {
+  return state.metamask.conversionRate
+}
+
+function getAddressBook (state) {
+  const network = state.metamask.network
+  if (!state.metamask.addressBook[network]) {
+    return []
   }
-  return Object.values(state.metamask.addressBook[chainId]);
+  return Object.values(state.metamask.addressBook[network])
 }
 
-export function getAddressBookEntry(state, address) {
-  const addressBook = getAddressBook(state);
-  const entry = addressBook.find(
-    (contact) => contact.address === checksumAddress(address),
-  );
-  return entry;
+function getAddressBookEntry (state, address) {
+  const addressBook = getAddressBook(state)
+  const entry = addressBook.find(contact => contact.address === checksumAddress(address))
+  return entry
 }
 
-export function getAddressBookEntryName(state, address) {
-  const entry =
-    getAddressBookEntry(state, address) || state.metamask.identities[address];
-  return entry && entry.name !== '' ? entry.name : shortenAddress(address);
+function getAddressBookEntryName (state, address) {
+  const entry = getAddressBookEntry(state, address) || state.metamask.identities[address]
+  return entry && entry.name !== '' ? entry.name : addressSlicer(address)
 }
 
-export function accountsWithSendEtherInfoSelector(state) {
-  const accounts = getMetaMaskAccounts(state);
-  const identities = getMetaMaskIdentities(state);
-
-  const accountsWithSendEtherInfo = Object.entries(identities).map(
-    ([key, identity]) => {
-      return { ...identity, ...accounts[key] };
-    },
-  );
-
-  return accountsWithSendEtherInfo;
+function getDaiV1Token (state) {
+  const OLD_DAI_CONTRACT_ADDRESS = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
+  const tokens = state.metamask.tokens || []
+  return tokens.find(({address}) => checksumAddress(address) === OLD_DAI_CONTRACT_ADDRESS)
 }
 
-export function getAccountsWithLabels(state) {
-  return getMetaMaskAccountsOrdered(state).map(
-    ({ address, name, balance }) => ({
-      address,
-      addressLabel: `${name} (...${address.slice(address.length - 4)})`,
-      label: name,
-      balance,
-    }),
-  );
+function accountsWithSendEtherInfoSelector (state) {
+  const accounts = getMetaMaskAccounts(state)
+  const { identities } = state.metamask
+
+  const accountsWithSendEtherInfo = Object.entries(accounts).map(([key, account]) => {
+    return Object.assign({}, account, identities[key])
+  })
+
+  return accountsWithSendEtherInfo
 }
 
-export function getCurrentAccountWithSendEtherInfo(state) {
-  const currentAddress = getSelectedAddress(state);
-  const accounts = accountsWithSendEtherInfoSelector(state);
+function getCurrentAccountWithSendEtherInfo (state) {
+  const currentAddress = getSelectedAddress(state)
+  const accounts = accountsWithSendEtherInfoSelector(state)
 
-  return getAccountByAddress(accounts, currentAddress);
+  return accounts.find(({ address }) => address === currentAddress)
 }
 
-export function getTargetAccountWithSendEtherInfo(state, targetAddress) {
-  const accounts = accountsWithSendEtherInfoSelector(state);
-  return getAccountByAddress(accounts, targetAddress);
+function getCurrentEthBalance (state) {
+  return getCurrentAccountWithSendEtherInfo(state).balance
 }
 
-export function getCurrentEthBalance(state) {
-  return getCurrentAccountWithSendEtherInfo(state).balance;
+function getGasIsLoading (state) {
+  return state.appState.gasIsLoading
 }
 
-export function getGasIsLoading(state) {
-  return state.appState.gasIsLoading;
+function getForceGasMin (state) {
+  return state.metamask.send.forceGasMin
 }
 
-export function getCurrentCurrency(state) {
-  return state.metamask.currentCurrency;
+function getSendFrom (state) {
+  return state.metamask.send.from
 }
 
-export function getTotalUnapprovedCount(state) {
+function getSendAmount (state) {
+  return state.metamask.send.amount
+}
+
+function getSendMaxModeState (state) {
+  return state.metamask.send.maxModeOn
+}
+
+function getCurrentCurrency (state) {
+  return state.metamask.currentCurrency
+}
+
+function getNativeCurrency (state) {
+  return state.metamask.nativeCurrency
+}
+
+function getSelectedTokenToFiatRate (state) {
+  const selectedTokenExchangeRate = getSelectedTokenExchangeRate(state)
+  const conversionRate = conversionRateSelector(state)
+
+  const tokenToFiatRate = multiplyCurrencies(
+    conversionRate,
+    selectedTokenExchangeRate,
+    { toNumericBase: 'dec' }
+  )
+
+  return tokenToFiatRate
+}
+
+function getSelectedTokenContract (state) {
+  const selectedToken = getSelectedToken(state)
+  return selectedToken
+    ? global.eth.contract(abi).at(selectedToken.address)
+    : null
+}
+
+function getCurrentViewContext (state) {
+  const { currentView = {} } = state.appState
+  return currentView.context
+}
+
+function getTotalUnapprovedCount ({ metamask }) {
   const {
-    unapprovedMsgCount = 0,
-    unapprovedPersonalMsgCount = 0,
-    unapprovedDecryptMsgCount = 0,
-    unapprovedEncryptionPublicKeyMsgCount = 0,
-    unapprovedTypedMessagesCount = 0,
-    pendingApprovalCount = 0,
-  } = state.metamask;
+    unapprovedTxs = {},
+    unapprovedMsgCount,
+    unapprovedPersonalMsgCount,
+    unapprovedTypedMessagesCount,
+  } = metamask
 
-  return (
-    unapprovedMsgCount +
-    unapprovedPersonalMsgCount +
-    unapprovedDecryptMsgCount +
-    unapprovedEncryptionPublicKeyMsgCount +
-    unapprovedTypedMessagesCount +
-    getUnapprovedTxCount(state) +
-    pendingApprovalCount +
-    getSuggestedTokenCount(state)
-  );
+  return Object.keys(unapprovedTxs).length + unapprovedMsgCount + unapprovedPersonalMsgCount +
+    unapprovedTypedMessagesCount
 }
 
-function getUnapprovedTxCount(state) {
-  const { unapprovedTxs = {} } = state.metamask;
-  return Object.keys(unapprovedTxs).length;
+function getIsMainnet (state) {
+  const networkType = getNetworkIdentifier(state)
+  return networkType === NETWORK_TYPES.MAINNET
 }
 
-export function getUnapprovedConfirmations(state) {
-  const { pendingApprovals } = state.metamask;
-  return Object.values(pendingApprovals);
+function isEthereumNetwork (state) {
+  const networkType = getNetworkIdentifier(state)
+  const {
+    KOVAN,
+    MAINNET,
+    RINKEBY,
+    ROPSTEN,
+    GOERLI,
+  } = NETWORK_TYPES
+
+  return [ KOVAN, MAINNET, RINKEBY, ROPSTEN, GOERLI].includes(networkType)
 }
 
-function getSuggestedTokenCount(state) {
-  const { suggestedTokens = {} } = state.metamask;
-  return Object.keys(suggestedTokens).length;
+function preferencesSelector ({ metamask }) {
+  return metamask.preferences
 }
 
-export function getIsMainnet(state) {
-  const chainId = getCurrentChainId(state);
-  return chainId === MAINNET_CHAIN_ID;
+function getAdvancedInlineGasShown (state) {
+  return Boolean(state.metamask.featureFlags.advancedInlineGas)
 }
 
-export function getIsTestnet(state) {
-  const chainId = getCurrentChainId(state);
-  return TEST_CHAINS.includes(chainId);
+function getAllPermissions (state) {
+  return state.metamask.domains || {}
 }
 
-export function getPreferences({ metamask }) {
-  return metamask.preferences;
+function getAllPlugins (state) {
+  return state.metamask.plugins || {}
 }
 
-export function getShouldShowFiat(state) {
-  const isMainNet = getIsMainnet(state);
-  const { showFiatInTestnets } = getPreferences(state);
-  return Boolean(isMainNet || showFiatInTestnets);
+function getPermissionsDescriptions (state) {
+  return state.metamask.permissionsDescriptions || {}
 }
 
-export function getShouldHideZeroBalanceTokens(state) {
-  const { hideZeroBalanceTokens } = getPreferences(state);
-  return hideZeroBalanceTokens;
+function getPermissionsRequests (state) {
+  return state.metamask.permissionsRequests || []
 }
 
-export function getAdvancedInlineGasShown(state) {
-  return Boolean(state.metamask.featureFlags.advancedInlineGas);
+function getPermissionsHistory (state) {
+  return state.metamask.permissionsHistory || {}
 }
 
-export function getUseNonceField(state) {
-  return Boolean(state.metamask.useNonceField);
+function getPermissionsLog (state) {
+  return state.metamask.permissionsLog || {}
 }
 
-export function getCustomNonceValue(state) {
-  return String(state.metamask.customNonceValue);
+function getSiteMetadata (state) {
+  return state.metamask.siteMetadata || {}
 }
 
-export function getDomainMetadata(state) {
-  return state.metamask.domainMetadata;
+function getActiveTab (state) {
+  return state.activeTab
 }
 
-export function getRpcPrefsForCurrentProvider(state) {
-  const { frequentRpcListDetail, provider } = state.metamask;
-  const selectRpcInfo = frequentRpcListDetail.find(
-    (rpcInfo) => rpcInfo.rpcUrl === provider.rpcUrl,
-  );
-  const { rpcPrefs = {} } = selectRpcInfo || {};
-  return rpcPrefs;
+function getUseNonceField (state) {
+  return Boolean(state.metamask.useNonceField)
 }
 
-export function getKnownMethodData(state, data) {
-  if (!data) {
-    return null;
-  }
-  const prefixedData = addHexPrefix(data);
-  const fourBytePrefix = prefixedData.slice(0, 10);
-  const { knownMethodData } = state.metamask;
-
-  return knownMethodData && knownMethodData[fourBytePrefix];
+function getCustomNonceValue (state) {
+  return String(state.metamask.customNonceValue)
 }
 
-export function getFeatureFlags(state) {
-  return state.metamask.featureFlags;
-}
-
-export function getOriginOfCurrentTab(state) {
-  return state.activeTab.origin;
-}
-
-export function getIpfsGateway(state) {
-  return state.metamask.ipfsGateway;
-}
-
-export function getUSDConversionRate(state) {
-  return state.metamask.usdConversionRate;
-}
-
-export function getWeb3ShimUsageStateForOrigin(state, origin) {
-  return state.metamask.web3ShimUsageOrigins[origin];
-}
-
-/**
- * @typedef {Object} SwapsEthToken
- * @property {string} symbol - The symbol for ETH, namely "ETH"
- * @property {string} name - The name of the ETH currency, "Ether"
- * @property {string} address - A substitute address for the metaswap-api to
- * recognize the ETH token
- * @property {string} decimals - The number of ETH decimals, i.e. 18
- * @property {string} balance - The user's ETH balance in decimal wei, with a
- * precision of 4 decimal places
- * @property {string} string - The user's ETH balance in decimal ETH
- */
-
-/**
- * Swaps related code uses token objects for various purposes. These objects
- * always have the following properties: `symbol`, `name`, `address`, and
- * `decimals`.
- *
- * When available for the current account, the objects can have `balance` and
- * `string` properties.
- * `balance` is the users token balance in decimal values, denominated in the
- * minimal token units (according to its decimals).
- * `string` is the token balance in a readable format, ready for rendering.
- *
- * Swaps treats the selected chain's currency as a token, and we use the token constants
- * in the SWAPS_CHAINID_DEFAULT_TOKEN_MAP to set the standard properties for
- * the token. The getSwapsDefaultToken selector extends that object with
- * `balance` and `string` values of the same type as in regular ERC-20 token
- * objects, per the above description.
- *
- * @param {object} state - the redux state object
- * @returns {SwapsEthToken} The token object representation of the currently
- * selected account's ETH balance, as expected by the Swaps API.
- */
-
-export function getSwapsDefaultToken(state) {
-  const selectedAccount = getSelectedAccount(state);
-  const { balance } = selectedAccount;
-  const chainId = getCurrentChainId(state);
-
-  const defaultTokenObject = SWAPS_CHAINID_DEFAULT_TOKEN_MAP[chainId];
-
+function getMetaMetricState (state) {
   return {
-    ...defaultTokenObject,
-    balance: hexToDecimal(balance),
-    string: getValueFromWeiHex({
-      value: balance,
-      numberOfDecimals: 4,
-      toDenomination: 'ETH',
-    }),
-  };
+    network: getCurrentNetworkId(state),
+    activeCurrency: getSelectedAsset(state),
+    accountType: getAccountType(state),
+    metaMetricsId: state.metamask.metaMetricsId,
+    numberOfTokens: getNumberOfTokens(state),
+    numberOfAccounts: getNumberOfAccounts(state),
+    participateInMetaMetrics: state.metamask.participateInMetaMetrics,
+  }
 }
 
-export function getIsSwapsChain(state) {
-  const chainId = getCurrentChainId(state);
-  return ALLOWED_SWAPS_CHAIN_IDS[chainId];
+function getRpcPrefsForCurrentProvider (state) {
+  const { frequentRpcListDetail, provider } = state.metamask
+  const selectRpcInfo = frequentRpcListDetail.find(rpcInfo => rpcInfo.rpcUrl === provider.rpcTarget)
+  const { rpcPrefs = {} } = selectRpcInfo || {}
+  return rpcPrefs
+}
+
+function getKnownMethodData (state, data) {
+  if (!data) {
+    return null
+  }
+  const prefixedData = addHexPrefix(data)
+  const fourBytePrefix = prefixedData.slice(0, 10)
+  const { knownMethodData } = state.metamask
+
+  return knownMethodData && knownMethodData[fourBytePrefix]
+}
+
+function getFeatureFlags (state) {
+  return state.metamask.featureFlags
 }

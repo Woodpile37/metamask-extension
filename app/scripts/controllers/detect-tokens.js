@@ -1,226 +1,86 @@
-import { warn } from 'loglevel';
-import { PollingControllerOnly } from '@metamask/polling-controller';
-import { MINUTE } from '../../../shared/constants/time';
-import { CHAIN_IDS } from '../../../shared/constants/network';
-import { STATIC_MAINNET_TOKEN_LIST } from '../../../shared/constants/tokens';
-import { isTokenDetectionEnabledForNetwork } from '../../../shared/modules/network.utils';
-import { isEqualCaseInsensitive } from '../../../shared/modules/string-utils';
-import {
-  AssetType,
-  TokenStandard,
-} from '../../../shared/constants/transaction';
-import {
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-} from '../../../shared/constants/metametrics';
-
+const ethers = require('ethers')
+const contracts = require('eth-contract-metadata')
+const { warn } = require('loglevel')
+const { MAINNET } = require('./network/enums')
 // By default, poll every 3 minutes
-const DEFAULT_INTERVAL = MINUTE * 3;
+const DEFAULT_INTERVAL = 180 * 1000
+const ERC20_ABI = [{'constant': true, 'inputs': [{'name': '_owner', 'type': 'address'}], 'name': 'balanceOf', 'outputs': [{'name': 'balance', 'type': 'uint256'}], 'payable': false, 'type': 'function'}]
+const SINGLE_CALL_BALANCES_ABI = require('single-call-balance-checker-abi')
+const SINGLE_CALL_BALANCES_ADDRESS = '0xb1f8e55c7f64d203c1400b9d8555d050f94adf39'
 
 /**
  * A controller that polls for token exchange
  * rates based on a user's current token list
  */
-export default class DetectTokensController extends PollingControllerOnly {
+class DetectTokensController {
   /**
    * Creates a DetectTokensController
    *
-   * @param {object} [config] - Options to configure controller
-   * @param config.interval
-   * @param config.preferences
-   * @param config.network
-   * @param config.tokenList
-   * @param config.tokensController
-   * @param config.assetsContractController
-   * @param config.trackMetaMetricsEvent
-   * @param config.messenger
-   * @param config.getCurrentSelectedAccount
-   * @param config.getNetworkClientById
-   * @param config.disableLegacyInterval
+   * @param {Object} [config] - Options to configure controller
    */
-  constructor({
-    messenger,
-    interval = DEFAULT_INTERVAL,
-    preferences,
-    network,
-    tokenList,
-    tokensController,
-    assetsContractController = null,
-    trackMetaMetricsEvent,
-    getCurrentSelectedAccount,
-    getNetworkClientById,
-    disableLegacyInterval = false,
-  } = {}) {
-    super();
-    this.getNetworkClientById = getNetworkClientById;
-    this.messenger = messenger;
-    this.assetsContractController = assetsContractController;
-    this.tokensController = tokensController;
-    this.preferences = preferences;
-    if (!disableLegacyInterval) {
-      this.interval = interval;
-    }
-    this.network = network;
-    this.tokenList = tokenList;
-    this.useTokenDetection =
-      this.preferences?.store.getState().useTokenDetection;
-    this.selectedAddress = getCurrentSelectedAccount().address;
-    this.tokenAddresses = this.tokensController?.state.tokens.map((token) => {
-      return token.address;
-    });
-    this.setIntervalLength(interval);
-    this.hiddenTokens = this.tokensController?.state.ignoredTokens;
-    this.detectedTokens = this.tokensController?.state.detectedTokens;
-    this.chainId = this.getChainIdFromNetworkStore();
-    this._trackMetaMetricsEvent = trackMetaMetricsEvent;
-
-    messenger.subscribe(
-      'AccountsController:selectedAccountChange',
-      (account) => {
-        const useTokenDetection =
-          this.preferences?.store.getState().useTokenDetection;
-        if (
-          this.selectedAddress !== account.address ||
-          this.useTokenDetection !== useTokenDetection
-        ) {
-          this.selectedAddress = account.address;
-          this.useTokenDetection = useTokenDetection;
-          this.restartTokenDetection({
-            selectedAddress: this.selectedAddress,
-          });
-        }
-      },
-    );
-
-    tokensController?.subscribe(
-      ({ tokens = [], ignoredTokens = [], detectedTokens = [] }) => {
-        this.tokenAddresses = tokens.map((token) => {
-          return token.address;
-        });
-        this.hiddenTokens = ignoredTokens;
-        this.detectedTokens = detectedTokens;
-      },
-    );
-    messenger.subscribe('NetworkController:stateChange', () => {
-      if (this.chainId !== this.getChainIdFromNetworkStore()) {
-        const chainId = this.getChainIdFromNetworkStore();
-        this.chainId = chainId;
-        this.restartTokenDetection({ chainId: this.chainId });
-      }
-    });
-
-    this.#registerKeyringHandlers();
-  }
-
-  async _executePoll(networkClientId, options) {
-    const networkClient = this.getNetworkClientById(networkClientId);
-    await this.detectNewTokens({
-      ...options,
-      chainId: networkClient.configuration.chainId,
-    });
+  constructor ({ interval = DEFAULT_INTERVAL, preferences, network, keyringMemStore } = {}) {
+    this.preferences = preferences
+    this.interval = interval
+    this.network = network
+    this.keyringMemStore = keyringMemStore
   }
 
   /**
-   * For each token in the tokenlist provided by the TokenListController, check selectedAddress balance.
+   * For each token in eth-contract-metada, find check selectedAddress balance.
    *
-   * @param options
-   * @param options.selectedAddress - the selectedAddress against which to detect for token balances
-   * @param options.chainId - the chainId against which to detect for token balances
    */
-  async detectNewTokens({ selectedAddress, chainId } = {}) {
-    const addressAgainstWhichToDetect = selectedAddress ?? this.selectedAddress;
-    const chainIdAgainstWhichToDetect =
-      chainId ?? this.getChainIdFromNetworkStore();
+  async detectNewTokens () {
     if (!this.isActive) {
-      return;
+      return
     }
-    if (!isTokenDetectionEnabledForNetwork(chainIdAgainstWhichToDetect)) {
-      return;
+    if (this._network.store.getState().provider.type !== MAINNET) {
+      return
     }
-    if (
-      !this.useTokenDetection &&
-      chainIdAgainstWhichToDetect !== CHAIN_IDS.MAINNET
-    ) {
-      return;
+    const tokensToDetect = []
+    for (const contractAddress in contracts) {
+      if (contracts[contractAddress].erc20 && !(this.tokenAddresses.includes(contractAddress.toLowerCase()))) {
+        tokensToDetect.push(contractAddress)
+      }
     }
 
-    const isTokenDetectionInactiveInMainnet =
-      !this.useTokenDetection &&
-      chainIdAgainstWhichToDetect === CHAIN_IDS.MAINNET;
-    const { tokenList } = this._tokenList.state;
+    const ethContract = new ethers.Contract(
+      SINGLE_CALL_BALANCES_ADDRESS, SINGLE_CALL_BALANCES_ABI, this.ethersProvider
+    )
+    try {
+      const result = await ethContract.balances([this.selectedAddress], tokensToDetect)
+      tokensToDetect.forEach((tokenAddress, index) => {
+        const balance = result[index]
+        if (balance && !balance.isZero()) {
+          this._preferences.addToken(
+            tokenAddress, contracts[tokenAddress].symbol, contracts[tokenAddress].decimals
+          )
+        }
+      })
+    } catch (error) {
+      warn(`MetaMask - DetectTokensController single call balance fetch failed`, error)
+    }
+  }
 
-    const tokenListUsed = isTokenDetectionInactiveInMainnet
-      ? STATIC_MAINNET_TOKEN_LIST
-      : tokenList;
-
-    const tokensToDetect = [];
-    for (const tokenAddress in tokenListUsed) {
-      if (
-        !this.tokenAddresses.find((address) =>
-          isEqualCaseInsensitive(address, tokenAddress),
-        ) &&
-        !this.hiddenTokens.find((address) =>
-          isEqualCaseInsensitive(address, tokenAddress),
-        ) &&
-        !this.detectedTokens.find(({ address }) =>
-          isEqualCaseInsensitive(address, tokenAddress),
+  /**
+   * Find if selectedAddress has tokens with contract in contractAddress.
+   *
+   * @param {string} contractAddress Hex address of the token contract to explore.
+   * @returns {boolean} If balance is detected, token is added.
+   *
+   */
+  async detectTokenBalance (contractAddress) {
+    const ethContract = new ethers.Contract(
+      contractAddress, ERC20_ABI, this.ethersProvider
+    )
+    try {
+      const result = await ethContract.balanceOf(this.selectedAddress)
+      if (!result.isZero()) {
+        this._preferences.addToken(
+          contractAddress, contracts[contractAddress].symbol, contracts[contractAddress].decimals
         )
-      ) {
-        tokensToDetect.push(tokenAddress);
       }
-    }
-    const sliceOfTokensToDetect = [
-      tokensToDetect.slice(0, 1000),
-      tokensToDetect.slice(1000, tokensToDetect.length - 1),
-    ];
-    for (const tokensSlice of sliceOfTokensToDetect) {
-      let result;
-      try {
-        result = await this.assetsContractController.getBalancesInSingleCall(
-          addressAgainstWhichToDetect,
-          tokensSlice,
-        );
-      } catch (error) {
-        warn(
-          `MetaMask - DetectTokensController single call balance fetch failed`,
-          error,
-        );
-        return;
-      }
-
-      const tokensWithBalance = [];
-      const eventTokensDetails = [];
-      if (result) {
-        const nonZeroTokenAddresses = Object.keys(result);
-        for (const nonZeroTokenAddress of nonZeroTokenAddresses) {
-          const { address, symbol, decimals } =
-            tokenListUsed[nonZeroTokenAddress];
-
-          eventTokensDetails.push(`${symbol} - ${address}`);
-
-          tokensWithBalance.push({
-            address,
-            symbol,
-            decimals,
-          });
-        }
-
-        if (tokensWithBalance.length > 0) {
-          this._trackMetaMetricsEvent({
-            event: MetaMetricsEventName.TokenDetected,
-            category: MetaMetricsEventCategory.Wallet,
-            properties: {
-              tokens: eventTokensDetails,
-              token_standard: TokenStandard.ERC20,
-              asset_type: AssetType.token,
-            },
-          });
-          await this.tokensController.addDetectedTokens(tokensWithBalance, {
-            selectedAddress: addressAgainstWhichToDetect,
-            chainId: chainIdAgainstWhichToDetect,
-          });
-        }
-      }
+    } catch (error) {
+      warn(`MetaMask - DetectTokensController balance fetch failed for ${contractAddress}.`, error)
     }
   }
 
@@ -228,76 +88,87 @@ export default class DetectTokensController extends PollingControllerOnly {
    * Restart token detection polling period and call detectNewTokens
    * in case of address change or user session initialization.
    *
-   * @param options
-   * @param options.selectedAddress - the selectedAddress against which to detect for token balances
-   * @param options.chainId - the chainId against which to detect for token balances
    */
-  restartTokenDetection({ selectedAddress, chainId } = {}) {
-    const addressAgainstWhichToDetect = selectedAddress ?? this.selectedAddress;
-    const chainIdAgainstWhichToDetect = chainId ?? this.chainId;
-    if (!(this.isActive && addressAgainstWhichToDetect)) {
-      return;
+  restartTokenDetection () {
+    if (!(this.isActive && this.selectedAddress)) {
+      return
     }
-    this.detectNewTokens({
-      selectedAddress: addressAgainstWhichToDetect,
-      chainId: chainIdAgainstWhichToDetect,
-    });
-    this.interval = DEFAULT_INTERVAL;
+    this.detectNewTokens()
+    this.interval = DEFAULT_INTERVAL
   }
 
-  getChainIdFromNetworkStore() {
-    return this.network?.state.providerConfig.chainId;
-  }
-
-  /* eslint-disable accessor-pairs */
   /**
-   * @type {number}
+   * @type {Number}
    */
-  set interval(interval) {
-    this._handle && clearInterval(this._handle);
+  set interval (interval) {
+    this._handle && clearInterval(this._handle)
     if (!interval) {
-      return;
+      return
     }
     this._handle = setInterval(() => {
-      this.detectNewTokens();
-    }, interval);
+      this.detectNewTokens()
+    }, interval)
   }
 
   /**
-   * @type {object}
+   * In setter when selectedAddress is changed, detectNewTokens and restart polling
+   * @type {Object}
    */
-  set tokenList(tokenList) {
-    if (!tokenList) {
-      return;
+  set preferences (preferences) {
+    if (!preferences) {
+      return
     }
-    this._tokenList = tokenList;
+    this._preferences = preferences
+    preferences.store.subscribe(({ tokens = [] }) => {
+      this.tokenAddresses = tokens.map((obj) => {
+        return obj.address
+      })
+    })
+    preferences.store.subscribe(({ selectedAddress }) => {
+      if (this.selectedAddress !== selectedAddress) {
+        this.selectedAddress = selectedAddress
+        this.restartTokenDetection()
+      }
+    })
+  }
+
+  /**
+   * @type {Object}
+   */
+  set network (network) {
+    if (!network) {
+      return
+    }
+    this._network = network
+    this.ethersProvider = new ethers.providers.Web3Provider(network._provider)
+  }
+
+  /**
+   * In setter when isUnlocked is updated to true, detectNewTokens and restart polling
+   * @type {Object}
+   */
+  set keyringMemStore (keyringMemStore) {
+    if (!keyringMemStore) {
+      return
+    }
+    this._keyringMemStore = keyringMemStore
+    this._keyringMemStore.subscribe(({ isUnlocked }) => {
+      if (this.isUnlocked !== isUnlocked) {
+        this.isUnlocked = isUnlocked
+        if (isUnlocked) {
+          this.restartTokenDetection()
+        }
+      }
+    })
   }
 
   /**
    * Internal isActive state
-   *
-   * @type {object}
+   * @type {Object}
    */
-  get isActive() {
-    return this.isOpen && this.isUnlocked;
-  }
-  /* eslint-enable accessor-pairs */
-
-  /**
-   * Constructor helper to register listeners on the keyring
-   * locked state changes
-   */
-  #registerKeyringHandlers() {
-    const { isUnlocked } = this.messenger.call('KeyringController:getState');
-    this.isUnlocked = isUnlocked;
-
-    this.messenger.subscribe('KeyringController:unlock', () => {
-      this.isUnlocked = true;
-      this.restartTokenDetection();
-    });
-
-    this.messenger.subscribe('KeyringController:lock', () => {
-      this.isUnlocked = false;
-    });
+  get isActive () {
+    return this.isOpen && this.isUnlocked
   }
 }
+
+module.exports = DetectTokensController

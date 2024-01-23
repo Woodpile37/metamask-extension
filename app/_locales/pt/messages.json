@@ -1,4 +1,16 @@
 {
+  "permissionsSettings": {
+    "message": "Dados de aprovação"
+  },
+  "permissionsDescription": {
+    "message": "Limpe os dados aprovados do website para que todos os sites solicitem aprovação novamente."
+  },
+  "clearPermissions": {
+    "message": "Limpar dados de aprovação"
+  },
+  "reject": {
+    "message": "Rejeitar"
+  },
   "account": {
     "message": "Conta"
   },
@@ -10,6 +22,9 @@
   },
   "addToken": {
     "message": "Adicionar Token"
+  },
+  "addTokens": {
+    "message": "Adicionar Tokens"
   },
   "amount": {
     "message": "Valor"
@@ -37,8 +52,24 @@
   "balance": {
     "message": "Saldo:"
   },
+  "balanceIsInsufficientGas": {
+    "message": "Saldo insuficiente para a quantidade de gas total"
+  },
+  "betweenMinAndMax": {
+    "message": "tem de ser maior ou igual a $1 e menor ou igual a $2.",
+    "description": "helper for inputting hex as decimal input"
+  },
   "blockiesIdenticon": {
     "message": "Usar Blockies Identicon"
+  },
+  "builtInCalifornia": {
+    "message": "MetaMask é desenhada e construída na California."
+  },
+  "buyCoinSwitch": {
+    "message": "Comprar no CoinSwitch"
+  },
+  "buyCoinSwitchExplainer": {
+    "message": "CoinSwitch é o destino único para trocar mais de 300 moedas criptográficas com a melhor taxa."
   },
   "cancel": {
     "message": "Cancelar"
@@ -49,17 +80,32 @@
   "confirmPassword": {
     "message": "Confirmar Palavra-passe"
   },
+  "continueToCoinSwitch": {
+    "message": "Continuar para o CoinSwitch"
+  },
   "contractDeployment": {
     "message": "Distribuição do Contrato"
+  },
+  "conversionProgress": {
+    "message": "Conversão em progresso"
+  },
+  "copiedButton": {
+    "message": "Copiado"
   },
   "copiedExclamation": {
     "message": "Copiado!"
   },
-  "copyPrivateKey": {
-    "message": "Esta é a sua chave privada (carregue para copiar)"
+  "copy": {
+    "message": "Copiar"
   },
   "copyToClipboard": {
     "message": "Copiar para o clipboard"
+  },
+  "copyButton": {
+    "message": " Copiar "
+  },
+  "copyPrivateKey": {
+    "message": "Esta é a sua chave privada (carregue para copiar)"
   },
   "create": {
     "message": "Criar"
@@ -70,14 +116,20 @@
   "customGas": {
     "message": "Customizar Gas"
   },
-  "decimal": {
-    "message": "Precisão em Decimais"
+  "customRPC": {
+    "message": "Customizar RPC"
   },
   "decimalsMustZerotoTen": {
     "message": "Decimais devem ser no mínimo 0 e não passar de 36."
   },
+  "decimal": {
+    "message": "Precisão em Decimais"
+  },
   "defaultNetwork": {
-    "message": "A rede pré definida para transações em Ether é a Mainnet."
+    "message": "A rede pré definida para transações em Ether é a Main Net."
+  },
+  "deposit": {
+    "message": "Depósito"
   },
   "depositEther": {
     "message": "Depositar Ether"
@@ -99,6 +151,9 @@
   },
   "edit": {
     "message": "Editar"
+  },
+  "emailUs": {
+    "message": "Fale connosco!"
   },
   "enterPassword": {
     "message": "Introduza palavra-passe"
@@ -123,14 +178,23 @@
   "from": {
     "message": "De"
   },
+  "fromShapeShift": {
+    "message": "De ShapeShift"
+  },
   "gasLimit": {
     "message": "Limite de Gas"
+  },
+  "gasLimitCalculation": {
+    "message": "Calculamos o limite sugerido do gas com base nas taxas de sucesso da rede."
   },
   "gasLimitTooLow": {
     "message": "Limite de Gas deve ser no mínimo 21000"
   },
   "gasPrice": {
     "message": "Preço Gas (GWEI)"
+  },
+  "gasPriceCalculation": {
+    "message": "Calculamos o gas sugerido com base nas taxas de sucesso da rede."
   },
   "getEther": {
     "message": "Obter Ether"
@@ -139,12 +203,19 @@
     "message": "Obter Ether de um faucet por $1",
     "description": "Displays network name for Ether faucet"
   },
+  "greaterThanMin": {
+    "message": "tem de ser maior ou igual a $1.",
+    "description": "helper for inputting hex as decimal input"
+  },
   "here": {
     "message": "aqui",
     "description": "as in -click here- for more information (goes with troubleTokenBalances)"
   },
   "hide": {
     "message": "Ocultar"
+  },
+  "hideToken": {
+    "message": "Ocultar Token"
   },
   "hideTokenPrompt": {
     "message": "Ocultar Token?"
@@ -163,6 +234,9 @@
     "message": "Importado",
     "description": "status showing that an account has been fully loaded into the keyring"
   },
+  "infoHelp": {
+    "message": "Informação & Ajuda"
+  },
   "insufficientFunds": {
     "message": "Fundos insuficientes."
   },
@@ -175,11 +249,14 @@
   "invalidAddressRecipient": {
     "message": "O endereço do destinatário é inválido "
   },
-  "invalidBlockExplorerURL": {
-    "message": "Block Explorer URI Inválido"
+  "invalidInput": {
+    "message": "Campo inválido."
   },
   "invalidRPC": {
     "message": "RPC URI Inválido"
+  },
+  "invalidBlockExplorerURL": {
+    "message": "Block Explorer URI Inválido"
   },
   "jsonFile": {
     "message": "Ficheiro JSON",
@@ -188,7 +265,11 @@
   "kovan": {
     "message": "Rede de Teste Kovan"
   },
-  "likeToImportTokens": {
+  "lessThanMax": {
+    "message": "tem de ser menor ou igual a $1.",
+    "description": "helper for inputting hex as decimal input"
+  },
+  "likeToAddTokens": {
     "message": "Gostaria de adicionar estes tokens?"
   },
   "loading": {
@@ -197,7 +278,10 @@
   "loadingTokens": {
     "message": "A carregar Tokens..."
   },
-  "lock": {
+  "login": {
+    "message": "Entrar"
+  },
+  "logout": {
     "message": "Sair"
   },
   "mainnet": {
@@ -209,11 +293,11 @@
   "metamaskDescription": {
     "message": "O MetaMask é um lugar seguro para guardar a sua identidade em em Ethereum."
   },
-  "mustSelectOne": {
-    "message": "Deve escolher no mínimo 1 token."
-  },
   "myAccounts": {
     "message": "As minhas contas"
+  },
+  "mustSelectOne": {
+    "message": "Deve escolher no mínimo 1 token."
   },
   "needEtherInWallet": {
     "message": "Para interagir com applicações descentralizadas usando MetaMask tem de ter Ether na sua carteira."
@@ -247,12 +331,18 @@
   "noAddressForName": {
     "message": "Nenhum endereço foi estabelecido para este nome."
   },
+  "noDeposits": {
+    "message": "Sem depósitos recebidos"
+  },
   "noTransactions": {
     "message": "Sem Transações"
   },
   "pastePrivateKey": {
     "message": "Cole aqui a sua chave privada:",
     "description": "For importing an account from a private key"
+  },
+  "pasteSeed": {
+    "message": "Cole aqui a sua frase seed!"
   },
   "personalAddressDetected": {
     "message": "Endereço pessoal detectado. Introduza o endereço do contrato do token."
@@ -270,26 +360,35 @@
   "privateNetwork": {
     "message": "Rede Privada"
   },
+  "qrCode": {
+    "message": "Mostrar Código QR"
+  },
   "readdToken": {
     "message": "Pode adicionar este token de novo clicando na opção “Adicionar token” no menu de opções da sua conta."
   },
-  "reject": {
-    "message": "Rejeitar"
+  "recipientAddress": {
+    "message": "Endereço do Destinatário"
   },
   "rejected": {
     "message": "Rejeitado"
   },
-  "required": {
-    "message": "Necessário"
-  },
   "resetAccount": {
     "message": "Reinicializar Conta"
+  },
+  "restoreFromSeed": {
+    "message": "Restaurar a partir da frase seed"
+  },
+  "required": {
+    "message": "Necessário"
   },
   "revealSeedWords": {
     "message": "Revelar Palavras Seed"
   },
   "revealSeedWordsWarning": {
     "message": "Não revele as palavras seed num espaço público! Estas palavras podem ser usadas para roubar todas as suas contas."
+  },
+  "revert": {
+    "message": "Reverter"
   },
   "rinkeby": {
     "message": "Rede de Teste Rinkeby"
@@ -303,14 +402,23 @@
   "search": {
     "message": "Procurar"
   },
+  "secretPhrase": {
+    "message": "Introduza a sua frase secreta de 12 palavras para recuperar o seu ."
+  },
   "seedPhraseReq": {
     "message": "seed phrases are 12 words long"
+  },
+  "selectCurrency": {
+    "message": "Selecionar Moeda"
   },
   "selectType": {
     "message": "Selecionar Tipo"
   },
   "send": {
     "message": "Enviar"
+  },
+  "sendETH": {
+    "message": "Enviar ETH"
   },
   "sendTokens": {
     "message": "Enviar Tokens"
@@ -321,16 +429,16 @@
   "showPrivateKeys": {
     "message": "Mostrar Chaves Privadas"
   },
-  "sigRequest": {
-    "message": "Pedido de Assinatura"
-  },
   "sign": {
     "message": "Assinar"
+  },
+  "signatureRequest": {
+    "message": "Pedido de Assinatura"
   },
   "signNotice": {
     "message": "Assinar esta mensagem pode ter \nefeitos laterais perigosos. Apenas assine mensagens de sites que \ntotalmente confia com a sua conta total.\n Este método perigoso será removido numa versão posterior."
   },
-  "signatureRequest": {
+  "sigRequest": {
     "message": "Pedido de Assinatura"
   },
   "stateLogs": {
@@ -339,11 +447,14 @@
   "stateLogsDescription": {
     "message": "Registo de estado podem conter o seu endereço e transações enviadas da sua conta pública."
   },
+  "submit": {
+    "message": "Submeter"
+  },
   "supportCenter": {
     "message": "Visitar o nosso Centro de Suporte"
   },
   "symbolBetweenZeroTwelve": {
-    "message": "O símbolo deve ter 11 caracteres ou menos."
+    "message": "Símbolo deve conter entre 0 e 12 characters."
   },
   "terms": {
     "message": "Termos de Uso"
@@ -353,6 +464,10 @@
   },
   "to": {
     "message": "Para"
+  },
+  "toETHviaShapeShift": {
+    "message": "$1 para ETH via ShapeShift",
+    "description": "system will fill in deposit type in start of message"
   },
   "tokenAlreadyAdded": {
     "message": "Token já foi adicionado."
@@ -373,14 +488,14 @@
   "unknownNetwork": {
     "message": "Rede Privada Desconhecida"
   },
-  "unlock": {
-    "message": "Entrar"
-  },
   "urlErrorMsg": {
     "message": "Links requerem o prefixo HTTP/HTTPS apropriado."
   },
   "usedByClients": {
     "message": "Utilizado por vários tipos de clientes"
+  },
+  "validFileImport": {
+    "message": "Deve selecionar um ficheiro válido para importar."
   },
   "viewAccount": {
     "message": "Ver Conta"
@@ -390,6 +505,9 @@
   },
   "welcome": {
     "message": "Bem-vindo ao MetaMask"
+  },
+  "yourSigRequested": {
+    "message": "A sua assinatura está a ser pedida"
   },
   "youSign": {
     "message": "Está a assinar"

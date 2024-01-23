@@ -1,8 +1,11 @@
+
+// TODO:plugins:launch remove this
+console.warn('MetaMask: You are using the experimental plugin version of MetaMask.')
+
 // need to make sure we aren't affected by overlapping namespaces
 // and that we dont affect the app with our namespace
 // mostly a fix for web3's BigNumber if AMD's "define" is defined...
-
-let __define;
+let __define
 
 /**
  * Caches reference to global define object and deletes it to
@@ -10,64 +13,56 @@ let __define;
  * AMD's define function
  */
 const cleanContextForImports = () => {
-  __define = global.define;
+  __define = global.define
   try {
-    global.define = undefined;
+    global.define = undefined
   } catch (_) {
-    console.warn('MetaMask - global.define could not be deleted.');
+    console.warn('MetaMask - global.define could not be deleted.')
   }
-};
+}
 
 /**
  * Restores global define object from cached reference
  */
 const restoreContextAfterImports = () => {
   try {
-    global.define = __define;
+    global.define = __define
   } catch (_) {
-    console.warn('MetaMask - global.define could not be overwritten.');
+    console.warn('MetaMask - global.define could not be overwritten.')
   }
-};
+}
 
-cleanContextForImports();
+cleanContextForImports()
+const log = require('loglevel')
+const LocalMessageDuplexStream = require('post-message-stream')
+const MetamaskInpageProvider = require('metamask-inpage-provider')
 
-/* eslint-disable import/first */
-import log from 'loglevel';
-import { v4 as uuid } from 'uuid';
-import { WindowPostMessageStream } from '@metamask/post-message-stream';
-import { initializeProvider } from '@metamask/providers/dist/initializeInpageProvider';
-import shouldInjectProvider from '../../shared/modules/provider-injection';
-import { METAMASK_CTX } from './context';
-import { logPostMessages } from './lib/stream-logger';
+restoreContextAfterImports()
 
-restoreContextAfterImports();
-
-log.setDefaultLevel(process.env.METAMASK_DEBUG ? 'debug' : 'warn');
+log.setDefaultLevel(process.env.METAMASK_DEBUG ? 'debug' : 'warn')
 
 //
 // setup plugin communication
 //
 
-if (shouldInjectProvider()) {
-  // setup background connection
-  const metamaskStream = new WindowPostMessageStream({
-    name: METAMASK_CTX.INPAGE,
-    target: METAMASK_CTX.CONTENTSCRIPT,
-  });
+// setup background connection
+const metamaskStream = new LocalMessageDuplexStream({
+  name: 'inpage',
+  target: 'contentscript',
+})
 
-  metamaskStream._setLogger(
-    logPostMessages(METAMASK_CTX.INPAGE, METAMASK_CTX.CONTENTSCRIPT),
-  );
+// compose the inpage provider
+const inpageProvider = new MetamaskInpageProvider(metamaskStream)
 
-  initializeProvider({
-    connectionStream: metamaskStream,
-    logger: log,
-    shouldShimWeb3: true,
-    providerInfo: {
-      uuid: uuid(),
-      name: process.env.METAMASK_BUILD_NAME,
-      icon: process.env.METAMASK_BUILD_ICON,
-      rdns: process.env.METAMASK_BUILD_APP_ID,
-    },
-  });
-}
+// set a high max listener count to avoid unnecesary warnings
+inpageProvider.setMaxListeners(100)
+
+// Work around for web3@1.0 deleting the bound `sendAsync` but not the unbound
+// `sendAsync` method on the prototype, causing `this` reference issues
+const proxiedInpageProvider = new Proxy(inpageProvider, {
+  // straight up lie that we deleted the property so that it doesnt
+  // throw an error in strict mode
+  deleteProperty: () => true,
+})
+
+window.ethereum = proxiedInpageProvider

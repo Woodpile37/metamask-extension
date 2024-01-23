@@ -1,33 +1,30 @@
-import { cloneDeep } from 'lodash';
+const version = 4
 
-const version = 4;
+const clone = require('clone')
 
-export default {
+module.exports = {
   version,
 
-  migrate(versionedData) {
-    const safeVersionedData = cloneDeep(versionedData);
-    safeVersionedData.meta.version = version;
+  migrate: function (versionedData) {
+    const safeVersionedData = clone(versionedData)
+    safeVersionedData.meta.version = version
     try {
       if (safeVersionedData.data.config.provider.type !== 'rpc') {
-        return Promise.resolve(safeVersionedData);
+        return Promise.resolve(safeVersionedData)
       }
       switch (safeVersionedData.data.config.provider.rpcTarget) {
         case 'https://testrpc.metamask.io/':
           safeVersionedData.data.config.provider = {
             type: 'testnet',
-          };
-          break;
+          }
+          break
         case 'https://rpc.metamask.io/':
           safeVersionedData.data.config.provider = {
             type: 'mainnet',
-          };
-          break;
-        // No default
+          }
+          break
       }
-    } catch (_) {
-      // empty
-    }
-    return Promise.resolve(safeVersionedData);
+    } catch (_) {}
+    return Promise.resolve(safeVersionedData)
   },
-};
+}

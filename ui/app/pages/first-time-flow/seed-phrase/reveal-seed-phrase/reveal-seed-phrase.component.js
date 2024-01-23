@@ -30,18 +30,7 @@ export default class RevealSeedPhrase extends PureComponent {
   }
 
   handleExport = () => {
-    this.context.trackEvent({
-      event: 'Onboarding Completed',
-      category: 'Onboarding',
-      isOptIn: true,
-      properties: {
-        backed_up_seed_phrase: true,
-      },
-      breadcrumb: {
-        id: 'onboarding-completed',
-      },
-    })
-    exportAsFile('', this.props.seedPhrase, 'text/plain')
+    exportAsFile('MetaMask Secret Backup Phrase', this.props.seedPhrase, 'text/plain')
   }
 
   handleNext = () => {
@@ -74,21 +63,6 @@ export default class RevealSeedPhrase extends PureComponent {
       },
     })
 
-    // This is a final crumb in the trail because the user will go straight to the default route after
-    // this event is tracked.
-    this.context.trackEvent({
-      event: 'Onboarding Completed',
-      category: 'Onboarding',
-      isOptIn: true,
-      properties: {
-        backed_up_seed_phrase: false,
-      },
-      breadcrumb: {
-        id: 'onboarding-completed',
-        isComplete: true,
-      },
-    })
-
     await Promise.all([setCompletedOnboarding(), setSeedPhraseBackedUp(false)])
 
     if (onboardingInitiator) {
@@ -104,13 +78,10 @@ export default class RevealSeedPhrase extends PureComponent {
 
     return (
       <div className="reveal-seed-phrase__secret">
-        <div
-          className={classnames(
-            'reveal-seed-phrase__secret-words notranslate', {
-              'reveal-seed-phrase__secret-words--hidden': !isShowingSeedPhrase,
-            },
-          )}
-        >
+        <div className={classnames(
+          'reveal-seed-phrase__secret-words notranslate',
+          { 'reveal-seed-phrase__secret-words--hidden': !isShowingSeedPhrase }
+        )}>
           { seedPhrase }
         </div>
         {
@@ -118,17 +89,6 @@ export default class RevealSeedPhrase extends PureComponent {
             <div
               className="reveal-seed-phrase__secret-blocker"
               onClick={() => {
-                this.context.trackEvent({
-                  event: 'Onboarding Completed',
-                  category: 'Onboarding',
-                  isOptIn: true,
-                  properties: {
-                    backed_up_seed_phrase: true,
-                  },
-                  breadcrumb: {
-                    id: 'onboarding-completed',
-                  },
-                })
                 this.context.metricsEvent({
                   eventOpts: {
                     category: 'Onboarding',
@@ -190,8 +150,7 @@ export default class RevealSeedPhrase extends PureComponent {
             <div className="first-time-flow__text-block">
               <a
                 className="reveal-seed-phrase__export-text"
-                onClick={this.handleExport}
-              >
+                onClick={this.handleExport}>
                 { t('downloadSecretBackup') }
               </a>
             </div>
@@ -216,11 +175,9 @@ export default class RevealSeedPhrase extends PureComponent {
         </div>
         {
           onboardingInitiator ?
-            (
-              <Snackbar
-                content={t('onboardingReturnNotice', [t('remindMeLater'), onboardingInitiator.location])}
-              />
-            ) :
+            <Snackbar
+              content={t('onboardingReturnNotice', [t('remindMeLater'), onboardingInitiator.location])}
+            /> :
             null
         }
       </div>

@@ -1,5 +1,14 @@
 {
-  "QRHardwareSignRequestCancel": {
+  "permissionsSettings": {
+    "message": "Goedkeuringsgegevens"
+  },
+  "permissionsDescription": {
+    "message": "Goedgekeurde websitegegevens wissen zodat alle sites opnieuw goedkeuring moeten aanvragen."
+  },
+  "clearPermissions": {
+    "message": "Gegevens over goedkeuring wissen"
+  },
+  "reject": {
     "message": "Afwijzen"
   },
   "accountDetails": {
@@ -11,6 +20,9 @@
   "addToken": {
     "message": "Voeg token toe"
   },
+  "addTokens": {
+    "message": "Tokens toevoegen"
+  },
   "amount": {
     "message": "Bedrag"
   },
@@ -21,14 +33,6 @@
   "appName": {
     "message": "MetaMask",
     "description": "The name of the application"
-  },
-  "appNameBeta": {
-    "message": "MetaMask Beta",
-    "description": "The name of the application (Beta)"
-  },
-  "appNameFlask": {
-    "message": "MetaMask Flask",
-    "description": "The name of the application (Flask)"
   },
   "approve": {
     "message": "Goedkeuren"
@@ -45,6 +49,25 @@
   "balance": {
     "message": "Balans:"
   },
+  "balanceIsInsufficientGas": {
+    "message": "Onvoldoende saldo voor huidig ​​gastotaal"
+  },
+  "betweenMinAndMax": {
+    "message": "moet groter zijn dan of gelijk zijn aan $1 en kleiner dan of gelijk aan $2.",
+    "description": "helper for inputting hex as decimal input"
+  },
+  "blockiesIdenticon": {
+    "message": "Gebruik Blockies Identicon"
+  },
+  "builtInCalifornia": {
+    "message": "MetaMask is ontworpen en gebouwd in Californië."
+  },
+  "buyCoinSwitch": {
+    "message": "Koop op CoinSwitch"
+  },
+  "buyCoinSwitchExplainer": {
+    "message": "CoinSwitch is de one-stop-bestemming om meer dan 300 cryptocurrencies tegen de beste prijs in te wisselen."
+  },
   "cancel": {
     "message": "Annuleer"
   },
@@ -54,17 +77,32 @@
   "confirmPassword": {
     "message": "bevestig wachtwoord"
   },
+  "continueToCoinSwitch": {
+    "message": "Ga verder naar CoinSwitch"
+  },
   "contractDeployment": {
     "message": "Contractimplementatie"
   },
-  "copiedExclamation": {
-    "message": "Gekopieerd!"
+  "conversionProgress": {
+    "message": "Bezig met conversie"
   },
-  "copyPrivateKey": {
-    "message": "Dit is uw privésleutel (klik om te kopiëren)"
+  "copiedButton": {
+    "message": "gekopieerde"
+  },
+  "copiedExclamation": {
+    "message": "Gekopieerde!"
+  },
+  "copy": {
+    "message": "Kopiëren"
   },
   "copyToClipboard": {
     "message": "Kopieer naar klembord"
+  },
+  "copyButton": {
+    "message": " Kopiëren "
+  },
+  "copyPrivateKey": {
+    "message": "Dit is uw privésleutel (klik om te kopiëren)"
   },
   "create": {
     "message": "creëren"
@@ -75,11 +113,29 @@
   "customGas": {
     "message": "Pas Gas aan"
   },
-  "decimal": {
-    "message": "Decimalen van precisie"
+  "customRPC": {
+    "message": "Aangepaste RPC"
   },
   "decimalsMustZerotoTen": {
     "message": "Decimalen moeten minimaal 0 en niet meer dan 36 zijn."
+  },
+  "decimal": {
+    "message": "Decimalen van precisie"
+  },
+  "defaultNetwork": {
+    "message": "Het standaardnetwerk voor Ether-transacties is Main Net."
+  },
+  "deposit": {
+    "message": "Storting"
+  },
+  "depositEther": {
+    "message": "Stort Ether"
+  },
+  "directDepositEther": {
+    "message": "Directe Ether storten"
+  },
+  "directDepositEtherExplainer": {
+    "message": "Als je al wat Ether hebt, de snelste manier om Ether in je nieuwe portemonnee te krijgen door een directe storting."
   },
   "done": {
     "message": "Gedaan"
@@ -89,6 +145,9 @@
   },
   "edit": {
     "message": "Bewerk"
+  },
+  "emailUs": {
+    "message": "Email ons!"
   },
   "enterPassword": {
     "message": "Voer wachtwoord in"
@@ -113,14 +172,23 @@
   "from": {
     "message": "Van"
   },
+  "fromShapeShift": {
+    "message": "Van ShapeShift"
+  },
   "gasLimit": {
     "message": "Gaslimiet"
+  },
+  "gasLimitCalculation": {
+    "message": "We berekenen de voorgestelde gaslimiet op basis van succespercentages van het netwerk."
   },
   "gasLimitTooLow": {
     "message": "De gaslimiet moet minstens 21000 zijn"
   },
   "gasPrice": {
     "message": "Gasprijs (GWEI)"
+  },
+  "gasPriceCalculation": {
+    "message": "We berekenen de voorgestelde gasprijzen op basis van succespercentages van het netwerk."
   },
   "getEther": {
     "message": "Krijg Ether"
@@ -129,12 +197,19 @@
     "message": "Haal Ether uit een kraan voor de $1",
     "description": "Displays network name for Ether faucet"
   },
+  "greaterThanMin": {
+    "message": "moet groter zijn dan of gelijk zijn aan $1.",
+    "description": "helper for inputting hex as decimal input"
+  },
   "here": {
     "message": "hier",
     "description": "as in -click here- for more information (goes with troubleTokenBalances)"
   },
   "hide": {
     "message": "Verbergen"
+  },
+  "hideToken": {
+    "message": "Token verbergen"
   },
   "hideTokenPrompt": {
     "message": "Token verbergen?"
@@ -150,8 +225,11 @@
     "message": " Geïmporteerde accounts worden niet gekoppeld aan de seedphrase van uw oorspronkelijk gemaakte MetaMask-account. Meer informatie over geïmporteerde accounts"
   },
   "imported": {
-    "message": "geïmporteerd",
+    "message": "geïmporteerde",
     "description": "status showing that an account has been fully loaded into the keyring"
+  },
+  "infoHelp": {
+    "message": "Info en hulp"
   },
   "insufficientFunds": {
     "message": "Onvoldoende fondsen."
@@ -165,11 +243,14 @@
   "invalidAddressRecipient": {
     "message": "Het adres van de ontvanger is ongeldig"
   },
-  "invalidBlockExplorerURL": {
-    "message": "Ongeldige Block Explorer URI"
+  "invalidInput": {
+    "message": "Ongeldige invoer."
   },
   "invalidRPC": {
     "message": "Ongeldige RPC-URI"
+  },
+  "invalidBlockExplorerURL": {
+    "message": "Ongeldige Block Explorer URI"
   },
   "jsonFile": {
     "message": "JSON-bestand",
@@ -178,7 +259,11 @@
   "kovan": {
     "message": "Kovan-testnetwerk"
   },
-  "likeToImportTokens": {
+  "lessThanMax": {
+    "message": "moet kleiner zijn dan of gelijk zijn aan $1.",
+    "description": "helper for inputting hex as decimal input"
+  },
+  "likeToAddTokens": {
     "message": "Wil je deze tokens toevoegen?"
   },
   "loading": {
@@ -187,11 +272,14 @@
   "loadingTokens": {
     "message": "Tokens laden ..."
   },
-  "lock": {
+  "login": {
+    "message": "Log in"
+  },
+  "logout": {
     "message": "Uitloggen"
   },
   "mainnet": {
-    "message": "Mainnetwerk"
+    "message": "Main Netwerk"
   },
   "message": {
     "message": "Bericht"
@@ -199,11 +287,14 @@
   "metamaskDescription": {
     "message": "MetaMask is een veilige identiteitskluis voor Ethereum."
   },
+  "myAccounts": {
+    "message": "Mijn accounts"
+  },
   "mustSelectOne": {
     "message": "Moet ten minste één token selecteren."
   },
-  "myAccounts": {
-    "message": "Mijn accounts"
+  "needEtherInWallet": {
+    "message": "Om te communiceren met gedecentraliseerde applicaties met MetaMask, heb je Ether nodig in je portemonnee."
   },
   "needImportFile": {
     "message": "U moet een bestand selecteren om te importeren.",
@@ -230,12 +321,18 @@
   "noAddressForName": {
     "message": "Er is geen adres ingesteld voor deze naam."
   },
+  "noDeposits": {
+    "message": "Geen aanbetalingen ontvangen"
+  },
   "noTransactions": {
     "message": "Geen transacties"
   },
   "pastePrivateKey": {
     "message": "Plak hier uw privésleutelstring:",
     "description": "For importing an account from a private key"
+  },
+  "pasteSeed": {
+    "message": "Plak je back-up woorden hier!"
   },
   "personalAddressDetected": {
     "message": "Persoonlijk adres gedetecteerd. Voer het tokencontractadres in."
@@ -253,23 +350,35 @@
   "privateNetwork": {
     "message": "Prive netwerk"
   },
+  "qrCode": {
+    "message": "QR-code weergeven"
+  },
   "readdToken": {
     "message": "U kunt dit token in de toekomst weer toevoegen door naar \"Token toevoegen\" te gaan in het menu met accountopties."
   },
-  "reject": {
-    "message": "Afwijzen"
+  "recipientAddress": {
+    "message": "Geadresseerde adres"
   },
   "rejected": {
     "message": "Verworpen"
   },
-  "required": {
-    "message": "Verplicht"
-  },
   "resetAccount": {
     "message": "Account opnieuw instellen"
   },
+  "restoreFromSeed": {
+    "message": "Herstel vanuit back-up woorden"
+  },
+  "required": {
+    "message": "Verplicht"
+  },
   "revealSeedWords": {
     "message": "Onthul back-up woorden"
+  },
+  "revealSeedWordsWarning": {
+    "message": "Zorg dat je back-up woorden niet op een openbare plaats bekijkt! Deze woorden kunnen worden gebruikt om al uw accounts opnieuw te genereren (en dus uw account te stelen)."
+  },
+  "revert": {
+    "message": "terugkeren"
   },
   "rinkeby": {
     "message": "Rinkeby testnetwerk"
@@ -283,14 +392,23 @@
   "search": {
     "message": "Zoeken"
   },
+  "secretPhrase": {
+    "message": "Voer hier je geheime twaalfwoordfrase in om je kluis te herstellen."
+  },
   "seedPhraseReq": {
     "message": "Back-up woorden zijn 12 woorden lang"
+  },
+  "selectCurrency": {
+    "message": "selecteer valuta"
   },
   "selectType": {
     "message": "Selecteer type"
   },
   "send": {
     "message": "Sturen"
+  },
+  "sendETH": {
+    "message": "Verzend ETH"
   },
   "sendTokens": {
     "message": "Stuur tokens"
@@ -301,16 +419,16 @@
   "showPrivateKeys": {
     "message": "Privésleutels weergeven"
   },
-  "sigRequest": {
-    "message": "Ondertekeningsverzoek"
-  },
   "sign": {
     "message": "Teken"
+  },
+  "signatureRequest": {
+    "message": "Ondertekeningsverzoek"
   },
   "signNotice": {
     "message": "Het ondertekenen van dit bericht kan hebben \ngevaarlijke bijwerkingen. Meld alleen berichten van \nsites die u volledig vertrouwt met uw volledige account.\n Deze gevaarlijke methode wordt in een toekomstige versie verwijderd."
   },
-  "signatureRequest": {
+  "sigRequest": {
     "message": "Ondertekeningsverzoek"
   },
   "stateLogs": {
@@ -319,11 +437,14 @@
   "stateLogsDescription": {
     "message": "Staatslogboeken bevatten uw openbare accountadressen en verzonden transacties."
   },
+  "submit": {
+    "message": "voorleggen"
+  },
   "supportCenter": {
     "message": "Bezoek ons ​​ondersteuningscentrum"
   },
   "symbolBetweenZeroTwelve": {
-    "message": "Symbool moet 11 tekens of minder zijn."
+    "message": "Het symbool moet tussen 0 en 12 tekens lang zijn."
   },
   "terms": {
     "message": "Gebruiksvoorwaarden"
@@ -333,6 +454,10 @@
   },
   "to": {
     "message": "Naar"
+  },
+  "toETHviaShapeShift": {
+    "message": "$1 tot ETH via ShapeShift",
+    "description": "system will fill in deposit type in start of message"
   },
   "tokenAlreadyAdded": {
     "message": "Token is al toegevoegd."
@@ -353,14 +478,14 @@
   "unknownNetwork": {
     "message": "Onbekend privénetwerk"
   },
-  "unlock": {
-    "message": "Log in"
-  },
   "urlErrorMsg": {
     "message": "Voor URI's is het juiste HTTP / HTTPS-voorvoegsel vereist."
   },
   "usedByClients": {
     "message": "Gebruikt door verschillende klanten"
+  },
+  "validFileImport": {
+    "message": "U moet een geldig bestand selecteren om te importeren."
   },
   "viewAccount": {
     "message": "Bekijk account"
@@ -370,6 +495,9 @@
   },
   "welcome": {
     "message": "Welkom bij MetaMask"
+  },
+  "yourSigRequested": {
+    "message": "Uw handtekening wordt aangevraagd"
   },
   "youSign": {
     "message": "U ondertekent"

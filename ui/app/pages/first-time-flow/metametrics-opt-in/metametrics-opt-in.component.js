@@ -13,16 +13,16 @@ export default class MetaMetricsOptIn extends Component {
   }
 
   static contextTypes = {
-    trackEvent: PropTypes.func,
-    t: PropTypes.func,
+    metricsEvent: PropTypes.func,
   }
 
   render () {
-    const { trackEvent, t } = this.context
+    const { metricsEvent } = this.context
     const {
       nextRoute,
       history,
       setParticipateInMetaMetrics,
+      firstTimeSelectionMetaMetricsName,
       participateInMetaMetrics,
     } = this.props
 
@@ -33,71 +33,51 @@ export default class MetaMetricsOptIn extends Component {
           <div className="metametrics-opt-in__body-graphic">
             <img src="images/metrics-chart.svg" />
           </div>
-          <div className="metametrics-opt-in__title">{t('metametricsHelpImproveMetaMask')}</div>
+          <div className="metametrics-opt-in__title">Help Us Improve MetaMask</div>
           <div className="metametrics-opt-in__body">
             <div className="metametrics-opt-in__description">
-              {t('metametricsOptInDescription')}
+             MetaMask would like to gather usage data to better understand how our users interact with the extension. This data
+             will be used to continually improve the usability and user experience of our product and the Ethereum ecosystem.
             </div>
             <div className="metametrics-opt-in__description">
-              {t('metametricsCommitmentsIntro')}
+             MetaMask will..
             </div>
 
             <div className="metametrics-opt-in__committments">
               <div className="metametrics-opt-in__row">
                 <i className="fa fa-check" />
                 <div className="metametrics-opt-in__row-description">
-                  {t('metametricsCommitmentsAllowOptOut')}
+                  Always allow you to opt-out via Settings
                 </div>
               </div>
               <div className="metametrics-opt-in__row">
                 <i className="fa fa-check" />
                 <div className="metametrics-opt-in__row-description">
-                  {t('metametricsCommitmentsSendAnonymizedEvents')}
+                  Send anonymized click & pageview events
+                </div>
+              </div>
+              <div className="metametrics-opt-in__row">
+                <i className="fa fa-check" />
+                <div className="metametrics-opt-in__row-description">
+                  Maintain a public aggregate dashboard to educate the community
                 </div>
               </div>
               <div className="metametrics-opt-in__row metametrics-opt-in__break-row">
                 <i className="fa fa-times" />
                 <div className="metametrics-opt-in__row-description">
-                  {
-                    t(
-                      'metametricsCommitmentsNeverCollectKeysEtc',
-                      [(
-                        <span className="metametrics-opt-in__bold" key="neverCollectKeys">
-                          {t('metametricsCommitmentsBoldNever')}
-                        </span>
-                      )],
-                    )
-                  }
+                  <span className="metametrics-opt-in__bold">Never</span> collect keys, addresses, transactions, balances, hashes, or any personal information
                 </div>
               </div>
               <div className="metametrics-opt-in__row">
                 <i className="fa fa-times" />
                 <div className="metametrics-opt-in__row-description">
-                  {
-                    t(
-                      'metametricsCommitmentsNeverCollectIP',
-                      [(
-                        <span className="metametrics-opt-in__bold" key="neverCollectKeys">
-                          {t('metametricsCommitmentsBoldNever')}
-                        </span>
-                      )],
-                    )
-                  }
+                  <span className="metametrics-opt-in__bold">Never</span> collect your full IP address
                 </div>
               </div>
               <div className="metametrics-opt-in__row">
                 <i className="fa fa-times" />
                 <div className="metametrics-opt-in__row-description">
-                  {
-                    t(
-                      'metametricsCommitmentsNeverSellDataForProfit',
-                      [(
-                        <span className="metametrics-opt-in__bold" key="neverCollectKeys">
-                          {t('metametricsCommitmentsBoldNever')}
-                        </span>
-                      )],
-                    )
-                  }
+                  <span className="metametrics-opt-in__bold">Never</span> sell data for profit. Ever!
                 </div>
               </div>
             </div>
@@ -107,57 +87,68 @@ export default class MetaMetricsOptIn extends Component {
               onCancel={() => {
                 setParticipateInMetaMetrics(false)
                   .then(() => {
-                    trackEvent({
-                      category: 'Onboarding',
-                      event: 'Onboarding Completed',
-                      isOptIn: true,
-                      breadcrumb: {
-                        id: 'onboarding-completed',
-                        isComplete: false,
-                      },
-                      properties: {
-                        metrics_option: 'Opt-out',
-                      },
-                    }).then(() => {
-                      history.push(nextRoute)
-                    })
+                    const promise = participateInMetaMetrics !== false
+                      ? metricsEvent({
+                        eventOpts: {
+                          category: 'Onboarding',
+                          action: 'Metrics Option',
+                          name: 'Metrics Opt Out',
+                        },
+                        isOptIn: true,
+                      })
+                      : Promise.resolve()
+
+                    promise
+                      .then(() => {
+                        history.push(nextRoute)
+                      })
                   })
               }}
-              cancelText={t('noThanks')}
+              cancelText="No Thanks"
               hideCancel={false}
               onSubmit={() => {
                 setParticipateInMetaMetrics(true)
-                  .then(() => {
-                    trackEvent({
-                      category: 'Onboarding',
-                      event: 'Onboarding Completed',
-                      isOptIn: true,
-                      breadcrumb: {
-                        id: 'onboarding-completed',
-                        isComplete: false,
-                      },
-                      properties: {
-                        metrics_option: 'Opt-in',
-                      },
-                    }).then(() => {
-                      history.push(nextRoute)
-                    })
+                  .then(([_, metaMetricsId]) => {
+                    const promise = participateInMetaMetrics !== true
+                      ? metricsEvent({
+                        eventOpts: {
+                          category: 'Onboarding',
+                          action: 'Metrics Option',
+                          name: 'Metrics Opt In',
+                        },
+                        isOptIn: true,
+                      })
+                      : Promise.resolve()
+
+                    promise
+                      .then(() => {
+                        return metricsEvent({
+                          eventOpts: {
+                            category: 'Onboarding',
+                            action: 'Import or Create',
+                            name: firstTimeSelectionMetaMetricsName,
+                          },
+                          isOptIn: true,
+                          metaMetricsId,
+                        })
+                      })
+                      .then(() => {
+                        history.push(nextRoute)
+                      })
                   })
               }}
-              submitText={t('affirmAgree')}
+              submitText="I agree"
               submitButtonType="primary"
               disabled={false}
             />
             <div className="metametrics-opt-in__bottom-text">
-              { t('gdprMessage', [
-                <a
-                  key="metametrics-bottom-text-wrapper"
-                  href="https://metamask.io/privacy.html"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >{ t('gdprMessagePrivacyPolicy') }
-                </a>])
-              }
+              This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679. For more information in relation to our privacy practices, please see our <a
+                href="https://metamask.io/privacy.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Privacy Policy here
+              </a>.
             </div>
           </div>
         </div>

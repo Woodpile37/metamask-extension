@@ -1,4 +1,16 @@
 {
+  "chartOnlyAvailableEth": {
+    "message": "Диаграмата е достъпна само в мрежи на Ethereum."
+  },
+  "contractInteraction": {
+    "message": "Взаимодействие с договор"
+  },
+  "clearPermissions": {
+    "message": "Изчистване на данните за поверителност"
+  },
+  "reject": {
+    "message": "Отхвърляне"
+  },
   "about": {
     "message": "Информация"
   },
@@ -29,20 +41,20 @@
   "activityLog": {
     "message": "Дневник на дейността"
   },
-  "addAcquiredTokens": {
-    "message": "Добавете жетоните, които сте придобили с помощта на MetaMask"
-  },
-  "addAlias": {
-    "message": "Добавете псевдоним"
-  },
   "addNetwork": {
     "message": "Добавяне на мрежа"
   },
   "addRecipient": {
     "message": "Добавете получател"
   },
-  "addSuggestedTokens": {
-    "message": "Добавете препоръчани жетони"
+  "advanced": {
+    "message": "Разширени"
+  },
+  "advancedSettingsDescription": {
+    "message": "Достъп до функции за разработчици, изтегляйте дневници, нулиране на акаунта, тестови мрежи за настройка и персонализиран RPC"
+  },
+  "advancedOptions": {
+    "message": "Разширени опции"
   },
   "addToAddressBook": {
     "message": "Добавяне към адресната книга"
@@ -50,20 +62,20 @@
   "addToAddressBookModalPlaceholder": {
     "message": "напр. Джон Д."
   },
+  "addAlias": {
+    "message": "Добавете псевдоним"
+  },
   "addToken": {
     "message": "Добавяне на жетон"
   },
   "addTokens": {
     "message": "Добавяне на жетони"
   },
-  "advanced": {
-    "message": "Разширени"
+  "addSuggestedTokens": {
+    "message": "Добавете препоръчани жетони"
   },
-  "advancedOptions": {
-    "message": "Разширени опции"
-  },
-  "advancedSettingsDescription": {
-    "message": "Достъп до функции за разработчици, изтегляйте дневници, нулиране на акаунта, тестови мрежи за настройка и персонализиран RPC"
+  "addAcquiredTokens": {
+    "message": "Добавете жетоните, които сте придобили с помощта на MetaMask"
   },
   "amount": {
     "message": "Сума"
@@ -85,22 +97,22 @@
   "asset": {
     "message": "Актив"
   },
+  "attemptingConnect": {
+    "message": "Опит за свързване с blockchain."
+  },
   "attemptToCancel": {
     "message": "Опит за отказ?"
   },
   "attemptToCancelDescription": {
     "message": "Подаването на този опит не гарантира, че първоначалната транзакция ще бъде анулирана. Ако опитът за анулиране е успешен, ще ви бъде начислена таксата за транзакцията по-горе."
   },
-  "attemptingConnect": {
-    "message": "Опит за свързване с blockchain."
-  },
   "attributions": {
     "message": "Функции"
   },
-  "autoLockTimeLimit": {
+  "autoLogoutTimeLimit": {
     "message": "Таймер за автоматично излизане (минути)"
   },
-  "autoLockTimeLimitDescription": {
+  "autoLogoutTimeLimitDescription": {
     "message": "Задайте времето на неактивност в минути, преди MetaMask автоматично да Ви отпише от акаунта"
   },
   "average": {
@@ -112,11 +124,11 @@
   "backToAll": {
     "message": "Назад към всички"
   },
-  "backupApprovalInfo": {
-    "message": "Този секретен код е необходим за възстановяване на портфейла ви, в случай че загубите устройството си, забравите паролата си, трябва да инсталирате отново MetaMask или искате да получите достъп до портфейла си на друго устройство."
-  },
   "backupApprovalNotice": {
     "message": "Раправете резервно копие на вашия Secret Recovery код, за да запазите портфейла и средствата си."
+  },
+  "backupApprovalInfo": {
+    "message": "Този секретен код е необходим за възстановяване на портфейла ви, в случай че загубите устройството си, забравите паролата си, трябва да инсталирате отново MetaMask или искате да получите достъп до портфейла си на друго устройство."
   },
   "backupNow": {
     "message": "Архивиране сега"
@@ -127,8 +139,15 @@
   "balanceOutdated": {
     "message": "Балансът може да е остарял"
   },
+  "balanceIsInsufficientGas": {
+    "message": "Недостатъчен баланс за текущия общ газ"
+  },
   "basic": {
     "message": "Основни"
+  },
+  "betweenMinAndMax": {
+    "message": "трябва да бъде по-голям или равен на $1 и по-малък или равен на $2.",
+    "description": "helper for inputting hex as decimal input"
   },
   "blockExplorerUrl": {
     "message": "Блокиране на Explorer"
@@ -152,11 +171,32 @@
   "buyWithWyreDescription": {
     "message": "Wyre ви позволява да използвате кредитна карта, за да депозирате ETH право във вашата MetaMask сметка."
   },
+  "buyCoinSwitch": {
+    "message": "Купете на CoinSwitch"
+  },
+  "buyCoinSwitchExplainer": {
+    "message": "CoinSwitch е дестинацията за еднократна размяна, с цел да обменя повече от 300 криптовалути с най-добър курс."
+  },
   "bytes": {
     "message": "Байта"
   },
+  "off": {
+    "message": "Изкл"
+  },
+  "ok": {
+    "message": "ОК"
+  },
+  "on": {
+    "message": "Включено"
+  },
+  "optionalBlockExplorerUrl": {
+    "message": "Блокиране на Explorer URL (по избор)"
+  },
   "cancel": {
     "message": "Отказ"
+  },
+  "cancelAttempt": {
+    "message": "Отмяна на опита"
   },
   "cancellationGasFee": {
     "message": "Такса в газ за анулиране "
@@ -167,8 +207,8 @@
   "chainId": {
     "message": "Идентификатор на веригата"
   },
-  "chromeRequiredForHardwareWallets": {
-    "message": "За да се свържете с хардуерния си портфейл, трябва да използвате MetaMask в Google Chrome."
+  "clickToAdd": {
+    "message": "Кликнете върху $1, за да ги добавите към вашия акаунт"
   },
   "clickToRevealSeed": {
     "message": "Кликнете тук, за да разкриете тайните думи"
@@ -176,8 +216,14 @@
   "close": {
     "message": "Затваряне"
   },
+  "chromeRequiredForHardwareWallets": {
+    "message": "За да се свържете с хардуерния си портфейл, трябва да използвате MetaMask в Google Chrome."
+  },
   "confirm": {
     "message": "Потвърждаване"
+  },
+  "confirmed": {
+    "message": "Потвърден"
   },
   "confirmPassword": {
     "message": "Потвърдете паролата"
@@ -185,23 +231,20 @@
   "confirmSecretBackupPhrase": {
     "message": "Потвърдете своята тайна резервна фраза"
   },
-  "confirmed": {
-    "message": "Потвърден"
-  },
   "congratulations": {
     "message": "Поздравления"
-  },
-  "connect": {
-    "message": "Свързване"
   },
   "connectHardwareWallet": {
     "message": "Свържете хардуерен портфейл"
   },
+  "connect": {
+    "message": "Свързване"
+  },
+  "permissionsRequest": {
+    "message": "Свържете заявка"
+  },
   "connectingTo": {
     "message": "Свързване с $1"
-  },
-  "connectingToGoerli": {
-    "message": "Свързване с тестова мрежа на Goerli"
   },
   "connectingToKovan": {
     "message": "Свързване с тестовата мрежа на Kovan"
@@ -209,47 +252,65 @@
   "connectingToMainnet": {
     "message": "Свързване с главната мрежа Ethereum"
   },
+  "connectingToRopsten": {
+    "message": "Свързване с тестова мрежа Ropsten"
+  },
   "connectingToRinkeby": {
     "message": "Свързване с тестова мрежа на Rinkeby"
   },
-  "connectingToRopsten": {
-    "message": "Свързване с тестова мрежа Ropsten"
+  "connectingToLocalhost": {
+    "message": "Свързване с Localhost 8545"
+  },
+  "connectingToGoerli": {
+    "message": "Свързване с тестова мрежа на Goerli"
   },
   "continueToWyre": {
     "message": "Продължете към Wyre"
   },
+  "continueToCoinSwitch": {
+    "message": "Продължете към CoinSwitch"
+  },
   "contractDeployment": {
     "message": "Разгръщане на договор"
   },
-  "contractInteraction": {
-    "message": "Взаимодействие с договор"
+  "conversionProgress": {
+    "message": "Извършва се конвертиране"
+  },
+  "copiedButton": {
+    "message": "Копирано"
   },
   "copiedExclamation": {
     "message": "Копирано!"
   },
-  "copiedTransactionId": {
-    "message": "Копиран идентификационен номер на транзакцията"
+  "copy": {
+    "message": "Копиране"
   },
   "copyAddress": {
     "message": "Копирайте адреса в клипборда"
   },
-  "copyPrivateKey": {
-    "message": "Това е Вашият личен ключ (кликнете, за да го копирате)"
+  "copyTransactionId": {
+    "message": "Копирайте идентификационния номер на транзакцията"
+  },
+  "copiedTransactionId": {
+    "message": "Копиран идентификационен номер на транзакцията"
   },
   "copyToClipboard": {
     "message": "Копиране в буферната памет"
   },
-  "copyTransactionId": {
-    "message": "Копирайте идентификационния номер на транзакцията"
+  "copyButton": {
+    "message": "Копиране"
+  },
+  "copyPrivateKey": {
+    "message": "Това е Вашият личен ключ (кликнете, за да го копирате)"
   },
   "create": {
     "message": "Създаване"
   },
-  "createAWallet": {
-    "message": "Създайте портфейл"
-  },
   "createAccount": {
     "message": "Създай акаунт"
+  },
+  "createAWallet": {
+    "message": "Създайте портфейл"
   },
   "createPassword": {
     "message": "Създаване на парола"
@@ -269,11 +330,14 @@
   "customToken": {
     "message": "Персонализиран маркер"
   },
-  "decimal": {
-    "message": "Точност до десетични знаци"
+  "customRPC": {
+    "message": "RPC по избор"
   },
   "decimalsMustZerotoTen": {
     "message": "Десетичните знаци трябва да бъдат най-малко 0 и не повече от 36."
+  },
+  "decimal": {
+    "message": "Точност до десетични знаци"
   },
   "defaultNetwork": {
     "message": "Мрежата по подразбиране за Ether транзакции е Main Net."
@@ -284,11 +348,8 @@
   "deleteAccount": {
     "message": "Изтриване на акаунт"
   },
-  "deleteNetwork": {
-    "message": "Да се изтрие ли мрежата?"
-  },
-  "deleteNetworkDescription": {
-    "message": "Наистина ли искате да изтриете тази мрежа?"
+  "deposit": {
+    "message": "Депозит"
   },
   "depositEther": {
     "message": "Депозирайте етер"
@@ -305,9 +366,6 @@
   "done": {
     "message": "Готово"
   },
-  "dontHaveAHardwareWallet": {
-    "message": "Нямате хардуерен портфейл?"
-  },
   "downloadGoogleChrome": {
     "message": "Изтеглете Google Chrome"
   },
@@ -316,6 +374,9 @@
   },
   "downloadStateLogs": {
     "message": "Изтеглете държавни дневници"
+  },
+  "dontHaveAHardwareWallet": {
+    "message": "Нямате хардуерен портфейл?"
   },
   "dropped": {
     "message": "Пуснат"
@@ -326,11 +387,11 @@
   "editContact": {
     "message": "Редактиране на контакт"
   },
+  "emailUs": {
+    "message": "Изпратете ни имейл!"
+  },
   "endOfFlowMessage1": {
     "message": "Преминахте теста - пазете основната си фраза на сигурно място, това е Ваша отговорност!"
-  },
-  "endOfFlowMessage10": {
-    "message": "Всичко е готово"
   },
   "endOfFlowMessage2": {
     "message": "Съвети за безопасното му съхраняване"
@@ -347,17 +408,23 @@
   "endOfFlowMessage6": {
     "message": "Ако отново трябва да архивирате основната си фраза, можете да я намерите в Настройки -> Защита."
   },
+  "endOfFlowMessage7": {
+    "message": "Ако имате въпроси или забележите нещо съмнително, изпратете имейл на support@metamask.io."
+  },
   "endOfFlowMessage8": {
     "message": "MetaMask не може да възстанови ключовата Ви фраза. Научете повече."
   },
   "endOfFlowMessage9": {
     "message": "Научете повече."
   },
-  "ensNotFoundOnCurrentNetwork": {
-    "message": "Името на ENS не е намерено в текущата мрежа. Опитайте да преминете към основната мрежа на етереум."
+  "endOfFlowMessage10": {
+    "message": "Всичко е готово"
   },
   "ensRegistrationError": {
     "message": "Грешка при регистрацията на име на ENS"
+  },
+  "ensNotFoundOnCurrentNetwork": {
+    "message": "Името на ENS не е намерено в текущата мрежа. Опитайте да преминете към основната мрежа на етереум."
   },
   "enterAnAlias": {
     "message": "Въведете псевдоним"
@@ -368,14 +435,14 @@
   "enterPasswordContinue": {
     "message": "Въведете парола, за да продължите"
   },
-  "estimatedProcessingTimes": {
-    "message": "Приблизителни времена за обработка"
-  },
   "ethereumPublicAddress": {
     "message": "Публичен адрес за етереум"
   },
   "etherscanView": {
     "message": "Преглед на акаунта в Etherscan"
+  },
+  "estimatedProcessingTimes": {
+    "message": "Приблизителни времена за обработка"
   },
   "expandView": {
     "message": "Разгъване на изглед"
@@ -389,6 +456,9 @@
   "fast": {
     "message": "Бързо"
   },
+  "faster": {
+    "message": "По-бързо"
+  },
   "fileImportFail": {
     "message": "Импортирането на файл не работи? Натиснете тук!",
     "description": "Helps user import their account from a JSON file"
@@ -399,17 +469,26 @@
   "from": {
     "message": "От"
   },
+  "fromShapeShift": {
+    "message": "От ShapeShift"
+  },
   "functionType": {
     "message": "Тип функция"
   },
   "gasLimit": {
     "message": "Ограничение на газ"
   },
-  "gasLimitInfoTooltipContent": {
+  "gasLimitCalculation": {
+    "message": "Изчисляваме препоръчителния лимит за газ въз основа на степента на успех на мрежата."
+  },
+  "gasLimitInfoModalContent": {
     "message": "Ограничението за газ е максималното количество единици газ, което сте готови да похарчите."
   },
   "gasLimitTooLow": {
     "message": "Ограничението за газ трябва да бъде поне 21000"
+  },
+  "gasUsed": {
+    "message": "Използван газ"
   },
   "gasPrice": {
     "message": "Цената на газа (GWEI)"
@@ -417,11 +496,14 @@
   "gasPriceExtremelyLow": {
     "message": "Цена на газа е изключително ниска"
   },
-  "gasPriceInfoTooltipContent": {
+  "gasPriceInfoModalContent": {
     "message": "Цената на газа определя количеството етер, което сте готови да платите за всяка единица газ."
   },
-  "gasUsed": {
-    "message": "Използван газ"
+  "gasPriceNoDenom": {
+    "message": "Цена на газа"
+  },
+  "gasPriceCalculation": {
+    "message": "Изчисляваме предложените цени на газ въз основа на успеваемостта на мрежата."
   },
   "general": {
     "message": "Общ"
@@ -442,8 +524,9 @@
   "getStarted": {
     "message": "Първи стъпки"
   },
-  "goerli": {
-    "message": "Тестова мрежа на Goerli"
+  "greaterThanMin": {
+    "message": "трябва да бъде по-голяма или равна на $1.",
+    "description": "helper for inputting hex as decimal input"
   },
   "happyToSeeYou": {
     "message": "Радваме се да Ви видим."
@@ -473,6 +556,9 @@
   "hide": {
     "message": "Скриване"
   },
+  "hideToken": {
+    "message": "Скриване на жетон"
+  },
   "hideTokenPrompt": {
     "message": "Скриване на жетон?"
   },
@@ -495,9 +581,18 @@
   "importWallet": {
     "message": "Импортиране на портфейла"
   },
+  "importYourExisting": {
+    "message": "Импортирайте съществуващия си портфейл с помощта на фраза зародиш с 12 думи"
+  },
   "imported": {
     "message": "Импортирани",
     "description": "status showing that an account has been fully loaded into the keyring"
+  },
+  "importUsingSeed": {
+    "message": "Импортиране с помощта на фразата зародиш на профила"
+  },
+  "infoHelp": {
+    "message": "Информация и помощ"
   },
   "initialTransactionConfirmed": {
     "message": "Първоначалната транзакция беше потвърдена от мрежата. Кликнете върху OK, за да се върнете обратно."
@@ -517,14 +612,20 @@
   "invalidAddressRecipient": {
     "message": "Адресът на получателя е невалиден"
   },
+  "knownAddressRecipient": {
+    "message": "Известен адрес на договора."
+  },
   "invalidAddressRecipientNotEthNetwork": {
     "message": "Не е ETH мрежа, задаване на малки букви"
   },
-  "invalidBlockExplorerURL": {
-    "message": "Невалиден Block Explorer URL адрес"
+  "invalidInput": {
+    "message": "Невалидно въвеждане."
   },
   "invalidRPC": {
     "message": "Невалиден RPC URL адрес"
+  },
+  "invalidBlockExplorerURL": {
+    "message": "Невалиден Block Explorer URL адрес"
   },
   "invalidSeedPhrase": {
     "message": "Невалидна фраза зародиш"
@@ -533,17 +634,21 @@
     "message": "JSON файл",
     "description": "format for importing an account"
   },
-  "knownAddressRecipient": {
-    "message": "Известен адрес на договора."
-  },
   "kovan": {
     "message": "Тестова мрежа на Кован"
+  },
+  "max": {
+    "message": "Макс"
   },
   "learnMore": {
     "message": "Научете повече"
   },
   "ledgerAccountRestriction": {
     "message": "Трябва да използвате последния си акаунт, преди да можете да добавите нов."
+  },
+  "lessThanMax": {
+    "message": "трябва да бъде по-малко или равно на $1.",
+    "description": "helper for inputting hex as decimal input"
   },
   "letsGoSetUp": {
     "message": "Да, нека да настроим нещата!"
@@ -554,8 +659,8 @@
   "links": {
     "message": "Връзки"
   },
-  "loadMore": {
-    "message": "Зареди повече"
+  "liveGasPricePredictions": {
+    "message": "Прогнози на живо за цената на газа"
   },
   "loading": {
     "message": "Зарежда се..."
@@ -563,23 +668,29 @@
   "loadingTokens": {
     "message": "Зареждане на жетони..."
   },
+  "loadMore": {
+    "message": "Зареди повече"
+  },
   "localhost": {
     "message": "Локален хост 8545"
   },
-  "lock": {
+  "login": {
+    "message": "Вход"
+  },
+  "logout": {
     "message": "Излизане"
   },
   "mainnet": {
     "message": "Основна мрежа на Етереум"
   },
-  "max": {
-    "message": "Макс"
+  "memorizePhrase": {
+    "message": "Запомнете тази фраза."
   },
   "memo": {
     "message": "бележка"
   },
-  "memorizePhrase": {
-    "message": "Запомнете тази фраза."
+  "menu": {
+    "message": "Меню"
   },
   "message": {
     "message": "Съобщение"
@@ -587,17 +698,29 @@
   "metamaskDescription": {
     "message": "Свързва ви с Ethereum и децентрализираната мрежа."
   },
+  "metamaskSeedWords": {
+    "message": "Думи зародиш на MetaMask"
+  },
   "metamaskVersion": {
     "message": "Версия на MetaMask"
+  },
+  "missingYourTokens": {
+    "message": "Не виждате жетоните си?"
   },
   "mobileSyncText": {
     "message": "Моля, въведете вашата парола, за да потвърдите, че сте вие!"
   },
-  "mustSelectOne": {
-    "message": "Трябва да изберете поне 1 жетон."
-  },
   "myAccounts": {
     "message": "Моите акаунти"
+  },
+  "myWalletAccounts": {
+    "message": "Моите акаунти в портфейла"
+  },
+  "myWalletAccountsDescription": {
+    "message": "Всичките ви създадени от MetaMask акаунти ще бъдат автоматично добавени в този раздел."
+  },
+  "mustSelectOne": {
+    "message": "Трябва да изберете поне 1 жетон."
   },
   "needEtherInWallet": {
     "message": "За да взаимодействате с децентрализираните приложения, използвайки MetaMask, ще ви е необходим етер в портфейла ви."
@@ -612,11 +735,11 @@
   "networkName": {
     "message": "Име на мрежата"
   },
-  "networkSettingsDescription": {
-    "message": "Добавете и редактирайте персонализирани RPC мрежи"
-  },
   "networks": {
     "message": "Mрежи"
+  },
+  "networkSettingsDescription": {
+    "message": "Добавете и редактирайте персонализирани RPC мрежи"
   },
   "nevermind": {
     "message": "Няма значение"
@@ -637,14 +760,35 @@
   "newContract": {
     "message": "Нов договор"
   },
-  "newNetwork": {
-    "message": "Нова мрежа"
-  },
   "newPassword": {
     "message": "Нова парола (мин. 8 символа)"
   },
+  "newNetwork": {
+    "message": "Нова мрежа"
+  },
   "newToMetaMask": {
     "message": "Нови ли сте в MetaMask?"
+  },
+  "noAlreadyHaveSeed": {
+    "message": "Не, вече имам фраза зародиш"
+  },
+  "protectYourKeys": {
+    "message": "Защитете ключовете си!"
+  },
+  "protectYourKeysMessage1": {
+    "message": "Внимавайте с вашата фраза - има съобщения за уебсайтове, които се опитват да имитират MetaMask. MetaMask никога няма да поиска вашата фраза-зародиш!"
+  },
+  "protectYourKeysMessage2": {
+    "message": "Пазете фразата си. Ако забележите нещо съмнително или не сте сигурни за даден уебсайт, изпратете имейл на support@metamask.io"
+  },
+  "rpcUrl": {
+    "message": "Нов URL адрес за RPC"
+  },
+  "optionalChainId": {
+    "message": "ChainID (по избор)"
+  },
+  "optionalSymbol": {
+    "message": "Символ (по избор)"
   },
   "newTotal": {
     "message": "Ново общо"
@@ -658,8 +802,8 @@
   "noAddressForName": {
     "message": "За това име не е зададен адрес."
   },
-  "noAlreadyHaveSeed": {
-    "message": "Не, вече имам фраза зародиш"
+  "noDeposits": {
+    "message": "Не са получени депозити"
   },
   "noConversionRateAvailable": {
     "message": "Няма наличен процент на преобръщане"
@@ -667,32 +811,17 @@
   "noTransactions": {
     "message": "Нямате транзакции"
   },
-  "noWebcamFound": {
-    "message": "Уеб камерата на компютърa Ви не беше намерена. Моля, опитайте отново."
+  "notEnoughGas": {
+    "message": "Няма достатъчно газ"
   },
   "noWebcamFoundTitle": {
     "message": "Уебкамерата не е намерена"
   },
-  "notEnoughGas": {
-    "message": "Няма достатъчно газ"
+  "noWebcamFound": {
+    "message": "Уеб камерата на компютърa Ви не беше намерена. Моля, опитайте отново."
   },
   "ofTextNofM": {
     "message": "на"
-  },
-  "off": {
-    "message": "Изкл"
-  },
-  "ok": {
-    "message": "ОК"
-  },
-  "on": {
-    "message": "Включено"
-  },
-  "optionalBlockExplorerUrl": {
-    "message": "Блокиране на Explorer URL (по избор)"
-  },
-  "optionalCurrencySymbol": {
-    "message": "Символ (по избор)"
   },
   "orderOneHere": {
     "message": "Поръчайте Trezor или Ledger и запазете средствата си "
@@ -712,15 +841,18 @@
   "password": {
     "message": "Парола"
   },
-  "passwordNotLongEnough": {
-    "message": "Паролата не е достатъчно дълга"
-  },
   "passwordsDontMatch": {
     "message": "Паролите не съвпадат"
+  },
+  "passwordNotLongEnough": {
+    "message": "Паролата не е достатъчно дълга"
   },
   "pastePrivateKey": {
     "message": "Поставете низ от личния си ключ тук:",
     "description": "For importing an account from a private key"
+  },
+  "pasteSeed": {
+    "message": "Поставете тук ключовата си фраза!"
   },
   "pending": {
     "message": "в изчакване"
@@ -750,14 +882,14 @@
   "privateNetwork": {
     "message": "Частна мрежа"
   },
+  "qrCode": {
+    "message": "Показване на QR кода"
+  },
   "queue": {
     "message": "Опашка"
   },
   "readdToken": {
     "message": "Можете да добавите този жетон в бъдеще, като отидете на „Добавяне на жетон“ в менюто с опции на акаунти."
-  },
-  "readyToConnect": {
-    "message": "Готови ли сте да се свържете? "
   },
   "recents": {
     "message": "Скорошни"
@@ -768,38 +900,17 @@
   "recipientAddressPlaceholder": {
     "message": "Търсене, публичен адрес (0x) или ENS"
   },
-  "reject": {
-    "message": "Отхвърляне"
-  },
   "rejectAll": {
     "message": "Отхвърлете всички"
-  },
-  "rejectTxsDescription": {
-    "message": "На път сте да отхвърлите партида от $1 транзакции."
   },
   "rejectTxsN": {
     "message": "Отхвърлете $1 транзакции"
   },
+  "rejectTxsDescription": {
+    "message": "На път сте да отхвърлите партида от $1 транзакции."
+  },
   "rejected": {
     "message": "Отказан"
-  },
-  "remindMeLater": {
-    "message": "Напомни ми по-късно"
-  },
-  "remove": {
-    "message": "Премахване"
-  },
-  "removeAccount": {
-    "message": "Премахване на профила"
-  },
-  "removeAccountDescription": {
-    "message": "Този акаунт ще бъде премахнат от портфейла ви. Моля, уверете се, че имате оригиналната фраза или частен ключ за този импортиран акаунт, преди да продължите. Можете да импортирате или създавате отново акаунти от падащото меню."
-  },
-  "requestsAwaitingAcknowledgement": {
-    "message": "искания, които чакат да бъдат потвърдени"
-  },
-  "required": {
-    "message": "Задължително"
   },
   "reset": {
     "message": "Нулиране"
@@ -810,26 +921,59 @@
   "resetAccountDescription": {
     "message": "Нулирането на вашия акаунт ще изчисти историята на транзакциите ви."
   },
-  "restore": {
-    "message": "Възстановяване"
+  "deleteNetwork": {
+    "message": "Да се изтрие ли мрежата?"
+  },
+  "deleteNetworkDescription": {
+    "message": "Наистина ли искате да изтриете тази мрежа?"
+  },
+  "remindMeLater": {
+    "message": "Напомни ми по-късно"
+  },
+  "restoreFromSeed": {
+    "message": "Да се възстанови ли акаунта?"
   },
   "restoreAccountWithSeed": {
     "message": "Възстановете акаунта си с фраза зародиш"
   },
+  "requestsAwaitingAcknowledgement": {
+    "message": "искания, които чакат да бъдат потвърдени"
+  },
+  "required": {
+    "message": "Задължително"
+  },
+  "restore": {
+    "message": "Възстановяване"
+  },
   "revealSeedWords": {
     "message": "Разкрий думите зародиш"
-  },
-  "revealSeedWordsDescription": {
-    "message": "Ако някога смените браузъра или компютъра си, тази ключова фраза ще Ви трябва за достъп до Вашите акаунти. Запазете я някъде на сигурно и тайно място."
   },
   "revealSeedWordsTitle": {
     "message": "Фраза зародиш"
   },
-  "revealSeedWordsWarning": {
-    "message": "Тези думи могат да бъдат използвани за кражба на всички ваши акаунти."
+  "revealSeedWordsDescription": {
+    "message": "Ако някога смените браузъра или компютъра си, тази ключова фраза ще Ви трябва за достъп до Вашите акаунти. Запазете я някъде на сигурно и тайно място."
   },
   "revealSeedWordsWarningTitle": {
     "message": "НЕ споделяйте тази фраза с никого!"
+  },
+  "revealSeedWordsWarning": {
+    "message": "Тези думи могат да бъдат използвани за кражба на всички ваши акаунти."
+  },
+  "revert": {
+    "message": "Обръщане"
+  },
+  "remove": {
+    "message": "Премахване"
+  },
+  "removeAccount": {
+    "message": "Премахване на профила"
+  },
+  "removeAccountDescription": {
+    "message": "Този акаунт ще бъде премахнат от портфейла ви. Моля, уверете се, че имате оригиналната фраза или частен ключ за този импортиран акаунт, преди да продължите. Можете да импортирате или създавате отново акаунти от падащото меню."
+  },
+  "readyToConnect": {
+    "message": "Готови ли сте да се свържете? "
   },
   "rinkeby": {
     "message": "Тестова мрежа на Rinkeby"
@@ -837,11 +981,17 @@
   "ropsten": {
     "message": "Тестова мрежа Ropsten"
   },
-  "rpcUrl": {
-    "message": "Нов URL адрес за RPC"
+  "goerli": {
+    "message": "Тестова мрежа на Goerli"
   },
   "save": {
     "message": "Запазване"
+  },
+  "slow": {
+    "message": "Бавно"
+  },
+  "slower": {
+    "message": "По-бавно"
   },
   "saveAsCsvFile": {
     "message": "Запазване като CSV файл"
@@ -858,9 +1008,6 @@
   "searchResults": {
     "message": "Резултати от търсенето"
   },
-  "searchTokens": {
-    "message": "Търсене на маркери"
-  },
   "secretBackupPhrase": {
     "message": "Тайна резервна фраза"
   },
@@ -869,6 +1016,9 @@
   },
   "secretBackupPhraseWarning": {
     "message": "ВНИМАНИЕ: Никога не разкривайте резервната си фраза. Всеки с тази фраза може да вземе вашия етер завинаги."
+  },
+  "secretPhrase": {
+    "message": "Въведете своята тайна фраза от дванадесет думи тук, за да възстановите портфейла си."
   },
   "securityAndPrivacy": {
     "message": "Сигурност и поверителност"
@@ -882,23 +1032,14 @@
   "seedPhraseReq": {
     "message": "Фразите зародиш се състоят от 12 думи"
   },
-  "selectAHigherGasFee": {
-    "message": "\nИзберете по-висока такса за газ, за ​​да ускорите обработката на Вашата транзакция.*"
-  },
-  "selectAnAccount": {
-    "message": "Изберете акаунт"
-  },
-  "selectAnAccountHelp": {
-    "message": "Изберете акаунта за преглед в MetaMask"
+  "selectCurrency": {
+    "message": "Изберете валута"
   },
   "selectEachPhrase": {
     "message": "Моля, изберете всяка фраза, за да се уверите, че е правилна."
   },
-  "selectHdPath": {
-    "message": "Изберете HD Path"
-  },
-  "selectPathHelp": {
-    "message": "Ако не виждате съществуващите си акаунти в Ledger по-долу, опитайте да превключите пътеки към „Legacy (MEW / MyCrypto)“"
+  "selectLocale": {
+    "message": "Изберете местоположение"
   },
   "selectType": {
     "message": "Изберете тип"
@@ -909,14 +1050,38 @@
   "sendAmount": {
     "message": "Изпратете сумата"
   },
+  "sendETH": {
+    "message": "Изпрати ETH"
+  },
   "sendTokens": {
     "message": "Изпращане на жетони"
   },
   "sentEther": {
     "message": "изпратен етер"
   },
+  "sentTokens": {
+    "message": "изпратени жетони"
+  },
   "separateEachWord": {
     "message": "Отделете всяка дума с интервал"
+  },
+  "searchTokens": {
+    "message": "Търсене на маркери"
+  },
+  "selectAnAccount": {
+    "message": "Изберете акаунт"
+  },
+  "selectAnAccountHelp": {
+    "message": "Изберете акаунта за преглед в MetaMask"
+  },
+  "selectAHigherGasFee": {
+    "message": "\nИзберете по-висока такса за газ, за ​​да ускорите обработката на Вашата транзакция.*"
+  },
+  "selectHdPath": {
+    "message": "Изберете HD Path"
+  },
+  "selectPathHelp": {
+    "message": "Ако не виждате съществуващите си акаунти в Ledger по-долу, опитайте да превключите пътеки към „Legacy (MEW / MyCrypto)“"
   },
   "settings": {
     "message": "Настройки"
@@ -933,23 +1098,17 @@
   "showFiatConversionInTestnetsDescription": {
     "message": "Изберете това, за да покажете фиат  преобразуване на Testnets"
   },
+  "showPrivateKeys": {
+    "message": "Показване на частни ключове"
+  },
   "showHexData": {
     "message": "Показване на шестнадесетични данни"
   },
   "showHexDataDescription": {
     "message": "Изберете това, за да се покаже полето с шестнадесетични данни на екрана за изпращане"
   },
-  "showPrivateKeys": {
-    "message": "Показване на частни ключове"
-  },
-  "sigRequest": {
-    "message": "Заявка за подпис"
-  },
   "sign": {
     "message": "Подпис"
-  },
-  "signNotice": {
-    "message": "Подписването на това съобщение може да има\nопасни странични ефекти. Подписвайте само съобщения от\nсайтове, на които имате пълно доверие с целия си акаунт.\nТози опасен метод ще бъде премахнат в бъдеща версия."
   },
   "signatureRequest": {
     "message": "Заявка за подпис"
@@ -957,8 +1116,11 @@
   "signed": {
     "message": "Подписан"
   },
-  "slow": {
-    "message": "Бавно"
+  "signNotice": {
+    "message": "Подписването на това съобщение може да има\nопасни странични ефекти. Подписвайте само съобщения от\nсайтове, на които имате пълно доверие с целия си акаунт.\nТози опасен метод ще бъде премахнат в бъдеща версия."
+  },
+  "sigRequest": {
+    "message": "Заявка за подпис"
   },
   "somethingWentWrong": {
     "message": "Упс! Нещо се обърка."
@@ -972,14 +1134,17 @@
   "speedUpTransaction": {
     "message": "Ускорете тази транзакция"
   },
-  "stateLogError": {
-    "message": "Грешка при извличането на дневници на състоянието."
+  "switchNetworks": {
+    "message": "Превключване на мрежи"
   },
   "stateLogs": {
     "message": "Държавни дневници"
   },
   "stateLogsDescription": {
     "message": "Държавните дневници съдържат адресите на публичните ви акаунти и изпратените транзакции."
+  },
+  "stateLogError": {
+    "message": "Грешка при извличането на дневници на състоянието."
   },
   "step1HardwareWallet": {
     "message": "1. Свържете хардуерния портфейл"
@@ -1002,29 +1167,26 @@
   "storePhrase": {
     "message": "Съхранявайте тази фраза в мениджър на пароли като 1Password."
   },
+  "submit": {
+    "message": "Изпращане"
+  },
   "submitted": {
     "message": "Изпратен"
   },
   "supportCenter": {
     "message": "Посетете нашия център за поддръжка"
   },
-  "switchNetworks": {
-    "message": "Превключване на мрежи"
-  },
   "symbol": {
     "message": "Символ"
   },
   "symbolBetweenZeroTwelve": {
-    "message": "Символът трябва да е 11 символа или по-малко."
+    "message": "Символът трябва да е между 0 и 12 знака."
   },
   "syncWithMobile": {
     "message": "Синхронизиране с мобилни устройства"
   },
-  "syncWithMobileBeCareful": {
-    "message": "Уверете се, че никой друг не гледа екрана ви, когато сканирате този код"
-  },
-  "syncWithMobileComplete": {
-    "message": "Вашите данни са синхронизирани успешно. Насладете се на мобилното приложение MetaMask!"
+  "syncWithMobileTitle": {
+    "message": "Синхронизиране с мобилни устройства"
   },
   "syncWithMobileDesc": {
     "message": "Можете да синхронизирате вашите акаунти и информация с мобилното си устройство. Отворете мобилното приложение MetaMask, отидете на „Настройки“ и докоснете „Синхронизиране от разширението на браузъра“"
@@ -1035,8 +1197,11 @@
   "syncWithMobileScanThisCode": {
     "message": "Сканирайте този код с вашето мобилно приложение MetaMask"
   },
-  "syncWithMobileTitle": {
-    "message": "Синхронизиране с мобилни устройства"
+  "syncWithMobileBeCareful": {
+    "message": "Уверете се, че никой друг не гледа екрана ви, когато сканирате този код"
+  },
+  "syncWithMobileComplete": {
+    "message": "Вашите данни са синхронизирани успешно. Насладете се на мобилното приложение MetaMask!"
   },
   "terms": {
     "message": "Условия за ползване"
@@ -1052,6 +1217,10 @@
   },
   "to": {
     "message": "На"
+  },
+  "toETHviaShapeShift": {
+    "message": "$1 до ETH чрез ShapeShift",
+    "description": "system will fill in deposit type in start of message"
   },
   "token": {
     "message": "Жетон"
@@ -1071,12 +1240,6 @@
   "transaction": {
     "message": "транзакция"
   },
-  "transactionCancelAttempted": {
-    "message": "Опит за отмяна на транзакцията с такса за газ от $1 при $2"
-  },
-  "transactionCancelSuccess": {
-    "message": "Транзакцията беше успешно отменена при $2"
-  },
   "transactionConfirmed": {
     "message": "Транзакцията беше потвърдена при $2."
   },
@@ -1086,26 +1249,35 @@
   "transactionDropped": {
     "message": "Транзакцията спадна на $2."
   },
+  "transactionSubmitted": {
+    "message": "Транзакция, изпратена с такса за газ от $1 при $2."
+  },
+  "transactionResubmitted": {
+    "message": "Повторната транзакция с такса за газ се увеличи до $1 при $2"
+  },
+  "transactionUpdated": {
+    "message": "Транзакцията е актуализирана на $2."
+  },
+  "transactionErrored": {
+    "message": "Възникна грешка в транзакцията."
+  },
+  "transactionCancelAttempted": {
+    "message": "Опит за отмяна на транзакцията с такса за газ от $1 при $2"
+  },
+  "transactionCancelSuccess": {
+    "message": "Транзакцията беше успешно отменена при $2"
+  },
   "transactionError": {
     "message": "Грешка при транзакцията. Беше върнато изключение в кода на договора."
   },
   "transactionErrorNoContract": {
     "message": "Опит за извикване на функция на извъндоговорния адрес."
   },
-  "transactionErrored": {
-    "message": "Възникна грешка в транзакцията."
-  },
   "transactionFee": {
     "message": "Такса за транзакция"
   },
-  "transactionResubmitted": {
-    "message": "Повторната транзакция с такса за газ се увеличи до $1 при $2"
-  },
-  "transactionSubmitted": {
-    "message": "Транзакция, изпратена с такса за газ от $1 при $2."
-  },
-  "transactionUpdated": {
-    "message": "Транзакцията е актуализирана на $2."
+  "transactionTime": {
+    "message": "Време на транзакция"
   },
   "transfer": {
     "message": "Трансфер"
@@ -1135,17 +1307,17 @@
   "unknown": {
     "message": "Неизвестно"
   },
-  "unknownCameraError": {
-    "message": "При опита за достъп до камерата Ви възникна грешка. Моля, опитайте отново..."
-  },
-  "unknownCameraErrorTitle": {
-    "message": "Упс! Нещо се обърка...."
-  },
   "unknownNetwork": {
     "message": "Неизвестна частна мрежа"
   },
   "unknownQrCode": {
     "message": "Грешка: Не можахме да идентифицираме този QR код"
+  },
+  "unknownCameraErrorTitle": {
+    "message": "Упс! Нещо се обърка...."
+  },
+  "unknownCameraError": {
+    "message": "При опита за достъп до камерата Ви възникна грешка. Моля, опитайте отново..."
   },
   "unlock": {
     "message": "Отключване"
@@ -1165,8 +1337,14 @@
   "userName": {
     "message": "Потребителско име"
   },
+  "validFileImport": {
+    "message": "Трябва да изберете валиден файл, който да импортирате."
+  },
   "viewAccount": {
     "message": "Преглед на профила"
+  },
+  "viewinExplorer": {
+    "message": "Преглед в Explorer"
   },
   "viewContact": {
     "message": "Преглед на контакта"
@@ -1177,20 +1355,17 @@
   "viewOnEtherscan": {
     "message": "Преглед на Etherscan"
   },
-  "viewinExplorer": {
-    "message": "Преглед в Explorer"
-  },
   "visitWebSite": {
     "message": "Посетете нашият уеб сайт"
   },
   "walletSeed": {
     "message": "Начална фраза за портфейл "
   },
-  "welcome": {
-    "message": "Добре дошли в MetaMask"
-  },
   "welcomeBack": {
     "message": "Добре дошли отново!"
+  },
+  "welcome": {
+    "message": "Добре дошли в MetaMask"
   },
   "writePhrase": {
     "message": "Напишете тази фраза на лист хартия и я съхранявайте на сигурно място. Ако искате още по-голяма сигурност, запишете я на няколко листа хартия и ги съхранявайте на 2 - 3 различни места."
@@ -1200,6 +1375,9 @@
   },
   "youNeedToAllowCameraAccess": {
     "message": "Трябва да разрешите достъпа на камерата, за да използвате тази функция."
+  },
+  "yourSigRequested": {
+    "message": "Изисква се вашият подпис"
   },
   "youSign": {
     "message": "Вие подписвате"
