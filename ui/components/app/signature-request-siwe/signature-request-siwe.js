@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
-  useEffect,
-  ///: END:ONLY_INCLUDE_IF
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
@@ -22,12 +15,14 @@ import { isAddressLedger } from '../../../ducks/metamask/metamask';
 import {
   accountsWithSendEtherInfoSelector,
   getSubjectMetadata,
+  isHardwareWallet,
   getTotalUnapprovedMessagesCount,
   unconfirmedMessagesHashSelector,
 } from '../../../selectors';
-import { valuesFor } from '../../../helpers/utils/util';
+import { getAccountByAddress, valuesFor } from '../../../helpers/utils/util';
 import { isSuspiciousResponse } from '../../../../shared/modules/security-provider.utils';
 import { formatMessageParams } from '../../../../shared/modules/siwe';
+import HardwareWalletState from '../hardware-wallet-state';
 import { clearConfirmTransaction } from '../../../ducks/confirm-transaction/confirm-transaction.duck';
 
 import {
@@ -45,15 +40,6 @@ import {
 import SecurityProviderBannerMessage from '../security-provider-banner-message/security-provider-banner-message';
 import ConfirmPageContainerNavigation from '../confirm-page-container/confirm-page-container-navigation';
 import { getMostRecentOverviewPage } from '../../../ducks/history/history';
-///: BEGIN:ONLY_INCLUDE_IF(blockaid)
-import BlockaidBannerAlert from '../security-provider-banner-alert/blockaid-banner-alert/blockaid-banner-alert';
-import { getBlockaidMetricsParams } from '../../../helpers/utils/metrics';
-import { MetaMetricsContext } from '../../../contexts/metametrics';
-import {
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-} from '../../../../shared/constants/metametrics';
-///: END:ONLY_INCLUDE_IF
 import LedgerInstructionField from '../ledger-instruction-field';
 
 import SignatureRequestHeader from '../signature-request-header';
@@ -66,43 +52,10 @@ export default function SignatureRequestSIWE({ txData }) {
   const t = useContext(I18nContext);
   const allAccounts = useSelector(accountsWithSendEtherInfoSelector);
   const subjectMetadata = useSelector(getSubjectMetadata);
+  const isHdWallet = useSelector(isHardwareWallet);
   const messagesCount = useSelector(getTotalUnapprovedMessagesCount);
   const messagesList = useSelector(unconfirmedMessagesHashSelector);
   const mostRecentOverviewPage = useSelector(getMostRecentOverviewPage);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
-  const trackEvent = useContext(MetaMetricsContext);
-
-  useEffect(() => {
-    if (txData.securityAlertResponse) {
-      const blockaidMetricsParams = getBlockaidMetricsParams(
-        txData.securityAlertResponse,
-      );
-
-      trackEvent({
-        category: MetaMetricsEventCategory.Transactions,
-        event: MetaMetricsEventName.SignatureRequested,
-        properties: {
-          action: 'Sign Request',
-          ...blockaidMetricsParams,
-        },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const onClickSupportLink = useCallback(() => {
-    trackEvent({
-      category: MetaMetricsEventCategory.Transactions,
-      event: MetaMetricsEventName.ExternalLinkClicked,
-      properties: {
-        action: 'Sign Request SIWE',
-        origin: txData?.origin,
-        external_link_clicked: 'security_alert_support_link',
-      },
-    });
-  }, [trackEvent, txData?.origin]);
-  ///: END:ONLY_INCLUDE_IF
 
   const {
     msgParams: {
@@ -115,7 +68,7 @@ export default function SignatureRequestSIWE({ txData }) {
 
   const isLedgerWallet = useSelector((state) => isAddressLedger(state, from));
 
-  const fromAccount = allAccounts.find((account) => account.address === from);
+  const fromAccount = getAccountByAddress(allAccounts, from);
   const targetSubjectMetadata = subjectMetadata[origin];
 
   const isMatchingAddress =
@@ -124,6 +77,7 @@ export default function SignatureRequestSIWE({ txData }) {
   const isSIWEDomainValid = isValidSIWEOrigin(txData.msgParams);
 
   const [isShowingDomainWarning, setIsShowingDomainWarning] = useState(false);
+  const [isHardwareLocked, setHardwareLocked] = useState(isHdWallet);
   const [hasAgreedToDomainWarning, setHasAgreedToDomainWarning] =
     useState(false);
 
@@ -151,7 +105,7 @@ export default function SignatureRequestSIWE({ txData }) {
     } catch (e) {
       log.error(e);
     }
-  }, [dispatch, id]);
+  }, []);
 
   const handleCancelAll = () => {
     const unapprovedTxCount = messagesCount;
@@ -177,28 +131,25 @@ export default function SignatureRequestSIWE({ txData }) {
         <ConfirmPageContainerNavigation />
       </div>
       <SignatureRequestHeader txData={txData} />
-
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(blockaid)
-        <BlockaidBannerAlert
-          txData={txData}
-          margin={4}
-          onClickSupportLink={onClickSupportLink}
-        />
-        ///: END:ONLY_INCLUDE_IF
-      }
-      {showSecurityProviderBanner && (
-        <SecurityProviderBannerMessage
-          securityProviderResponse={txData.securityProviderResponse}
-        />
-      )}
-
       <Header
         fromAccount={fromAccount}
         domain={origin}
         isSIWEDomainValid={isSIWEDomainValid}
         subjectMetadata={targetSubjectMetadata}
       />
+
+      {showSecurityProviderBanner && (
+        <SecurityProviderBannerMessage
+          securityProviderResponse={txData.securityProviderResponse}
+        />
+      )}
+      {isHdWallet ? (
+        <div className="signature-request-siwe__actionable-message">
+          <HardwareWalletState
+            onUpdate={(status) => setHardwareLocked(status === 'locked')}
+          />
+        </div>
+      ) : null}
       <Message data={formatMessageParams(parsedMessage, t)} />
       {!isMatchingAddress && (
         <BannerAlert
@@ -213,11 +164,13 @@ export default function SignatureRequestSIWE({ txData }) {
           ])}
         </BannerAlert>
       )}
+
       {isLedgerWallet && (
         <div className="confirm-approve-content__ledger-instruction-wrapper">
           <LedgerInstructionField showDataInstruction />
         </div>
       )}
+
       {!isSIWEDomainValid && (
         <BannerAlert
           severity={SEVERITIES.DANGER}
@@ -240,6 +193,7 @@ export default function SignatureRequestSIWE({ txData }) {
         cancelText={t('cancel')}
         submitText={t('signin')}
         submitButtonType={isSIWEDomainValid ? 'primary' : 'danger-primary'}
+        disabled={isHardwareLocked}
       />
       {messagesCount > 1 ? (
         <Button
@@ -269,7 +223,7 @@ export default function SignatureRequestSIWE({ txData }) {
               onSubmit={onSign}
               submitText={t('confirm')}
               submitButtonType="danger-primary"
-              disabled={!hasAgreedToDomainWarning}
+              disabled={isHardwareLocked || !hasAgreedToDomainWarning}
             />
           }
         >

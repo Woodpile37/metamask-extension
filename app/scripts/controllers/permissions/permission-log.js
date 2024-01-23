@@ -1,75 +1,94 @@
-import stringify from 'fast-safe-stringify';
-import { CAVEAT_NAMES } from '../../../../shared/constants/permissions';
+import { ObservableStore } from '@metamask/obs-store';
+import { cloneDeep, noop } from 'lodash';
+import { CaveatTypes } from '../../../../shared/constants/permissions';
+import mockEncryptor from '../../../../test/lib/mock-encryptor';
 import {
-  HISTORY_STORE_KEY,
+  browserPolyfillMock,
+  FIRST_TIME_CONTROLLER_STATE,
+} from '../../../../test/helpers/metamask-controller';
+import {
   LOG_IGNORE_METHODS,
   LOG_LIMIT,
   LOG_METHOD_TYPES,
-  LOG_STORE_KEY,
   WALLET_PREFIX,
 } from './enums';
 
-const DEFAULT_STATE = {
-  [HISTORY_STORE_KEY]: {},
-  [LOG_STORE_KEY]: [],
-};
+export function metamaskControllerArgumentConstructor({
+  isFirstMetaMaskControllerSetup = false,
+  storageMock,
+} = {}) {
+  return {
+    showUserConfirmation: noop,
+    encryptor: mockEncryptor,
+    initState: cloneDeep(FIRST_TIME_CONTROLLER_STATE),
+    initLangCode: 'en_US',
+    platform: {
+      showTransactionNotification: () => undefined,
+      getVersion: () => 'foo',
+    },
+    browser: browserPolyfillMock({ storageMock }),
+    infuraProjectId: process.env.INFURA_PROJECT_ID,
+    isFirstMetaMaskControllerSetup,
+  };
+}
 
 /**
  * Controller with middleware for logging requests and responses to restricted
  * and permissions-related methods.
  */
-export default class PermissionsLogController {
-  constructor({ restrictedMethods, store }) {
-    this.restrictedMethods = restrictedMethods;
-    this.store = store;
-  }
-
+export class PermissionLogController {
   /**
-   * Clears all permissions logs.
+   * @param {{ restrictedMethods: Set<string>, initState: Record<string, unknown> }} options - Options bag.
    */
-  clear() {
-    this.store.updateState({ ...DEFAULT_STATE });
+  constructor({ restrictedMethods, initState }) {
+    this.restrictedMethods = restrictedMethods;
+    this.store = new ObservableStore({
+      permissionHistory: {},
+      permissionActivityLog: [],
+      ...initState,
+    });
   }
 
   /**
-   * Get the activity log.
+   * Get the restricted method activity log.
    *
-   * @returns {Array<Object>} The activity log.
+   * @returns {Array<object>} The activity log.
    */
   getActivityLog() {
-    return this.store.getState()[LOG_STORE_KEY] || [];
+    return this.store.getState().permissionActivityLog;
   }
 
   /**
-   * Update the activity log.
+   * Update the restricted method activity log.
    *
-   * @param {Array<Object>} logs - The new activity log array.
+   * @param {Array<object>} logs - The new activity log array.
    */
   updateActivityLog(logs) {
-    this.store.updateState({ [LOG_STORE_KEY]: logs });
+    this.store.updateState({ permissionActivityLog: logs });
   }
 
   /**
-   * Get the permissions history log.
+   * Get the permission history log.
    *
-   * @returns {Object} The permissions history log.
+   * @returns {object} The permissions history log.
    */
   getHistory() {
-    return this.store.getState()[HISTORY_STORE_KEY] || {};
+    return this.store.getState().permissionHistory;
   }
 
   /**
-   * Update the permissions history log.
+   * Update the permission history log.
    *
-   * @param {Object} history - The new permissions history log object.
+   * @param {object} history - The new permissions history log object.
    */
   updateHistory(history) {
-    this.store.updateState({ [HISTORY_STORE_KEY]: history });
+    this.store.updateState({ permissionHistory: history });
   }
 
   /**
    * Updates the exposed account history for the given origin.
    * Sets the 'last seen' time to Date.now() for the given accounts.
+   * Does **not** update the 'lastApproved' time for the permission itself.
    * Returns if the accounts array is empty.
    *
    * @param {string} origin - The origin that the accounts are exposed to.
@@ -108,7 +127,7 @@ export default class PermissionsLogController {
       // we only log certain methods
       if (
         !LOG_IGNORE_METHODS.includes(method) &&
-        (isInternal || this.restrictedMethods.includes(method))
+        (isInternal || this.restrictedMethods.has(method))
       ) {
         activityEntry = this.logRequest(req, isInternal);
 
@@ -152,7 +171,7 @@ export default class PermissionsLogController {
   /**
    * Creates and commits an activity log entry, without response data.
    *
-   * @param {Object} request - The request object.
+   * @param {object} request - The request object.
    * @param {boolean} isInternal - Whether the request is internal.
    */
   logRequest(request, isInternal) {
@@ -163,9 +182,7 @@ export default class PermissionsLogController {
         ? LOG_METHOD_TYPES.internal
         : LOG_METHOD_TYPES.restricted,
       origin: request.origin,
-      request: stringify(request, null, 2),
       requestTime: Date.now(),
-      response: null,
       responseTime: null,
       success: null,
     };
@@ -177,8 +194,8 @@ export default class PermissionsLogController {
    * Adds response data to an existing activity log entry.
    * Entry assumed already committed (i.e., in the log).
    *
-   * @param {Object} entry - The entry to add a response to.
-   * @param {Object} response - The response object.
+   * @param {object} entry - The entry to add a response to.
+   * @param {object} response - The response object.
    * @param {number} time - Output from Date.now()
    */
   logResponse(entry, response, time) {
@@ -186,16 +203,19 @@ export default class PermissionsLogController {
       return;
     }
 
-    entry.response = stringify(response, null, 2);
+    // The JSON-RPC 2.0 specification defines "success" by the presence of
+    // either the "result" or "error" property. The specification forbids
+    // both properties from being present simultaneously, and our JSON-RPC
+    // stack is spec-compliant at the time of writing.
+    entry.success = Object.hasOwnProperty.call(response, 'result');
     entry.responseTime = time;
-    entry.success = !response.error;
   }
 
   /**
    * Commit a new entry to the activity log.
    * Removes the oldest entry from the log if it exceeds the log limit.
    *
-   * @param {Object} entry - The activity log entry.
+   * @param {object} entry - The activity log entry.
    */
   commitNewActivity(entry) {
     const logs = this.getActivityLog();
@@ -282,7 +302,7 @@ export default class PermissionsLogController {
    * with the same key (permission name).
    *
    * @param {string} origin - The requesting origin.
-   * @param {Object} newEntries - The new entries to commit.
+   * @param {object} newEntries - The new entries to commit.
    */
   commitNewHistory(origin, newEntries) {
     // a simple merge updates most permissions
@@ -323,7 +343,7 @@ export default class PermissionsLogController {
   /**
    * Get all requested methods from a permissions request.
    *
-   * @param {Object} request - The request object.
+   * @param {object} request - The request object.
    * @returns {Array<string>} The names of the requested permissions.
    */
   getRequestedMethods(request) {
@@ -342,7 +362,7 @@ export default class PermissionsLogController {
    * Get the permitted accounts from an eth_accounts permissions object.
    * Returns an empty array if the permission is not eth_accounts.
    *
-   * @param {Object} perm - The permissions object.
+   * @param {object} perm - The permissions object.
    * @returns {Array<string>} The permitted accounts.
    */
   getAccountsFromPermission(perm) {
@@ -353,7 +373,7 @@ export default class PermissionsLogController {
     const accounts = new Set();
     for (const caveat of perm.caveats) {
       if (
-        caveat.name === CAVEAT_NAMES.exposedAccounts &&
+        caveat.type === CaveatTypes.restrictReturnedAccounts &&
         Array.isArray(caveat.value)
       ) {
         for (const value of caveat.value) {
@@ -372,7 +392,7 @@ export default class PermissionsLogController {
  *
  * @param {Array<string>} accounts - An array of addresses.
  * @param {number} time - A time, e.g. Date.now().
- * @returns {Object} A string:number map of addresses to time.
+ * @returns {object} A string:number map of addresses to time.
  */
 function getAccountToTimeMap(accounts, time) {
   return accounts.reduce((acc, account) => ({ ...acc, [account]: time }), {});

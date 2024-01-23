@@ -1,29 +1,39 @@
-import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getEnvironmentType } from '../../../../app/scripts/lib/util';
-import { ENVIRONMENT_TYPE_FULLSCREEN } from '../../../../shared/constants/app';
+import PropTypes from 'prop-types';
 import {
-  HardwareTransportStates,
-  LEDGER_USB_VENDOR_ID,
   LedgerTransportTypes,
   WebHIDConnectedStatuses,
+  HardwareTransportStates,
+  HardwareWalletStates,
+  LEDGER_USB_VENDOR_ID,
 } from '../../../../shared/constants/hardware-wallets';
 import {
-  getLedgerTransportStatus,
-  getLedgerWebHidConnectedStatus,
-  setLedgerTransportStatus,
+  PLATFORM_FIREFOX,
+  ENVIRONMENT_TYPE_FULLSCREEN,
+} from '../../../../shared/constants/app';
+
+import {
   setLedgerWebHidConnectedStatus,
+  getLedgerWebHidConnectedStatus,
+  getHardwareWalletState,
+  setLedgerTransportStatus,
+  getLedgerTransportStatus,
 } from '../../../ducks/app/app';
-import { getLedgerTransportType } from '../../../ducks/metamask/metamask';
+
+import { BannerAlert, ButtonLink, Text } from '../../component-library';
+import { useI18nContext } from '../../../hooks/useI18nContext';
 import {
   SEVERITIES,
   TextAlign,
   TextColor,
 } from '../../../helpers/constants/design-system';
-import { useI18nContext } from '../../../hooks/useI18nContext';
+import {
+  getPlatform,
+  getEnvironmentType,
+} from '../../../../app/scripts/lib/util';
+import { getLedgerTransportType } from '../../../ducks/metamask/metamask';
 import { attemptLedgerTransportCreation } from '../../../store/actions';
-import { BannerAlert, ButtonLink, Text } from '../../component-library';
 
 const renderInstructionStep = (
   text,
@@ -46,6 +56,7 @@ export default function LedgerInstructionField({ showDataInstruction }) {
   const webHidConnectedStatus = useSelector(getLedgerWebHidConnectedStatus);
   const ledgerTransportType = useSelector(getLedgerTransportType);
   const transportStatus = useSelector(getLedgerTransportStatus);
+  const hdWalletState = useSelector(getHardwareWalletState);
   const environmentType = getEnvironmentType();
   const environmentTypeIsFullScreen =
     environmentType === ENVIRONMENT_TYPE_FULLSCREEN;
@@ -105,7 +116,13 @@ export default function LedgerInstructionField({ showDataInstruction }) {
     };
     determineTransportStatus();
     initialConnectedDeviceCheck();
-  }, [dispatch, ledgerTransportType, webHidConnectedStatus, transportStatus]);
+  }, [
+    dispatch,
+    ledgerTransportType,
+    webHidConnectedStatus,
+    transportStatus,
+    hdWalletState,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -113,14 +130,29 @@ export default function LedgerInstructionField({ showDataInstruction }) {
     };
   }, [dispatch]);
 
+  const usingLedgerLive = ledgerTransportType === LedgerTransportTypes.live;
   const usingWebHID = ledgerTransportType === LedgerTransportTypes.webhid;
+
+  const isFirefox = getPlatform() === PLATFORM_FIREFOX;
+  const isHdWalletLocked = hdWalletState === HardwareWalletStates.locked;
 
   return (
     <div>
       <div className="confirm-detail-row">
-        <BannerAlert severity={SEVERITIES.INFO}>
+        <BannerAlert
+          severity={isHdWalletLocked ? SEVERITIES.WARNING : SEVERITIES.INFO}
+        >
+          {renderInstructionStep(t('ledgerLocked'), isHdWalletLocked)}
           <div className="ledger-live-dialog">
             {renderInstructionStep(t('ledgerConnectionInstructionHeader'))}
+            {renderInstructionStep(
+              `• ${t('ledgerConnectionInstructionStepOne')}`,
+              !isFirefox && usingLedgerLive,
+            )}
+            {renderInstructionStep(
+              `• ${t('ledgerConnectionInstructionStepTwo')}`,
+              !isFirefox && usingLedgerLive,
+            )}
             {renderInstructionStep(
               `• ${t('ledgerConnectionInstructionStepThree')}`,
             )}
@@ -178,7 +210,7 @@ export default function LedgerInstructionField({ showDataInstruction }) {
               </span>,
               usingWebHID &&
                 webHidConnectedStatus === WebHIDConnectedStatuses.notConnected,
-              TextColor.warningDefault,
+              TextColor.WARNING_DEFAULT,
             )}
           </div>
         </BannerAlert>

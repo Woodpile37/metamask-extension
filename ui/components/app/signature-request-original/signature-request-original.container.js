@@ -26,6 +26,7 @@ import {
   doesAddressRequireLedgerHidConnection,
   unconfirmedMessagesHashSelector,
   getTotalUnapprovedMessagesCount,
+  isHardwareWallet,
   ///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
   getAccountType,
   getSelectedInternalAccount,
@@ -49,6 +50,7 @@ function mapStateToProps(state, ownProps) {
   const hardwareWalletRequiresConnection =
     doesAddressRequireLedgerHidConnection(state, from);
   const isLedgerWallet = isAddressLedger(state, from);
+  const isHdWallet = isHardwareWallet(state, from);
   const messagesList = unconfirmedMessagesHashSelector(state);
   const messagesCount = getTotalUnapprovedMessagesCount(state);
 
@@ -58,6 +60,7 @@ function mapStateToProps(state, ownProps) {
     mostRecentOverviewPage: getMostRecentOverviewPage(state),
     hardwareWalletRequiresConnection,
     isLedgerWallet,
+    isHardwareWallet: isHdWallet,
     // not passed to component
     allAccounts: accountsWithSendEtherInfoSelector(state),
     subjectMetadata: getSubjectMetadata(state),

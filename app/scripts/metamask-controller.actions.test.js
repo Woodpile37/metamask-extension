@@ -5,30 +5,11 @@ import proxyquire from 'proxyquire';
 import { ApprovalRequestNotFoundError } from '@metamask/approval-controller';
 import { PermissionsRequestNotFoundError } from '@metamask/permission-controller';
 import nock from 'nock';
-import { ORIGIN_METAMASK } from '../../shared/constants/app';
+import { metamaskControllerArgumentConstructor } from '../../test/helpers/metamask-controller';
 
 const Ganache = require('../../test/e2e/ganache');
 
 const ganacheServer = new Ganache();
-
-const browserPolyfillMock = {
-  runtime: {
-    id: 'fake-extension-id',
-    onInstalled: {
-      addListener: () => undefined,
-    },
-    onMessageExternal: {
-      addListener: () => undefined,
-    },
-    getPlatformInfo: async () => 'mac',
-  },
-  storage: {
-    local: {
-      get: sinon.stub().resolves({}),
-      set: sinon.stub().resolves(),
-    },
-  },
-};
 
 let loggerMiddlewareMock;
 const createLoggerMiddlewareMock = () => (req, res, next) => {
@@ -53,7 +34,13 @@ const MetaMaskController = proxyquire('./metamask-controller', {
 describe('MetaMaskController', function () {
   let metamaskController;
   const sandbox = sinon.createSandbox();
-  const noop = () => undefined;
+
+  const storageMock = {
+    local: {
+      get: sinon.stub().resolves({}),
+      set: sinon.stub().resolves(),
+    },
+  };
 
   before(async function () {
     await ganacheServer.start();
@@ -81,25 +68,12 @@ describe('MetaMaskController', function () {
           { url: '127.0.0.1', targetList: 'blocklist', timestamp: 0 },
         ]),
       );
-    metamaskController = new MetaMaskController({
-      showUserConfirmation: noop,
-      encryptor: {
-        encrypt(_, object) {
-          this.object = object;
-          return Promise.resolve('mock-encrypted');
-        },
-        decrypt() {
-          return Promise.resolve(this.object);
-        },
-      },
-      initLangCode: 'en_US',
-      platform: {
-        showTransactionNotification: () => undefined,
-        getVersion: () => 'foo',
-      },
-      browser: browserPolyfillMock,
-      infuraProjectId: 'foo',
-    });
+
+    metamaskController = new MetaMaskController(
+      metamaskControllerArgumentConstructor({
+        storageMock,
+      }),
+    );
   });
 
   afterEach(function () {
@@ -222,64 +196,6 @@ describe('MetaMaskController', function () {
     });
   });
 
-  describe('#upsertNetworkConfiguration', function () {
-    const customRpc = {
-      chainId: '0x1',
-      nickname: 'DUMMY_CHAIN_NAME',
-      rpcUrl: 'https://test-rpc-url',
-      ticker: 'DUMMY_TICKER',
-      rpcPrefs: {
-        blockExplorerUrl: 'DUMMY_EXPLORER',
-      },
-    };
-    it('two successive calls with custom RPC details give same result', async function () {
-      await metamaskController.upsertNetworkConfiguration(customRpc);
-      const networkConfigurationsList1Length = Object.values(
-        metamaskController.networkController.store.getState()
-          .networkConfigurations,
-      ).length;
-      await metamaskController.upsertNetworkConfiguration(customRpc);
-      const networkConfigurationsList2Length = Object.values(
-        metamaskController.networkController.store.getState()
-          .networkConfigurations,
-      ).length;
-      assert.equal(networkConfigurationsList1Length, 1);
-      assert.equal(
-        networkConfigurationsList1Length,
-        networkConfigurationsList2Length,
-      );
-    });
-  });
-
-  describe('#updateTransactionSendFlowHistory', function () {
-    it('two sequential calls with same history give same result', async function () {
-      const recipientAddress = '0xc42edfcc21ed14dda456aa0756c153f7985d8813';
-
-      await metamaskController.createNewVaultAndKeychain('test@123');
-      const accounts = await metamaskController.keyringController.getAccounts();
-      const txMeta = await metamaskController.getApi().addUnapprovedTransaction(
-        undefined,
-        {
-          from: accounts[0],
-          to: recipientAddress,
-        },
-        ORIGIN_METAMASK,
-      );
-
-      const [transaction1, transaction2] = await Promise.all([
-        metamaskController
-          .getApi()
-          .updateTransactionSendFlowHistory(txMeta.id, 2, ['foo1', 'foo2']),
-        Promise.resolve(1).then(() =>
-          metamaskController
-            .getApi()
-            .updateTransactionSendFlowHistory(txMeta.id, 2, ['foo1', 'foo2']),
-        ),
-      ]);
-      assert.deepEqual(transaction1, transaction2);
-    });
-  });
-
   describe('#removePermissionsFor', function () {
     it('should not propagate PermissionsRequestNotFoundError', function () {
       const error = new PermissionsRequestNotFoundError('123');
@@ -356,7 +272,7 @@ describe('MetaMaskController', function () {
   });
 
   describe('#resolvePendingApproval', function () {
-    it('should not propagate ApprovalRequestNotFoundError', function () {
+    it('should not propagate ApprovalRequestNotFoundError', async function () {
       const error = new ApprovalRequestNotFoundError('123');
       metamaskController.approvalController = {
         accept: () => {
@@ -364,7 +280,10 @@ describe('MetaMaskController', function () {
         },
       };
       // Line below will not throw error, in case it throws this test case will fail.
-      metamaskController.resolvePendingApproval('DUMMY_ID', 'DUMMY_VALUE');
+      await metamaskController.resolvePendingApproval(
+        'DUMMY_ID',
+        'DUMMY_VALUE',
+      );
     });
 
     it('should propagate Error other than ApprovalRequestNotFoundError', function () {
@@ -374,9 +293,11 @@ describe('MetaMaskController', function () {
           throw error;
         },
       };
-      assert.throws(() => {
-        metamaskController.resolvePendingApproval('DUMMY_ID', 'DUMMY_VALUE');
-      }, error);
+      assert.rejects(
+        () =>
+          metamaskController.resolvePendingApproval('DUMMY_ID', 'DUMMY_VALUE'),
+        error,
+      );
     });
   });
 

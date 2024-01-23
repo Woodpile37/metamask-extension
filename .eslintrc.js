@@ -1,213 +1,398 @@
+const path = require('path');
+
+const { version: reactVersion } = require('react/package.json');
+
 module.exports = {
   root: true,
-  parser: '@babel/eslint-parser',
-  parserOptions: {
-    sourceType: 'module',
-    ecmaVersion: 2017,
-    ecmaFeatures: {
-      experimentalObjectRestSpread: true,
-      impliedStrict: true,
-      modules: true,
-      blockBindings: true,
-      arrowFunctions: true,
-      objectLiteralShorthandMethods: true,
-      objectLiteralShorthandProperties: true,
-      templateStrings: true,
-      classes: true,
-      jsx: true,
-    },
-  },
-
+  // Suggested addition from the storybook 6.5 update
+  extends: ['plugin:storybook/recommended'],
+  // Ignore files which are also in .prettierignore
   ignorePatterns: [
-    '!.eslintrc.js',
-    'node_modules/**',
-    'dist/**',
-    'builds/**',
-    'test-*/**',
-    'docs/**',
-    'coverage/',
-    'app/scripts/chromereload.js',
     'app/vendor/**',
-    'test/e2e/send-eth-with-private-key-test/**',
-    'nyc_output/**',
-    '.vscode/**',
-    'lavamoat/*/policy.json',
+    'builds/**/*',
+    'development/chromereload.js',
+    'development/charts/**',
+    'development/ts-migration-dashboard/build/**',
+    'dist/**/*',
+    'node_modules/**/*',
+    'storybook-build/**/*',
+    'jest-coverage/**/*',
+    'coverage/**/*',
   ],
-
-  extends: [
-    '@metamask/eslint-config',
-    '@metamask/eslint-config/config/nodejs',
-    '@metamask/eslint-config/config/mocha',
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-  ],
-
-  plugins: ['@babel', 'react', 'import', 'prettier'],
-
-  globals: {
-    document: 'readonly',
-    window: 'readonly',
-  },
-
-  rules: {
-    // Prettier changes and reasoning
-
-    'prettier/prettier': 'error',
-
-    // Our eslint config has the default setting for this as error. This
-    // include beforeBlockComment: true, but in order to match the prettier
-    // spec you have to enable before and after blocks, objects and arrays
-    // https://github.com/prettier/eslint-config-prettier#lines-around-comment
-    'lines-around-comment': [
-      'error',
-      {
-        beforeBlockComment: true,
-        afterLineComment: false,
-        allowBlockStart: true,
-        allowBlockEnd: true,
-        allowObjectStart: true,
-        allowObjectEnd: true,
-        allowArrayStart: true,
-        allowArrayEnd: true,
-      },
-    ],
-    // Prettier has some opinions on mixed-operators, and there is ongoing work
-    // to make the output code clear. It is better today then it was when the first
-    // PR to add prettier. That being said, the workaround for keeping this rule enabled
-    // requires breaking parts of operations into different variables -- which I believe
-    // to be worse. https://github.com/prettier/eslint-config-prettier#no-mixed-operators
-    'no-mixed-operators': 'off',
-    // Prettier wraps single line functions with ternaries, etc in parens by default, but
-    // if the line is long enough it breaks it into a separate line and removes the parens.
-    // The second behavior conflicts with this rule. There is some guides on the repo about
-    // how you can keep it enabled:
-    // https://github.com/prettier/eslint-config-prettier#no-confusing-arrow
-    // However, in practice this conflicts with prettier adding parens around short lines,
-    // when autofixing in vscode and others.
-    'no-confusing-arrow': 'off',
-    // There is no configuration in prettier for how it stylizes regexes, which conflicts
-    // with wrap-regex.
-    'wrap-regex': 'off',
-    // Prettier handles all indentation automagically. it can be configured here
-    // https://prettier.io/docs/en/options.html#tab-width but the default matches our
-    // style.
-    indent: 'off',
-    // This rule conflicts with the way that prettier breaks code across multiple lines when
-    // it exceeds the maximum length. Prettier optimizes for readability while simultaneously
-    // maximizing the amount of code per line.
-    'function-paren-newline': 'off',
-    // This rule throws an error when there is a line break in an arrow function declaration
-    // but prettier breaks arrow function declarations to be as readable as possible while
-    // still conforming to the width rules.
-    'implicit-arrow-linebreak': 'off',
-    // This rule would result in an increase in white space in lines with generator functions,
-    // which impacts prettier's goal of maximizing code per line and readability. There is no
-    // current workaround.
-    'generator-star-spacing': 'off',
-    'default-param-last': 'off',
-    'require-atomic-updates': 'off',
-    'import/no-unassigned-import': 'off',
-    'prefer-object-spread': 'error',
-    'react/no-unused-prop-types': 'error',
-    'react/no-unused-state': 'error',
-    'react/jsx-boolean-value': 'error',
-    'react/jsx-curly-brace-presence': [
-      'error',
-      { props: 'never', children: 'never' },
-    ],
-    'react/jsx-equals-spacing': 'error',
-    'react/no-deprecated': 'error',
-    'react/default-props-match-prop-types': 'error',
-    'react/jsx-closing-tag-location': [
-      'error',
-      { selfClosing: 'tag-aligned', nonEmpty: 'tag-aligned' },
-    ],
-    'react/jsx-no-duplicate-props': 'error',
-    'react/jsx-closing-bracket-location': 'error',
-    'react/jsx-first-prop-new-line': ['error', 'multiline'],
-    'react/jsx-max-props-per-line': [
-      'error',
-      { maximum: 1, when: 'multiline' },
-    ],
-    'react/jsx-tag-spacing': [
-      'error',
-      {
-        closingSlash: 'never',
-        beforeSelfClosing: 'always',
-        afterOpening: 'never',
-      },
-    ],
-
-    'no-invalid-this': 'off',
-    '@babel/no-invalid-this': 'error',
-
-    // prettier handles these
-    semi: 'off',
-    '@babel/semi': 'off',
-
-    'mocha/no-setup-in-describe': 'off',
-    'node/no-process-env': 'off',
-
-    // TODO: re-enable these rules
-    'node/no-sync': 'off',
-    'node/no-unpublished-import': 'off',
-    'node/no-unpublished-require': 'off',
-  },
   overrides: [
+    /**
+     * == Modules ==
+     *
+     * The first two sections here, which cover module syntax, are mutually
+     * exclusive: the set of files covered between them may NOT overlap. This is
+     * because we do not allow a file to use two different styles for specifying
+     * imports and exports (however theoretically possible it may be).
+     */
     {
-      files: ['test/e2e/**/*.js'],
+      /**
+       * Modules (CommonJS module syntax)
+       *
+       * This is code that uses `require()` and `module.exports` to import and
+       * export other modules.
+       */
+      files: [
+        '.eslintrc.js',
+        '.eslintrc.*.js',
+        '.mocharc.js',
+        '*.config.js',
+        'development/**/*.js',
+        'test/e2e/**/*.js',
+        'test/helpers/*.js',
+        'test/lib/wait-until-called.js',
+        'test/run-unit-tests.js',
+        'test/merge-coverage.js',
+      ],
+      extends: [
+        path.resolve(__dirname, '.eslintrc.base.js'),
+        path.resolve(__dirname, '.eslintrc.node.js'),
+        path.resolve(__dirname, '.eslintrc.babel.js'),
+        path.resolve(__dirname, '.eslintrc.typescript-compat.js'),
+      ],
+      settings: {
+        'import/resolver': {
+          // When determining the location of a `require()` call, use Node's
+          // resolution algorithm, then fall back to TypeScript's. This allows
+          // TypeScript files (which Node's algorithm doesn't recognize) to be
+          // imported from JavaScript files, while also preventing issues when
+          // using packages like `prop-types` (where we would otherwise get "No
+          // default export found in imported module 'prop-types'" from
+          // TypeScript because imports work differently there).
+          node: {},
+          typescript: {
+            // Always try to resolve types under `<root>/@types` directory even
+            // it doesn't contain any source code, like `@types/unist`
+            alwaysTryTypes: true,
+          },
+        },
+      },
+    },
+    /**
+     * Modules (ES module syntax)
+     *
+     * This is code that explicitly uses `import`/`export` instead of
+     * `require`/`module.exports`.
+     */
+    {
+      files: [
+        'app/**/*.js',
+        'shared/**/*.js',
+        'shared/**/*.ts',
+        'ui/**/*.js',
+        '**/*.test.js',
+        'test/lib/**/*.js',
+        'test/mocks/**/*.js',
+        'test/jest/**/*.js',
+        'test/stub/**/*.js',
+        'test/unit-global/**/*.js',
+      ],
+      // TODO: Convert these files to modern JS
+      excludedFiles: [
+        'test/lib/wait-until-called.js',
+        'app/scripts/controllers/permissions/snaps/__mocks__/@metamask/rpc-methods.js',
+        'app/scripts/controllers/permissions/snaps/__mocks__/@metamask/snaps-controllers.js',
+      ],
+      extends: [
+        path.resolve(__dirname, '.eslintrc.base.js'),
+        path.resolve(__dirname, '.eslintrc.node.js'),
+        path.resolve(__dirname, '.eslintrc.babel.js'),
+        path.resolve(__dirname, '.eslintrc.typescript-compat.js'),
+      ],
+      parserOptions: {
+        sourceType: 'module',
+      },
+      settings: {
+        'import/resolver': {
+          // When determining the location of an `import`, use Node's resolution
+          // algorithm, then fall back to TypeScript's. This allows TypeScript
+          // files (which Node's algorithm doesn't recognize) to be imported
+          // from JavaScript files, while also preventing issues when using
+          // packages like `prop-types` (where we would otherwise get "No
+          // default export found in imported module 'prop-types'" from
+          // TypeScript because imports work differently there).
+          node: {},
+          typescript: {
+            // Always try to resolve types under `<root>/@types` directory even
+            // it doesn't contain any source code, like `@types/unist`
+            alwaysTryTypes: true,
+          },
+        },
+      },
+    },
+    /**
+     * TypeScript files
+     */
+    {
+      files: ['*.{ts,tsx}'],
+      extends: [
+        path.resolve(__dirname, '.eslintrc.base.js'),
+        '@metamask/eslint-config-typescript',
+        path.resolve(__dirname, '.eslintrc.typescript-compat.js'),
+      ],
       rules: {
-        'mocha/no-hooks-for-single-case': 'off',
+        // Turn these off, as it's recommended by typescript-eslint.
+        // See: <https://typescript-eslint.io/docs/linting/troubleshooting#eslint-plugin-import>
+        'import/named': 'off',
+        'import/namespace': 'off',
+        'import/default': 'off',
+        'import/no-named-as-default-member': 'off',
+        // Disabled due to incompatibility with Record<string, unknown>.
+        // See: <https://github.com/Microsoft/TypeScript/issues/15300#issuecomment-702872440>
+        '@typescript-eslint/consistent-type-definitions': 'off',
+        // Modified to include the 'ignoreRestSiblings' option.
+        // TODO: Migrate this rule change back into `@metamask/eslint-config`
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            vars: 'all',
+            args: 'all',
+            argsIgnorePattern: '[_]+',
+            ignoreRestSiblings: true,
+          },
+        ],
+      },
+      settings: {
+        'import/resolver': {
+          // When determining the location of an `import`, prefer TypeScript's
+          // resolution algorithm. Note that due to how we've configured
+          // TypeScript in `tsconfig.json`, we are able to import JavaScript
+          // files from TypeScript files.
+          typescript: {
+            // Always try to resolve types under `<root>/@types` directory even
+            // it doesn't contain any source code, like `@types/unist`
+            alwaysTryTypes: true,
+          },
+        },
       },
     },
     {
-      files: ['app/scripts/migrations/*.js', '*.stories.js'],
-      rules: {
-        'import/no-anonymous-default-export': ['error', { allowObject: true }],
+      files: ['*.d.ts'],
+      parserOptions: {
+        sourceType: 'script',
       },
     },
+    /**
+     * == Everything else ==
+     *
+     * The sections from here on out may overlap with each other in various
+     * ways depending on their function.
+     */
+
+    /**
+     * React-specific code
+     *
+     * Code in this category contains JSX and hence needs to be run through the
+     * React plugin.
+     */
     {
-      files: ['app/scripts/migrations/*.js'],
+      files: [
+        'test/lib/render-helpers.js',
+        'test/jest/rendering.js',
+        'ui/**/*.js',
+      ],
+      extends: ['plugin:react/recommended', 'plugin:react-hooks/recommended'],
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      plugins: ['react'],
       rules: {
-        'node/global-require': 'off',
+        'react/no-unused-prop-types': 'error',
+        'react/no-unused-state': 'error',
+        'react/jsx-boolean-value': 'error',
+        'react/jsx-curly-brace-presence': [
+          'error',
+          {
+            props: 'never',
+            children: 'never',
+          },
+        ],
+        'react/no-deprecated': 'error',
+        'react/default-props-match-prop-types': 'error',
+        'react/jsx-no-duplicate-props': 'error',
+      },
+      settings: {
+        react: {
+          // If this is set to 'detect', ESLint will import React in order to
+          // find its version. Because we run ESLint in the build system under
+          // LavaMoat, this means that detecting the React version requires a
+          // LavaMoat policy for all of React, in the build system. That's a
+          // no-go, so we grab it from React's package.json.
+          version: reactVersion,
+        },
       },
     },
+    /**
+     * Mocha tests
+     *
+     * These are files that make use of globals and syntax introduced by the
+     * Mocha library.
+     */
     {
-      files: ['test/**/*-test.js', 'test/**/*.spec.js'],
+      files: [
+        '**/*.test.js',
+        'test/lib/wait-until-called.js',
+        'test/e2e/**/*.spec.js',
+      ],
+      excludedFiles: [
+        'app/scripts/controllers/app-state.test.js',
+        'app/scripts/controllers/mmi-controller.test.js',
+        'app/scripts/controllers/permissions/**/*.test.js',
+        'app/scripts/lib/**/*.test.js',
+        'app/scripts/migrations/*.test.js',
+        'app/scripts/platforms/*.test.js',
+        'development/**/*.test.js',
+        'shared/**/*.test.js',
+        'ui/**/*.test.js',
+        'ui/__mocks__/*.js',
+        'app/***/__mocks__/***/*.js',
+      ],
+      extends: ['@metamask/eslint-config-mocha'],
       rules: {
-        // Mocha will re-assign `this` in a test context
+        // In Mocha tests, it is common to use `this` to store values or do
+        // things like force the test to fail.
         '@babel/no-invalid-this': 'off',
+        'mocha/no-setup-in-describe': 'off',
       },
     },
+    /**
+     * Jest tests
+     *
+     * These are files that make use of globals and syntax introduced by the
+     * Jest library. The files in this section should match the Mocha excludedFiles section.
+     */
     {
-      files: ['development/**/*.js', 'test/e2e/benchmark.js', 'test/helper.js'],
+      files: [
+        '**/__snapshots__/*.snap',
+        'app/scripts/controllers/app-state.test.js',
+        'app/scripts/controllers/mmi-controller.test.js',
+        'app/scripts/controllers/permissions/**/*.test.js',
+        'app/scripts/controllers/permissions/snaps/__mocks__/*.js',
+        'app/scripts/lib/**/*.test.js',
+        'app/scripts/migrations/*.test.js',
+        'app/scripts/metamask-controller.test.js',
+        'app/scripts/metamask-controller.mv3.test.js',
+        'app/scripts/platforms/*.test.js',
+        'development/**/*.test.js',
+        'shared/**/*.test.js',
+        'shared/**/*.test.ts',
+        'test/helpers/*.js',
+        'test/jest/*.js',
+        'ui/**/*.test.js',
+        'ui/__mocks__/*.js',
+        'app/***/__mocks__/***/*.js',
+        'shared/lib/error-utils.test.js',
+      ],
+      extends: ['@metamask/eslint-config-jest'],
+      parserOptions: {
+        sourceType: 'module',
+      },
+      rules: {
+        'import/unambiguous': 'off',
+        'import/named': 'off',
+        'jest/no-large-snapshots': [
+          'error',
+          {
+            maxSize: 50,
+            inlineMaxSize: 50,
+          },
+        ],
+        'jest/no-restricted-matchers': 'off',
+
+        /**
+         * jest/prefer-to-be is a new rule that was disabled to reduce churn
+         * when upgrading eslint. It should be considered for use and enabled
+         * in a future PR if agreeable.
+         */
+        'jest/prefer-to-be': 'off',
+
+        /**
+         * jest/lowercase-name was renamed to jest/prefer-lowercase-title this
+         * change was made to essentially retain the same state as the original
+         * eslint-config-jest until it is updated. At which point the following
+         * two lines can be deleted.
+         */
+        'jest/lowercase-name': 'off',
+        'jest/prefer-lowercase-title': [
+          'error',
+          {
+            ignore: ['describe'],
+          },
+        ],
+      },
+    },
+    /**
+     * Migrations
+     */
+    {
+      files: ['app/scripts/migrations/*.js', '**/*.stories.js'],
+      rules: {
+        'import/no-anonymous-default-export': [
+          'error',
+          {
+            allowObject: true,
+          },
+        ],
+      },
+    },
+    /**
+     * Executables and related files
+     *
+     * These are files that run in a Node context. They are either designed to
+     * run as executables (in which case they will have a shebang at the top) or
+     * are dependencies of executables (in which case they may use
+     * `process.exit` to exit).
+     */
+    {
+      files: [
+        'development/**/*.js',
+        'test/e2e/benchmark.js',
+        'test/helpers/setup-helper.js',
+        'test/run-unit-tests.js',
+        'test/merge-coverage.js',
+      ],
       rules: {
         'node/no-process-exit': 'off',
         'node/shebang': 'off',
       },
     },
+    /**
+     * Lockdown files
+     */
     {
       files: [
-        '.eslintrc.js',
-        'babel.config.js',
-        'nyc.config.js',
-        'stylelint.config.js',
-        'app/scripts/runLockdown.js',
-        'development/**/*.js',
-        'test/e2e/**/*.js',
-        'test/lib/wait-until-called.js',
-        'test/env.js',
-        'test/setup.js',
+        'app/scripts/lockdown-run.js',
+        'app/scripts/lockdown-more.js',
+        'test/helpers/protect-intrinsics-helpers.js',
+        'test/unit-global/protect-intrinsics.test.js',
       ],
+      globals: {
+        harden: 'readonly',
+        Compartment: 'readonly',
+      },
+    },
+    {
+      files: ['app/scripts/lockdown-run.js', 'app/scripts/lockdown-more.js'],
       parserOptions: {
         sourceType: 'script',
       },
     },
-  ],
-
-  settings: {
-    react: {
-      version: 'detect',
+    {
+      files: ['ui/pages/settings/*.js'],
+      rules: {
+        'sort-keys': [
+          'error',
+          'asc',
+          {
+            natural: true,
+          },
+        ],
+      },
     },
-  },
+  ],
 };

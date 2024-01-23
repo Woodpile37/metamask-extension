@@ -108,7 +108,10 @@ import {
   TEST_NETWORK_TICKER_MAP,
   NetworkStatus,
 } from '../../shared/constants/network';
-import { HardwareDeviceNames } from '../../shared/constants/hardware-wallets';
+import {
+  HardwareDeviceNames,
+  HardwareKeyringType,
+} from '../../shared/constants/hardware-wallets';
 import { KeyringType } from '../../shared/constants/keyring';
 import {
   CaveatTypes,
@@ -2139,6 +2142,7 @@ export default class MetamaskController extends EventEmitter {
       // hardware wallets
       connectHardware: this.connectHardware.bind(this),
       forgetDevice: this.forgetDevice.bind(this),
+      isDeviceAccessible: this.isDeviceAccessible.bind(this),
       checkHardwareStatus: this.checkHardwareStatus.bind(this),
       unlockHardwareWalletAccount: this.unlockHardwareWalletAccount.bind(this),
       setLedgerTransportPreference:
@@ -3113,6 +3117,34 @@ export default class MetamaskController extends EventEmitter {
   async checkHardwareStatus(deviceName, hdPath) {
     const keyring = await this.getKeyringForDevice(deviceName, hdPath);
     return keyring.isUnlocked();
+  }
+
+  /**
+   * Attempts to communicate with the hardware device and returns true if successful
+   *
+   * @param deviceName
+   * @param hdPath
+   * @returns {Promise<bool>}
+   */
+  async isDeviceAccessible(deviceName, hdPath) {
+    const keyring = await this.getKeyringForDevice(deviceName);
+    let status = false;
+    // ledger state becomes stale and must be explicitly accessed
+    if (keyring.type === HardwareKeyringType.ledger) {
+      try {
+        // unlock creates app and then attempts to read address from device
+        // attemptMakeApp will still return true when device locked
+        await keyring.unlock(hdPath, false);
+        status = true;
+      } catch (e) {
+        // YUM! unlock failed - unlock throws generic error if inaccessible
+        status = false;
+      }
+    } else {
+      // fallback on stored status
+      status = await this.checkHardwareStatus(deviceName, hdPath);
+    }
+    return status;
   }
 
   /**

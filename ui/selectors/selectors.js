@@ -35,6 +35,8 @@ import {
   CHAIN_ID_TO_NETWORK_IMAGE_URL_MAP,
 } from '../../shared/constants/network';
 import {
+  HardwareKeyringType,
+  HardwareDeviceNames,
   WebHIDConnectedStatuses,
   LedgerTransportTypes,
   HardwareTransportStates,
@@ -247,6 +249,44 @@ export function isHardwareWallet(state) {
 export function getHardwareWalletType(state) {
   const keyring = getCurrentKeyring(state);
   return isHardwareWallet(state) ? keyring.type : undefined;
+}
+
+/**
+ * Returns the hardware wallet device for the current wallet
+ *
+ * @param {object} state
+ * @returns {string | undefined}
+ */
+export function getHardwareWalletDevice(state) {
+  const type = getHardwareWalletType(state);
+  switch (type) {
+    case HardwareKeyringType.trezor:
+      return HardwareDeviceNames.trezor;
+    case HardwareKeyringType.ledger:
+      return HardwareDeviceNames.ledger;
+    case HardwareKeyringType.lattice:
+      return HardwareDeviceNames.lattice;
+    case HardwareKeyringType.qr:
+      return HardwareDeviceNames.qr;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Returns the HD path for the current wallet
+ *
+ * @param {object} state
+ * @returns {string | undefined}
+ */
+export function getHardwareWalletPath(state) {
+  const keyring = getCurrentKeyring(state);
+  let hdPath = keyring?.hdPath;
+  if (!hdPath) {
+    const device = getHardwareWalletDevice(state);
+    hdPath = state?.appState?.defaultHdPaths?.[device];
+  }
+  return hdPath;
 }
 
 export function getAccountType(state) {

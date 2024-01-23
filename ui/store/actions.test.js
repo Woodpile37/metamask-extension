@@ -472,10 +472,6 @@ describe('Actions', () => {
   });
 
   describe('#checkHardwareStatus', () => {
-    afterEach(() => {
-      sinon.restore();
-    });
-
     it('calls checkHardwareStatus in background', async () => {
       const store = mockStore();
 
@@ -516,6 +512,24 @@ describe('Actions', () => {
       ).rejects.toThrow('error');
 
       expect(store.getActions()).toStrictEqual(expectedActions);
+    });
+  });
+
+  describe('#isDeviceAccessible', () => {
+    it('calls isDeviceAccessible in background', async () => {
+      const isDeviceAccessible = background.isDeviceAccessible.callsFake(
+        (_, __, cb) => {
+          cb();
+        },
+      );
+
+      _setBackgroundConnection(background);
+
+      await actions.isDeviceAccessible(
+        HardwareDeviceNames.ledger,
+        `m/44'/60'/0'/0`,
+      );
+      expect(isDeviceAccessible.callCount).toStrictEqual(1);
     });
   });
 

@@ -3,6 +3,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import {
   WebHIDConnectedStatuses,
   HardwareTransportStates,
+  HardwareWalletStates,
 } from '../../../shared/constants/hardware-wallets';
 import * as actionConstants from '../../store/actionConstants';
 
@@ -53,6 +54,7 @@ interface AppState {
   gasLoadingAnimationIsShowing: boolean;
   smartTransactionsError: string | null;
   smartTransactionsErrorMessageDismissed: boolean;
+  hardwareWalletState: HardwareWalletStates | null;
   ledgerWebHidConnectedStatus: WebHIDConnectedStatuses;
   ledgerTransportStatus: HardwareTransportStates;
   newNftAddedMessage: string;
@@ -115,6 +117,7 @@ const initialState: AppState = {
   gasLoadingAnimationIsShowing: false,
   smartTransactionsError: null,
   smartTransactionsErrorMessageDismissed: false,
+  hardwareWalletState: HardwareWalletStates.unknown,
   ledgerWebHidConnectedStatus: WebHIDConnectedStatuses.unknown,
   ledgerTransportStatus: HardwareTransportStates.none,
   newNftAddedMessage: '',
@@ -396,6 +399,12 @@ export default function reduceApp(
         gasLoadingAnimationIsShowing: action.payload,
       };
 
+    case actionConstants.SET_HARDWARE_WALLET_STATE:
+      return {
+        ...appState,
+        hardwareWalletState: action.payload,
+      };
+
     case actionConstants.SET_WEBHID_CONNECTED_STATUS:
       return {
         ...appState,
@@ -445,6 +454,12 @@ export function toggleGasLoadingAnimation(
   return { type: actionConstants.TOGGLE_GAS_LOADING_ANIMATION, payload };
 }
 
+export function setHardwareWalletState(
+  payload: HardwareWalletStates,
+): PayloadAction<string | null> {
+  return { type: actionConstants.SET_HARDWARE_WALLET_STATE, payload };
+}
+
 export function setLedgerWebHidConnectedStatus(
   payload: WebHIDConnectedStatuses,
 ): PayloadAction<WebHIDConnectedStatuses> {
@@ -481,6 +496,10 @@ export function getQrCodeData(state: AppSliceState): {
 
 export function getGasLoadingAnimationIsShowing(state: AppSliceState): boolean {
   return state.appState.gasLoadingAnimationIsShowing;
+}
+
+export function getHardwareWalletState(state: AppSliceState): string | null {
+  return state.appState.hardwareWalletState;
 }
 
 export function getLedgerWebHidConnectedStatus(
