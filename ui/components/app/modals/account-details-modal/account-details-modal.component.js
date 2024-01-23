@@ -8,6 +8,16 @@ import EditableLabel from '../../../ui/editable-label';
 import Button from '../../../ui/button';
 import { getURLHostName } from '../../../../helpers/utils/util';
 import { isHardwareKeyring } from '../../../../helpers/utils/hardware';
+///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
+import CustodyLabels from '../../../institutional/custody-labels/custody-labels';
+import { toChecksumHexAddress } from '../../../../../shared/modules/hexstring-utils';
+///: END:ONLY_INCLUDE_IN
+import {
+  MetaMetricsEventCategory,
+  MetaMetricsEventLinkType,
+  MetaMetricsEventKeyType,
+  MetaMetricsEventName,
+} from '../../../../../shared/constants/metametrics';
 import { NETWORKS_ROUTE } from '../../../../helpers/constants/routes';
 
 export default class AccountDetailsModal extends Component {
@@ -22,6 +32,10 @@ export default class AccountDetailsModal extends Component {
     history: PropTypes.object,
     hideModal: PropTypes.func,
     blockExplorerLinkText: PropTypes.object,
+    ///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
+    accountType: PropTypes.string,
+    custodyAccountDetails: PropTypes.object,
+    ///: END:ONLY_INCLUDE_IN
   };
 
   static contextTypes = {
@@ -37,10 +51,13 @@ export default class AccountDetailsModal extends Component {
       setAccountLabel,
       keyrings,
       rpcPrefs,
-      accounts,
       history,
       hideModal,
       blockExplorerLinkText,
+      ///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
+      accountType,
+      custodyAccountDetails,
+      ///: END:ONLY_INCLUDE_IN
     } = this.props;
     const { name, address } = selectedIdentity;
 
@@ -48,17 +65,28 @@ export default class AccountDetailsModal extends Component {
       return kr.accounts.includes(address);
     });
 
-    const getAccountsNames = (allAccounts, currentName) => {
-      return Object.values(allAccounts)
-        .map((item) => item.name)
-        .filter((itemName) => itemName !== currentName);
-    };
-
     let exportPrivateKeyFeatureEnabled = true;
     // This feature is disabled for hardware wallets
     if (isHardwareKeyring(keyring?.type)) {
       exportPrivateKeyFeatureEnabled = false;
     }
+
+    ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+    if (keyring?.type.includes('Snap')) {
+      exportPrivateKeyFeatureEnabled = false;
+    }
+    ///: END:ONLY_INCLUDE_IN
+
+    ///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
+    if (keyring?.type?.search('Custody') !== -1) {
+      exportPrivateKeyFeatureEnabled = false;
+    }
+    const showCustodyLabels = accountType === 'custody';
+    const custodyLabels = custodyAccountDetails
+      ? custodyAccountDetails[toChecksumHexAddress(selectedIdentity.address)]
+          ?.labels
+      : {};
+    ///: END:ONLY_INCLUDE_IN
 
     const routeToAddBlockExplorerUrl = () => {
       hideModal();
@@ -68,12 +96,12 @@ export default class AccountDetailsModal extends Component {
     const openBlockExplorer = () => {
       const accountLink = getAccountLink(address, chainId, rpcPrefs);
       this.context.trackEvent({
-        category: 'Navigation',
-        event: 'Clicked Block Explorer Link',
+        category: MetaMetricsEventCategory.Navigation,
+        event: MetaMetricsEventName.ExternalLinkClicked,
         properties: {
-          link_type: 'Account Tracker',
-          action: 'Account Details Modal',
-          block_explorer_domain: getURLHostName(accountLink),
+          link_type: MetaMetricsEventLinkType.AccountTracker,
+          location: 'Account Details Modal',
+          url_domain: getURLHostName(accountLink),
         },
       });
       global.platform.openTab({
@@ -87,13 +115,16 @@ export default class AccountDetailsModal extends Component {
           className="account-details-modal__name"
           defaultValue={name}
           onSubmit={(label) => setAccountLabel(address, label)}
-          accountsNames={getAccountsNames(accounts, name)}
+          accounts={this.props.accounts}
         />
-
+        {
+          ///: BEGIN:ONLY_INCLUDE_IN(build-mmi)
+          showCustodyLabels && <CustodyLabels labels={custodyLabels} />
+          ///: END:ONLY_INCLUDE_IN
+        }
         <QrView
           Qr={{
             data: address,
-            isHexAddress: true,
           }}
         />
 
@@ -108,23 +139,30 @@ export default class AccountDetailsModal extends Component {
               : openBlockExplorer
           }
         >
-          {this.context.t(
-            blockExplorerLinkText.firstPart,
-            blockExplorerLinkText.secondPart === ''
-              ? null
-              : [blockExplorerLinkText.secondPart],
-          )}
+          {this.context.t(blockExplorerLinkText.firstPart, [
+            blockExplorerLinkText.secondPart,
+          ])}
         </Button>
 
-        {exportPrivateKeyFeatureEnabled ? (
+        {exportPrivateKeyFeatureEnabled && (
           <Button
             type="secondary"
             className="account-details-modal__button"
-            onClick={() => showExportPrivateKeyModal()}
+            onClick={() => {
+              this.context.trackEvent({
+                category: MetaMetricsEventCategory.Accounts,
+                event: MetaMetricsEventName.KeyExportSelected,
+                properties: {
+                  key_type: MetaMetricsEventKeyType.Pkey,
+                  location: 'Account Details Modal',
+                },
+              });
+              showExportPrivateKeyModal();
+            }}
           >
             {this.context.t('exportPrivateKey')}
           </Button>
-        ) : null}
+        )}
       </AccountModalContainer>
     );
   }

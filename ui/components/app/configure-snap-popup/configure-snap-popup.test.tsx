@@ -12,6 +12,18 @@ const mockOnClose = jest.fn();
 const mockStore = configureMockStore([])(mockState);
 describe('ConfigureSnapPopup', () => {
   global.platform = { openTab: jest.fn() };
+  it('should take a snapshot', () => {
+    const { container } = renderWithProvider(
+      <ConfigureSnapPopup
+        onClose={mockOnClose}
+        isOpen
+        link={'mockLink'}
+        type={ConfigureSnapPopupType.CONFIGURE}
+      />,
+      mockStore,
+    );
+    expect(container).toMatchSnapshot();
+  });
 
   it('should show configure popup title and description', async () => {
     const { getByText } = renderWithProvider(

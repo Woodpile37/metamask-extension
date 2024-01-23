@@ -1,72 +1,54 @@
 import deepFreeze from 'deep-freeze-strict';
 import React from 'react';
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { getRpcCaveatOrigins } from '@metamask/snaps-controllers';
-import {
-  SnapCaveatType,
-  getSlip44ProtocolName,
-  getSnapDerivationPathName,
-} from '@metamask/snaps-utils';
+///: BEGIN:ONLY_INCLUDE_IN(snaps)
+import { getRpcCaveatOrigins } from '@metamask/snaps-controllers/dist/snaps/endowments/rpc';
+import { SnapCaveatType } from '@metamask/snaps-utils';
 import { isNonEmptyArray } from '@metamask/controller-utils';
-///: END:ONLY_INCLUDE_IF
+///: END:ONLY_INCLUDE_IN
 import classnames from 'classnames';
 import {
   RestrictedMethods,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
   EndowmentPermissions,
-  ///: END:ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IN
 } from '../../../shared/constants/permissions';
 import Tooltip from '../../components/ui/tooltip';
 import {
   AvatarIcon,
-  AvatarIconSize,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  Icon,
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
   Text,
-  ///: END:ONLY_INCLUDE_IF
+  Icon,
+  ///: END:ONLY_INCLUDE_IN
   IconName,
   IconSize,
 } from '../../components/component-library';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IN(snaps)
+import { Color, FontWeight, IconColor } from '../constants/design-system';
 import {
-  FontWeight,
-  IconColor,
-  TextColor,
-  TextVariant,
-} from '../constants/design-system';
-import { getSnapName } from './util';
-///: END:ONLY_INCLUDE_IF
+  coinTypeToProtocolName,
+  getSnapDerivationPathName,
+  getSnapName,
+} from './util';
+///: END:ONLY_INCLUDE_IN
 
 const UNKNOWN_PERMISSION = Symbol('unknown');
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IN(snaps)
 const RIGHT_INFO_ICON = (
   <Icon name={IconName.Info} size={IconSize.Sm} color={IconColor.iconMuted} />
 );
-///: END:ONLY_INCLUDE_IF
+///: END:ONLY_INCLUDE_IN
 
 function getLeftIcon(iconName) {
   return (
     <AvatarIcon
       iconName={iconName}
-      size={AvatarIconSize.Sm}
+      size={IconSize.Sm}
       iconProps={{
         size: IconSize.Xs,
       }}
     />
-  );
-}
-
-function getSnapNameComponent(targetSubjectMetadata) {
-  return (
-    <Text
-      fontWeight={FontWeight.Medium}
-      variant={TextVariant.inherit}
-      color={TextColor.inherit}
-    >
-      {getSnapName(targetSubjectMetadata?.origin, targetSubjectMetadata)}
-    </Text>
   );
 }
 
@@ -75,24 +57,20 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
     label: t('permission_ethereumAccounts'),
     leftIcon: getLeftIcon(IconName.Eye),
     rightIcon: null,
+    weight: 2,
+  }),
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  [RestrictedMethods.snap_dialog]: ({ t }) => ({
+    label: t('permission_dialog'),
+    description: t('permission_dialogDescription'),
+    leftIcon: IconName.Messages,
     weight: 3,
   }),
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-  [RestrictedMethods.snap_dialog]: ({ t, targetSubjectMetadata }) => ({
-    label: t('permission_dialog'),
-    description: t('permission_dialogDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
-    leftIcon: IconName.Messages,
-    weight: 4,
-  }),
-  [RestrictedMethods.snap_notify]: ({ t, targetSubjectMetadata }) => ({
+  [RestrictedMethods.snap_notify]: ({ t }) => ({
     label: t('permission_notifications'),
-    description: t('permission_notificationsDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
+    description: t('permission_notificationsDescription'),
     leftIcon: IconName.Notification,
-    weight: 4,
+    weight: 3,
   }),
   [RestrictedMethods.snap_getBip32PublicKey]: ({
     t,
@@ -102,13 +80,24 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
     permissionValue.caveats[0].value.map(({ path, curve }, i) => {
       const baseDescription = {
         leftIcon: IconName.SecuritySearch,
-        weight: 2,
+        weight: 1,
         id: `public-key-access-bip32-${path
           .join('-')
           ?.replace(/'/gu, 'h')}-${curve}-${i}`,
-        warningMessageSubject:
-          getSnapDerivationPathName(path, curve) ??
-          `${t('unknownNetworkForKeyEntropy')}  ${path.join('/')} (${curve})`,
+        message: t('snapInstallWarningPublicKeyAccess', [
+          <Text
+            key="1"
+            color={Color.primaryDefault}
+            fontWeight={FontWeight.Medium}
+            as="span"
+          >
+            {getSnapName(targetSubjectMetadata?.origin, targetSubjectMetadata)}
+          </Text>,
+          <Text as="span" key="2" fontWeight={FontWeight.Medium}>
+            {getSnapDerivationPathName(path, curve) ??
+              `${path.join('/')} (${curve})`}
+          </Text>,
+        ]),
       };
 
       const friendlyName = getSnapDerivationPathName(path, curve);
@@ -116,24 +105,19 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
         return {
           ...baseDescription,
           label: t('permission_viewNamedBip32PublicKeys', [
-            <Text
-              color={TextColor.inherit}
-              variant={TextVariant.inherit}
-              fontWeight={FontWeight.Medium}
-              key={path.join('/')}
-            >
+            <span className="permission-label-item" key={path.join('/')}>
               {friendlyName}
-            </Text>,
+            </span>,
+            path.join('/'),
           ]),
           description: t('permission_viewBip32PublicKeysDescription', [
-            <Text
-              color={TextColor.inherit}
-              variant={TextVariant.inherit}
-              fontWeight={FontWeight.Medium}
+            <span
+              className="tooltip-label-item"
               key={`description-${path.join('/')}`}
             >
               {friendlyName}
-            </Text>,
+            </span>,
+            path.join('/'),
           ]),
         };
       }
@@ -141,26 +125,19 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
       return {
         ...baseDescription,
         label: t('permission_viewBip32PublicKeys', [
-          <Text
-            color={TextColor.inherit}
-            variant={TextVariant.inherit}
-            fontWeight={FontWeight.Medium}
-            key={path.join('/')}
-          >
-            {`${t('unknownNetworkForKeyEntropy')} `} {path.join('/')}
-          </Text>,
+          <span className="permission-label-item" key={path.join('/')}>
+            {path.join('/')}
+          </span>,
           curve,
         ]),
         description: t('permission_viewBip32PublicKeysDescription', [
-          <Text
-            color={TextColor.inherit}
-            variant={TextVariant.inherit}
-            fontWeight={FontWeight.Medium}
+          <span
+            className="tooltip-label-item"
             key={`description-${path.join('/')}`}
           >
             {path.join('/')}
-          </Text>,
-          getSnapNameComponent(targetSubjectMetadata),
+          </span>,
+          path.join('/'),
         ]),
       };
     }),
@@ -176,27 +153,40 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
         id: `key-access-bip32-${path
           .join('-')
           ?.replace(/'/gu, 'h')}-${curve}-${i}`,
-        warningMessageSubject:
-          getSnapDerivationPathName(path, curve) ??
-          `${t('unknownNetworkForKeyEntropy')} ${path.join('/')} (${curve})`,
+        message: t('snapInstallWarningKeyAccess', [
+          <Text
+            key="1"
+            color={Color.primaryDefault}
+            fontWeight={FontWeight.Medium}
+            as="span"
+          >
+            {getSnapName(targetSubjectMetadata?.origin, targetSubjectMetadata)}
+          </Text>,
+          <Text as="span" key="2" fontWeight={FontWeight.Medium}>
+            {getSnapDerivationPathName(path, curve) ??
+              `${path.join('/')} (${curve})`}
+          </Text>,
+        ]),
       };
 
       const friendlyName = getSnapDerivationPathName(path, curve);
       if (friendlyName) {
         return {
           ...baseDescription,
-          label: t('permission_manageBip32Keys', [
-            <Text
-              color={TextColor.inherit}
-              variant={TextVariant.inherit}
-              fontWeight={FontWeight.Medium}
-              key={path.join('/')}
+          label: t('permission_manageNamedBip32Keys', [
+            <span className="permission-label-item" key={path.join('/')}>
+              {friendlyName}
+            </span>,
+            path.join('/'),
+          ]),
+          description: t('permission_manageBip32KeysDescription', [
+            <span
+              className="tooltip-label-item"
+              key={`description-${path.join('/')}`}
             >
               {friendlyName}
-            </Text>,
-          ]),
-          description: t('permission_manageBip44AndBip32KeysDescription', [
-            getSnapNameComponent(targetSubjectMetadata),
+            </span>,
+            curve,
           ]),
         };
       }
@@ -204,17 +194,19 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
       return {
         ...baseDescription,
         label: t('permission_manageBip32Keys', [
-          <Text
-            color={TextColor.inherit}
-            variant={TextVariant.inherit}
-            fontWeight={FontWeight.Medium}
-            key={path.join('/')}
-          >
-            {`${t('unknownNetworkForKeyEntropy')} ${path.join('/')} (${curve})`}
-          </Text>,
+          <span className="permission-label-item" key={path.join('/')}>
+            {path.join('/')}
+          </span>,
+          curve,
         ]),
-        description: t('permission_manageBip44AndBip32KeysDescription', [
-          getSnapNameComponent(targetSubjectMetadata),
+        description: t('permission_manageBip32KeysDescription', [
+          <span
+            className="tooltip-label-item"
+            key={`description-${path.join('/')}`}
+          >
+            {path.join('/')}
+          </span>,
+          curve,
         ]),
       };
     }),
@@ -225,52 +217,55 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
   }) =>
     permissionValue.caveats[0].value.map(({ coinType }, i) => ({
       label: t('permission_manageBip44Keys', [
-        <Text
-          color={TextColor.inherit}
-          variant={TextVariant.inherit}
-          fontWeight={FontWeight.Medium}
-          key={`coin-type-${coinType}`}
-        >
-          {getSlip44ProtocolName(coinType) ??
-            `${t('unknownNetworkForKeyEntropy')} m/44'/${coinType}'`}
-        </Text>,
+        <span className="permission-label-item" key={`coin-type-${coinType}`}>
+          {coinTypeToProtocolName(coinType) ||
+            t('unrecognizedProtocol', [coinType])}
+        </span>,
       ]),
-      description: t('permission_manageBip44AndBip32KeysDescription', [
-        getSnapNameComponent(targetSubjectMetadata),
+      description: t('permission_manageBip44KeysDescription', [
+        <span
+          className="tooltip-label-item"
+          key={`description-coin-type-${coinType}`}
+        >
+          {coinTypeToProtocolName(coinType) ||
+            t('unrecognizedProtocol', [coinType])}
+        </span>,
       ]),
       leftIcon: IconName.Key,
       weight: 1,
       id: `key-access-bip44-${coinType}-${i}`,
-      warningMessageSubject:
-        getSlip44ProtocolName(coinType) ??
-        `${t('unknownNetworkForKeyEntropy')} m/44'/${coinType}'`,
+      message: t('snapInstallWarningKeyAccess', [
+        <Text
+          key="1"
+          color={Color.primaryDefault}
+          fontWeight={FontWeight.Medium}
+          as="span"
+        >
+          {getSnapName(targetSubjectMetadata?.origin, targetSubjectMetadata)}
+        </Text>,
+        <Text as="span" key="2" fontWeight={FontWeight.Medium}>
+          {coinTypeToProtocolName(coinType) ||
+            t('unrecognizedProtocol', [coinType])}
+        </Text>,
+      ]),
     })),
-  [RestrictedMethods.snap_getEntropy]: ({ t, targetSubjectMetadata }) => ({
-    label: t('permission_getEntropy', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
-    description: t('permission_getEntropyDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
+  [RestrictedMethods.snap_getEntropy]: ({ t }) => ({
+    label: t('permission_getEntropy'),
+    description: t('permission_getEntropyDescription'),
     leftIcon: IconName.SecurityKey,
-    weight: 4,
+    weight: 3,
   }),
-
-  [RestrictedMethods.snap_manageState]: ({ t, targetSubjectMetadata }) => ({
+  [RestrictedMethods.snap_manageAccounts]: ({ t }) => ({
+    label: t('permission_manageAccounts'),
+    leftIcon: 'fas fa-door-open',
+    rightIcon: null,
+    weight: 3,
+  }),
+  [RestrictedMethods.snap_manageState]: ({ t }) => ({
     label: t('permission_manageState'),
-    description: t('permission_manageStateDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
+    description: t('permission_manageStateDescription'),
     leftIcon: IconName.AddSquare,
-    weight: 4,
-  }),
-  [RestrictedMethods.snap_getLocale]: ({ t, targetSubjectMetadata }) => ({
-    label: t('permission_getLocale'),
-    description: t('permission_getLocaleDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
-    leftIcon: IconName.Global,
-    weight: 4,
+    weight: 3,
   }),
   [RestrictedMethods.wallet_snap]: ({
     t,
@@ -289,14 +284,9 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
         return {
           ...baseDescription,
           label: t('permission_accessNamedSnap', [
-            <Text
-              color={TextColor.inherit}
-              variant={TextVariant.inherit}
-              fontWeight={FontWeight.Medium}
-              key={snapId}
-            >
+            <span className="permission-label-item" key={snapId}>
               {friendlyName}
-            </Text>,
+            </span>,
           ]),
           description: t('permission_accessSnapDescription', [friendlyName]),
         };
@@ -309,46 +299,39 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
       };
     });
   },
-  [EndowmentPermissions['endowment:network-access']]: ({
-    t,
-    targetSubjectMetadata,
-  }) => ({
+  [EndowmentPermissions['endowment:network-access']]: ({ t }) => ({
     label: t('permission_accessNetwork'),
-    description: t('permission_accessNetworkDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
-    leftIcon: IconName.Wifi,
-    weight: 3,
+    description: t('permission_accessNetworkDescription'),
+    leftIcon: IconName.Global,
+    weight: 2,
   }),
-  [EndowmentPermissions['endowment:webassembly']]: ({
-    t,
-    targetSubjectMetadata,
-  }) => ({
+  [EndowmentPermissions['endowment:webassembly']]: ({ t }) => ({
     label: t('permission_webAssembly'),
-    description: t('permission_webAssemblyDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
+    description: t('permission_webAssemblyDescription'),
     leftIcon: IconName.DocumentCode,
     rightIcon: null,
+    weight: 2,
+  }),
+  [EndowmentPermissions['endowment:long-running']]: ({ t }) => ({
+    label: t('permission_longRunning'),
+    description: t('permission_longRunningDescription'),
+    leftIcon: IconName.Link,
     weight: 3,
   }),
   [EndowmentPermissions['endowment:transaction-insight']]: ({
     t,
     permissionValue,
-    targetSubjectMetadata,
   }) => {
     const baseDescription = {
       leftIcon: IconName.Speedometer,
-      weight: 4,
+      weight: 3,
     };
 
     const result = [
       {
         ...baseDescription,
         label: t('permission_transactionInsight'),
-        description: t('permission_transactionInsightDescription', [
-          getSnapNameComponent(targetSubjectMetadata),
-        ]),
+        description: t('permission_transactionInsightDescription'),
       },
     ];
 
@@ -360,197 +343,63 @@ export const PERMISSION_DESCRIPTIONS = deepFreeze({
       result.push({
         ...baseDescription,
         label: t('permission_transactionInsightOrigin'),
-        description: t('permission_transactionInsightOriginDescription', [
-          getSnapNameComponent(targetSubjectMetadata),
-        ]),
+        description: t('permission_transactionInsightOriginDescription'),
         leftIcon: IconName.Explore,
       });
     }
 
     return result;
   },
-  [EndowmentPermissions['endowment:cronjob']]: ({
-    t,
-    targetSubjectMetadata,
-  }) => ({
+  [EndowmentPermissions['endowment:cronjob']]: ({ t }) => ({
     label: t('permission_cronjob'),
-    description: t('permission_cronjobDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
+    description: t('permission_cronjobDescription'),
     leftIcon: IconName.Clock,
-    weight: 3,
+    weight: 2,
   }),
   [EndowmentPermissions['endowment:ethereum-provider']]: ({
     t,
     targetSubjectMetadata,
   }) => ({
     label: t('permission_ethereumProvider'),
-    description: t('permission_ethereumProviderDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
+    description: t('permission_ethereumProviderDescription'),
     leftIcon: IconName.Ethereum,
-    weight: 3,
+    weight: 2,
     id: 'ethereum-provider-access',
-    message: t('ethereumProviderAccess', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
+    message: t('ethereumProviderAccess', [targetSubjectMetadata?.origin]),
   }),
-  [EndowmentPermissions['endowment:rpc']]: ({
-    t,
-    permissionValue,
-    targetSubjectMetadata,
-  }) => {
+  [EndowmentPermissions['endowment:rpc']]: ({ t, permissionValue }) => {
     const baseDescription = {
       leftIcon: IconName.Hierarchy,
-      weight: 3,
+      weight: 2,
     };
 
-    const { snaps, dapps, allowedOrigins } =
-      getRpcCaveatOrigins(permissionValue);
+    const { snaps, dapps } = getRpcCaveatOrigins(permissionValue);
+
     const results = [];
     if (snaps) {
       results.push({
         ...baseDescription,
-        label: t('permission_rpc', [
-          t('otherSnaps'),
-          getSnapNameComponent(targetSubjectMetadata),
-        ]),
-        description: t('permission_rpcDescription', [
-          t('otherSnaps'),
-          getSnapNameComponent(targetSubjectMetadata),
-        ]),
+        label: t('permission_rpc', [t('otherSnaps')]),
+        description: t('permission_rpcDescription', [t('otherSnaps')]),
       });
     }
 
     if (dapps) {
       results.push({
         ...baseDescription,
-        label: t('permission_rpc', [
-          t('websites'),
-          getSnapNameComponent(targetSubjectMetadata),
-        ]),
-        description: t('permission_rpcDescription', [
-          t('websites'),
-          getSnapNameComponent(targetSubjectMetadata),
-        ]),
-      });
-    }
-
-    if (allowedOrigins?.length > 0) {
-      let originsMessage;
-
-      if (allowedOrigins.length === 1) {
-        originsMessage = (
-          <Text
-            color={TextColor.inherit}
-            variant={TextVariant.inherit}
-            fontWeight={FontWeight.Medium}
-          >
-            {allowedOrigins[0]}
-          </Text>
-        );
-      } else {
-        const lastOrigin = allowedOrigins.slice(-1);
-
-        const originList = allowedOrigins.slice(0, -1).map((origin) => (
-          <>
-            <Text
-              color={TextColor.inherit}
-              variant={TextVariant.inherit}
-              fontWeight={FontWeight.Medium}
-            >
-              {origin}
-            </Text>
-            {', '}
-          </>
-        ));
-
-        originsMessage = t('permission_rpcDescriptionOriginList', [
-          originList,
-          <Text
-            color={TextColor.inherit}
-            variant={TextVariant.inherit}
-            fontWeight={FontWeight.Medium}
-            key="2"
-          >
-            {lastOrigin}
-          </Text>,
-        ]);
-      }
-      results.push({
-        ...baseDescription,
-        label: t('permission_rpc', [
-          originsMessage,
-          getSnapNameComponent(targetSubjectMetadata),
-        ]),
-        description: t('permission_rpcDescription', [
-          originsMessage,
-          getSnapNameComponent(targetSubjectMetadata),
-        ]),
+        label: t('permission_rpc', [t('websites')]),
+        description: t('permission_rpcDescription', [t('websites')]),
       });
     }
 
     return results;
   },
-  [EndowmentPermissions['endowment:lifecycle-hooks']]: ({
-    t,
-    targetSubjectMetadata,
-  }) => ({
-    label: t('permission_lifecycleHooks'),
-    description: t('permission_lifecycleHooksDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
-    leftIcon: IconName.Hierarchy,
-    weight: 4,
-  }),
-  [EndowmentPermissions['endowment:page-home']]: ({
-    t,
-    targetSubjectMetadata,
-  }) => ({
-    label: t('permission_homePage'),
-    description: t('permission_homePageDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
-    leftIcon: IconName.Home,
-    weight: 4,
-  }),
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  [RestrictedMethods.snap_manageAccounts]: ({ t, targetSubjectMetadata }) => ({
-    label: t('permission_manageAccounts'),
-    description: t('permission_manageAccountsDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
-    leftIcon: getLeftIcon(IconName.UserCircleAdd),
-    rightIcon: null,
-    weight: 3,
-  }),
-  [EndowmentPermissions['endowment:keyring']]: ({
-    t,
-    targetSubjectMetadata,
-  }) => ({
-    label: t('permission_keyring'),
-    description: t('permission_keyringDescription', [
-      getSnapNameComponent(targetSubjectMetadata),
-    ]),
-    leftIcon: getLeftIcon(IconName.UserCircleAdd),
-    rightIcon: null,
-    weight: 3,
-  }),
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(build-flask)
-  [EndowmentPermissions['endowment:name-lookup']]: ({ t }) => ({
-    label: t('permission_nameLookup'),
-    description: t('permission_nameLookupDescription'),
-    leftIcon: getLeftIcon(IconName.Search),
-    weight: 4,
-  }),
-  ///: END:ONLY_INCLUDE_IF
+  ///: END:ONLY_INCLUDE_IN
   [UNKNOWN_PERMISSION]: ({ t, permissionName }) => ({
     label: t('permission_unknown', [permissionName ?? 'undefined']),
     leftIcon: getLeftIcon(IconName.Question),
     rightIcon: null,
-    weight: 5,
+    weight: 4,
   }),
 });
 

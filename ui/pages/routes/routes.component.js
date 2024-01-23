@@ -36,6 +36,7 @@ import OnboardingAppHeader from '../onboarding-flow/onboarding-app-header/onboar
 import TokenDetailsPage from '../token-details';
 ///: BEGIN:ONLY_INCLUDE_IN(flask)
 import Notifications from '../notifications';
+import AddSnapAccountPage from '../add-snap-account/add-snap-account';
 ///: END:ONLY_INCLUDE_IN
 
 import {
@@ -64,6 +65,7 @@ import {
   TOKEN_DETAILS,
   ///: BEGIN:ONLY_INCLUDE_IN(flask)
   NOTIFICATIONS_ROUTE,
+  ADD_SNAP_ACCOUNT_ROUTE,
   ///: END:ONLY_INCLUDE_IN
 } from '../../helpers/constants/routes';
 
@@ -265,6 +267,14 @@ export default class Routes extends Component {
           component={ConfirmationPage}
         />
         <Authenticated path={NEW_ACCOUNT_ROUTE} component={CreateAccountPage} />
+        {
+          ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+          <Authenticated
+            path={ADD_SNAP_ACCOUNT_ROUTE}
+            component={AddSnapAccountPage}
+          />
+          ///: END:ONLY_INCLUDE_IN
+        }
         <Authenticated
           path={`${CONNECT_ROUTE}/:id`}
           component={PermissionsConnect}

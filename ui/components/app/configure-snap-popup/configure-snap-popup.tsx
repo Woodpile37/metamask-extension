@@ -1,15 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-  ButtonVariant,
+  BUTTON_VARIANT,
   Button,
+  Text,
   Box,
   Modal,
   ModalOverlay,
-  Text,
+  ModalContent,
+  ModalHeader,
 } from '../../component-library';
-import { ModalContent } from '../../component-library/modal-content/deprecated';
-import { ModalHeader } from '../../component-library/modal-header/deprecated';
 import { useI18nContext } from '../../../hooks/useI18nContext';
 import {
   AlignItems,
@@ -39,10 +39,14 @@ export default function ConfigureSnapPopup({
   const t = useI18nContext();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      className="whats-new-popup__popover"
+    >
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader onClose={onClose} marginBottom={4}>
+        <ModalHeader onClose={onClose} margin={[4, 4, 4, 4]}>
           {type === ConfigureSnapPopupType.CONFIGURE
             ? t('configureSnapPopupTitle')
             : t('configureSnapPopupInstallTitle')}
@@ -55,8 +59,8 @@ export default function ConfigureSnapPopup({
         >
           <img
             src="images/logo/metamask-fox.svg"
-            width="54x"
-            height="50px"
+            width="53.68px"
+            height="49.5px"
             style={{ marginBottom: '16px' }}
           />
           <Text
@@ -72,7 +76,7 @@ export default function ConfigureSnapPopup({
             {t('configureSnapPopupLink')}
           </Text>
           <Button
-            variant={ButtonVariant.Link}
+            variant={BUTTON_VARIANT.LINK}
             marginBottom={8}
             onClick={() => {
               global.platform.openTab({

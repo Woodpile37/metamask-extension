@@ -9,18 +9,17 @@ import { setAccountLabel } from '../../../store/actions';
 import {
   getCurrentChainId,
   getHardwareWalletType,
-  getInternalAccountByAddress,
+  getMetaMaskKeyrings,
 } from '../../../selectors';
-import { isAbleToExportAccount } from '../../../helpers/utils/util';
+import { isHardwareKeyring } from '../../../helpers/utils/hardware';
 import {
-  Box,
+  BUTTON_SECONDARY_SIZES,
   ButtonSecondary,
-  ButtonSecondarySize,
 } from '../../component-library';
 import {
   AlignItems,
-  Display,
-  FlexDirection,
+  DISPLAY,
+  FLEX_DIRECTION,
   TextVariant,
 } from '../../../helpers/constants/design-system';
 import { MetaMetricsContext } from '../../../contexts/metametrics';
@@ -30,6 +29,7 @@ import {
   MetaMetricsEventName,
 } from '../../../../shared/constants/metametrics';
 import { useI18nContext } from '../../../hooks/useI18nContext';
+import Box from '../../ui/box/box';
 
 export const AccountDetailsDisplay = ({
   accounts,
@@ -41,19 +41,28 @@ export const AccountDetailsDisplay = ({
   const trackEvent = useContext(MetaMetricsContext);
   const t = useI18nContext();
 
-  const {
-    metadata: { keyring },
-  } = useSelector((state) => getInternalAccountByAddress(state, address));
-  const exportPrivateKeyFeatureEnabled = isAbleToExportAccount(keyring?.type);
+  const keyrings = useSelector(getMetaMaskKeyrings);
+  const keyring = keyrings.find((kr) => kr.accounts.includes(address));
+  let exportPrivateKeyFeatureEnabled = true;
+  // This feature is disabled for hardware wallets
+  if (isHardwareKeyring(keyring?.type)) {
+    exportPrivateKeyFeatureEnabled = false;
+  }
+
+  ///: BEGIN:ONLY_INCLUDE_IN(snaps)
+  if (keyring?.type.includes('Snap')) {
+    exportPrivateKeyFeatureEnabled = false;
+  }
+  ///: END:ONLY_INCLUDE_IN
 
   const chainId = useSelector(getCurrentChainId);
   const deviceName = useSelector(getHardwareWalletType);
 
   return (
     <Box
-      display={Display.Flex}
+      display={DISPLAY.FLEX}
       alignItems={AlignItems.center}
-      flexDirection={FlexDirection.Column}
+      flexDirection={FLEX_DIRECTION.COLUMN}
     >
       <EditableLabel
         defaultValue={accountName}
@@ -75,7 +84,7 @@ export const AccountDetailsDisplay = ({
       {exportPrivateKeyFeatureEnabled ? (
         <ButtonSecondary
           block
-          size={ButtonSecondarySize.Lg}
+          size={BUTTON_SECONDARY_SIZES.LG}
           variant={TextVariant.bodyMd}
           onClick={() => {
             trackEvent({
@@ -97,20 +106,8 @@ export const AccountDetailsDisplay = ({
 };
 
 AccountDetailsDisplay.propTypes = {
-  /**
-   * Array of user accounts
-   */
   accounts: PropTypes.array.isRequired,
-  /**
-   * Name of the current account
-   */
   accountName: PropTypes.string.isRequired,
-  /**
-   * Current address
-   */
   address: PropTypes.string.isRequired,
-  /**
-   * Executes upon Export button click
-   */
   onExportClick: PropTypes.func.isRequired,
 };
