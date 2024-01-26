@@ -143,7 +143,6 @@ describe('Unconnected Account Alert', () => {
       internalAccounts,
       accounts,
       accountsByChainId,
-      internalAccounts,
       keyrings,
       providerConfig: {
         chainId: CHAIN_IDS.MAINNET,

@@ -58,6 +58,7 @@ describe('keyringSnapPermissionsBuilder', () => {
       KeyringRpcMethod.GetRequest,
       KeyringRpcMethod.ApproveRequest,
       KeyringRpcMethod.RejectRequest,
+      KeyringRpcMethod.SubmitRequest,
     ]);
   });
 

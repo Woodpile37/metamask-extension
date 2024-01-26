@@ -74,7 +74,11 @@ const mockStore = {
     },
     nativeCurrency: 'ETH',
     currentCurrency: 'usd',
-    conversionRate: null,
+    currencyRates: {
+      ETH: {
+        conversionRate: null,
+      },
+    },
     unapprovedTypedMessagesCount: 2,
   },
 };
@@ -105,13 +109,14 @@ const generateUseSelectorRouter = (opts) => (selector) => {
     case getCurrentCurrency:
       return opts.metamask.currentCurrency;
     case getNativeCurrency:
-      return opts.metamask.nativeCurrency;
+      return opts.metamask.providerConfig.ticker;
     case getTotalUnapprovedMessagesCount:
       return opts.metamask.unapprovedTypedMessagesCount;
     case getPreferences:
       return opts.metamask.preferences;
     case conversionRateSelector:
-      return opts.metamask.conversionRate;
+      return opts.metamask.currencyRates[opts.metamask.providerConfig.ticker]
+        ?.conversionRate;
     case getSelectedAccount:
       return opts.metamask.accounts[opts.metamask.selectedAddress];
     case getInternalAccounts:
@@ -121,16 +126,7 @@ const generateUseSelectorRouter = (opts) => (selector) => {
     case getMemoizedAddressBook:
       return [];
     case accountsWithSendEtherInfoSelector:
-      return Object.values(opts.metamask.internalAccounts.accounts).map(
-        (internalAccount) => {
-          return {
-            ...internalAccount,
-            ...(opts.metamask.accounts[internalAccount.address] ?? {}),
-            balance:
-              opts.metamask.accounts[internalAccount.address]?.balance ?? 0,
-          };
-        },
-      );
+      return Object.values(opts.metamask.accounts);
     case getAccountType:
       return 'custody';
     case unconfirmedTransactionsHashSelector:
@@ -201,7 +197,13 @@ describe('Signature Request Component', () => {
           ...mockStore,
           metamask: {
             ...mockStore.metamask,
-            conversionRate: 231.06,
+            currencyRates: {
+              ...mockStore.metamask.currencyRates,
+              ETH: {
+                ...(mockStore.metamask.currencyRates.ETH || {}),
+                conversionRate: 231.06,
+              },
+            },
           },
         }),
       );

@@ -310,17 +310,9 @@
         "@ethersproject/abi>@ethersproject/logger": true,
         "@ethersproject/abi>@ethersproject/properties": true,
         "@ethersproject/bignumber": true,
-        "@ethersproject/contracts>@ethersproject/abstract-provider": true,
         "@ethersproject/hdnode>@ethersproject/abstract-signer": true,
-        "@ethersproject/hdnode>@ethersproject/transactions": true
-      }
-    },
-    "@ethersproject/contracts>@ethersproject/abstract-provider": {
-      "packages": {
-        "@ethersproject/abi>@ethersproject/bytes": true,
-        "@ethersproject/abi>@ethersproject/logger": true,
-        "@ethersproject/abi>@ethersproject/properties": true,
-        "@ethersproject/bignumber": true
+        "@ethersproject/hdnode>@ethersproject/transactions": true,
+        "@metamask/test-bundler>@ethersproject/abstract-provider": true
       }
     },
     "@ethersproject/hdnode": {
@@ -412,16 +404,16 @@
         "@ethersproject/abi>@ethersproject/properties": true,
         "@ethersproject/abi>@ethersproject/strings": true,
         "@ethersproject/bignumber": true,
-        "@ethersproject/contracts>@ethersproject/abstract-provider": true,
         "@ethersproject/hdnode>@ethersproject/abstract-signer": true,
         "@ethersproject/hdnode>@ethersproject/basex": true,
         "@ethersproject/hdnode>@ethersproject/sha2": true,
         "@ethersproject/hdnode>@ethersproject/transactions": true,
         "@ethersproject/providers>@ethersproject/base64": true,
-        "@ethersproject/providers>@ethersproject/networks": true,
         "@ethersproject/providers>@ethersproject/random": true,
         "@ethersproject/providers>@ethersproject/web": true,
-        "@ethersproject/providers>bech32": true
+        "@ethersproject/providers>bech32": true,
+        "@metamask/test-bundler>@ethersproject/abstract-provider": true,
+        "@metamask/test-bundler>@ethersproject/networks": true
       }
     },
     "@ethersproject/providers>@ethersproject/base64": {
@@ -431,11 +423,6 @@
       },
       "packages": {
         "@ethersproject/abi>@ethersproject/bytes": true
-      }
-    },
-    "@ethersproject/providers>@ethersproject/networks": {
-      "packages": {
-        "@ethersproject/abi>@ethersproject/logger": true
       }
     },
     "@ethersproject/providers>@ethersproject/random": {
@@ -709,20 +696,12 @@
     },
     "@metamask/accounts-controller": {
       "packages": {
-        "@metamask/accounts-controller>@metamask/base-controller": true,
+        "@metamask/base-controller": true,
         "@metamask/eth-snap-keyring": true,
         "@metamask/keyring-api": true,
         "@metamask/keyring-controller": true,
         "ethereumjs-util": true,
         "uuid": true
-      }
-    },
-    "@metamask/accounts-controller>@metamask/base-controller": {
-      "globals": {
-        "setTimeout": true
-      },
-      "packages": {
-        "immer": true
       }
     },
     "@metamask/address-book-controller": {
@@ -749,7 +728,7 @@
       "packages": {
         "@metamask/address-book-controller>@metamask/controller-utils>@metamask/utils": true,
         "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/controller-utils>ethjs-unit": true,
+        "@metamask/logging-controller>@metamask/controller-utils>ethjs-unit": true,
         "browserify>buffer": true,
         "eslint>fast-deep-equal": true,
         "eth-ens-namehash": true,
@@ -811,11 +790,11 @@
         "@ethersproject/contracts": true,
         "@ethersproject/providers": true,
         "@metamask/assets-controllers>@metamask/abi-utils": true,
-        "@metamask/assets-controllers>@metamask/controller-utils": true,
         "@metamask/assets-controllers>cockatiel": true,
         "@metamask/assets-controllers>multiformats": true,
         "@metamask/base-controller": true,
         "@metamask/contract-metadata": true,
+        "@metamask/controller-utils": true,
         "@metamask/eth-query": true,
         "@metamask/metamask-eth-abis": true,
         "@metamask/polling-controller": true,
@@ -833,23 +812,6 @@
       "packages": {
         "@metamask/utils": true,
         "superstruct": true
-      }
-    },
-    "@metamask/assets-controllers>@metamask/controller-utils": {
-      "globals": {
-        "URL": true,
-        "console.error": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/utils": true,
-        "browserify>buffer": true,
-        "eslint>fast-deep-equal": true,
-        "eth-ens-namehash": true,
-        "ethereumjs-util": true
       }
     },
     "@metamask/assets-controllers>cockatiel": {
@@ -905,7 +867,7 @@
       },
       "packages": {
         "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/controller-utils>ethjs-unit": true,
+        "@metamask/ethjs>@metamask/ethjs-unit": true,
         "@metamask/utils": true,
         "browserify>buffer": true,
         "eslint>fast-deep-equal": true,
@@ -929,12 +891,6 @@
       "packages": {
         "browserify>buffer": true,
         "browserify>insert-module-globals>is-buffer": true
-      }
-    },
-    "@metamask/controller-utils>ethjs-unit": {
-      "packages": {
-        "@metamask/ethjs>number-to-bn": true,
-        "bn.js": true
       }
     },
     "@metamask/controllers>web3": {
@@ -976,8 +932,8 @@
         "@metamask/browser-passworder": true,
         "@metamask/eth-keyring-controller>@metamask/eth-hd-keyring": true,
         "@metamask/eth-keyring-controller>@metamask/eth-simple-keyring": true,
+        "@metamask/eth-keyring-controller>@metamask/obs-store": true,
         "@metamask/message-manager>@metamask/eth-sig-util": true,
-        "@metamask/obs-store": true,
         "@metamask/utils": true,
         "webpack>events": true
       }
@@ -1003,6 +959,31 @@
         "@metamask/utils": true,
         "browserify>buffer": true,
         "mocha>serialize-javascript>randombytes": true
+      }
+    },
+    "@metamask/eth-keyring-controller>@metamask/obs-store": {
+      "packages": {
+        "@metamask/eth-keyring-controller>@metamask/obs-store>@metamask/safe-event-emitter": true,
+        "@metamask/eth-keyring-controller>@metamask/obs-store>readable-stream": true
+      }
+    },
+    "@metamask/eth-keyring-controller>@metamask/obs-store>@metamask/safe-event-emitter": {
+      "globals": {
+        "setTimeout": true
+      },
+      "packages": {
+        "webpack>events": true
+      }
+    },
+    "@metamask/eth-keyring-controller>@metamask/obs-store>readable-stream": {
+      "packages": {
+        "browserify>browser-resolve": true,
+        "browserify>buffer": true,
+        "browserify>process": true,
+        "browserify>string_decoder": true,
+        "pumpify>inherits": true,
+        "readable-stream>util-deprecate": true,
+        "webpack>events": true
       }
     },
     "@metamask/eth-ledger-bridge-keyring": {
@@ -1371,29 +1352,12 @@
         "setInterval": true
       },
       "packages": {
+        "@metamask/controller-utils": true,
         "@metamask/eth-query": true,
         "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/gas-fee-controller>@metamask/controller-utils": true,
         "@metamask/polling-controller": true,
         "ethereumjs-util": true,
         "uuid": true
-      }
-    },
-    "@metamask/gas-fee-controller>@metamask/controller-utils": {
-      "globals": {
-        "URL": true,
-        "console.error": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/utils": true,
-        "browserify>buffer": true,
-        "eslint>fast-deep-equal": true,
-        "eth-ens-namehash": true,
-        "ethereumjs-util": true
       }
     },
     "@metamask/jazzicon": {
@@ -1442,20 +1406,51 @@
     },
     "@metamask/keyring-controller": {
       "packages": {
-        "@metamask/eth-keyring-controller": true,
-        "@metamask/keyring-controller>@metamask/base-controller": true,
+        "@metamask/base-controller": true,
+        "@metamask/keyring-controller>@metamask/eth-keyring-controller": true,
         "@metamask/keyring-controller>ethereumjs-wallet": true,
         "@metamask/utils": true,
         "eth-json-rpc-filters>async-mutex": true,
         "ethereumjs-util": true
       }
     },
-    "@metamask/keyring-controller>@metamask/base-controller": {
+    "@metamask/keyring-controller>@metamask/eth-keyring-controller": {
+      "globals": {
+        "console.error": true
+      },
+      "packages": {
+        "@metamask/browser-passworder": true,
+        "@metamask/eth-keyring-controller>@metamask/eth-hd-keyring": true,
+        "@metamask/eth-keyring-controller>@metamask/eth-simple-keyring": true,
+        "@metamask/keyring-controller>@metamask/eth-keyring-controller>@metamask/obs-store": true,
+        "@metamask/message-manager>@metamask/eth-sig-util": true,
+        "@metamask/utils": true,
+        "webpack>events": true
+      }
+    },
+    "@metamask/keyring-controller>@metamask/eth-keyring-controller>@metamask/obs-store": {
+      "packages": {
+        "@metamask/keyring-controller>@metamask/eth-keyring-controller>@metamask/obs-store>@metamask/safe-event-emitter": true,
+        "@metamask/keyring-controller>@metamask/eth-keyring-controller>@metamask/obs-store>readable-stream": true
+      }
+    },
+    "@metamask/keyring-controller>@metamask/eth-keyring-controller>@metamask/obs-store>@metamask/safe-event-emitter": {
       "globals": {
         "setTimeout": true
       },
       "packages": {
-        "immer": true
+        "webpack>events": true
+      }
+    },
+    "@metamask/keyring-controller>@metamask/eth-keyring-controller>@metamask/obs-store>readable-stream": {
+      "packages": {
+        "browserify>browser-resolve": true,
+        "browserify>buffer": true,
+        "browserify>process": true,
+        "browserify>string_decoder": true,
+        "pumpify>inherits": true,
+        "readable-stream>util-deprecate": true,
+        "webpack>events": true
       }
     },
     "@metamask/keyring-controller>ethereumjs-wallet": {
@@ -1510,6 +1505,12 @@
         "immer": true
       }
     },
+    "@metamask/logging-controller>@metamask/controller-utils>ethjs-unit": {
+      "packages": {
+        "@metamask/ethjs>number-to-bn": true,
+        "bn.js": true
+      }
+    },
     "@metamask/logo": {
       "globals": {
         "addEventListener": true,
@@ -1526,22 +1527,14 @@
     },
     "@metamask/message-manager": {
       "packages": {
+        "@metamask/base-controller": true,
         "@metamask/controller-utils": true,
-        "@metamask/message-manager>@metamask/base-controller": true,
         "@metamask/message-manager>@metamask/eth-sig-util": true,
         "@metamask/message-manager>jsonschema": true,
         "browserify>buffer": true,
         "ethereumjs-util": true,
         "uuid": true,
         "webpack>events": true
-      }
-    },
-    "@metamask/message-manager>@metamask/base-controller": {
-      "globals": {
-        "setTimeout": true
-      },
-      "packages": {
-        "immer": true
       }
     },
     "@metamask/message-manager>@metamask/eth-sig-util": {
@@ -1579,10 +1572,10 @@
       },
       "packages": {
         "@metamask/base-controller": true,
+        "@metamask/controller-utils": true,
         "@metamask/eth-json-rpc-middleware": true,
         "@metamask/eth-query": true,
         "@metamask/eth-token-tracker>eth-block-tracker": true,
-        "@metamask/network-controller>@metamask/controller-utils": true,
         "@metamask/network-controller>@metamask/eth-json-rpc-infura": true,
         "@metamask/network-controller>@metamask/eth-json-rpc-provider": true,
         "@metamask/network-controller>@metamask/swappable-obj-proxy": true,
@@ -1591,23 +1584,6 @@
         "@metamask/utils": true,
         "browserify>assert": true,
         "uuid": true
-      }
-    },
-    "@metamask/network-controller>@metamask/controller-utils": {
-      "globals": {
-        "URL": true,
-        "console.error": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/utils": true,
-        "browserify>buffer": true,
-        "eslint>fast-deep-equal": true,
-        "eth-ens-namehash": true,
-        "ethereumjs-util": true
       }
     },
     "@metamask/network-controller>@metamask/eth-json-rpc-infura": {
@@ -1689,30 +1665,13 @@
       },
       "packages": {
         "@metamask/base-controller": true,
-        "@metamask/permission-controller>@metamask/controller-utils": true,
+        "@metamask/controller-utils": true,
         "@metamask/permission-controller>nanoid": true,
         "@metamask/providers>@metamask/json-rpc-engine": true,
         "@metamask/providers>@metamask/rpc-errors": true,
         "@metamask/utils": true,
         "deep-freeze-strict": true,
         "immer": true
-      }
-    },
-    "@metamask/permission-controller>@metamask/controller-utils": {
-      "globals": {
-        "URL": true,
-        "console.error": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/utils": true,
-        "browserify>buffer": true,
-        "eslint>fast-deep-equal": true,
-        "eth-ens-namehash": true,
-        "ethereumjs-util": true
       }
     },
     "@metamask/permission-controller>nanoid": {
@@ -1726,26 +1685,9 @@
       },
       "packages": {
         "@metamask/base-controller": true,
-        "@metamask/phishing-controller>@metamask/controller-utils": true,
+        "@metamask/controller-utils": true,
         "@metamask/phishing-warning>eth-phishing-detect": true,
         "punycode": true
-      }
-    },
-    "@metamask/phishing-controller>@metamask/controller-utils": {
-      "globals": {
-        "URL": true,
-        "console.error": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/utils": true,
-        "browserify>buffer": true,
-        "eslint>fast-deep-equal": true,
-        "eth-ens-namehash": true,
-        "ethereumjs-util": true
       }
     },
     "@metamask/phishing-warning>eth-phishing-detect": {
@@ -1813,9 +1755,9 @@
         "setInterval": true
       },
       "packages": {
+        "@metamask/controller-utils": true,
         "@metamask/eth-query>json-rpc-random-id": true,
         "@metamask/ppom-validator>@metamask/base-controller": true,
-        "@metamask/ppom-validator>@metamask/controller-utils": true,
         "@metamask/ppom-validator>crypto-js": true,
         "@metamask/ppom-validator>elliptic": true,
         "await-semaphore": true,
@@ -1828,23 +1770,6 @@
       },
       "packages": {
         "immer": true
-      }
-    },
-    "@metamask/ppom-validator>@metamask/controller-utils": {
-      "globals": {
-        "URL": true,
-        "console.error": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/utils": true,
-        "browserify>buffer": true,
-        "eslint>fast-deep-equal": true,
-        "eth-ens-namehash": true,
-        "ethereumjs-util": true
       }
     },
     "@metamask/ppom-validator>crypto-js": {
@@ -1928,27 +1853,10 @@
     "@metamask/queued-request-controller": {
       "packages": {
         "@metamask/base-controller": true,
+        "@metamask/controller-utils": true,
         "@metamask/providers>@metamask/json-rpc-engine": true,
         "@metamask/providers>@metamask/rpc-errors": true,
-        "@metamask/queued-request-controller>@metamask/controller-utils": true,
         "@metamask/selected-network-controller": true
-      }
-    },
-    "@metamask/queued-request-controller>@metamask/controller-utils": {
-      "globals": {
-        "URL": true,
-        "console.error": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/utils": true,
-        "browserify>buffer": true,
-        "eslint>fast-deep-equal": true,
-        "eth-ens-namehash": true,
-        "ethereumjs-util": true
       }
     },
     "@metamask/rate-limit-controller": {
@@ -2012,10 +1920,10 @@
         "console.info": true
       },
       "packages": {
-        "@metamask/controller-utils": true,
         "@metamask/logging-controller": true,
         "@metamask/message-manager": true,
         "@metamask/signature-controller>@metamask/base-controller": true,
+        "@metamask/signature-controller>@metamask/controller-utils": true,
         "browserify>buffer": true,
         "eth-rpc-errors": true,
         "ethereumjs-util": true,
@@ -2031,6 +1939,23 @@
         "immer": true
       }
     },
+    "@metamask/signature-controller>@metamask/controller-utils": {
+      "globals": {
+        "URL": true,
+        "console.error": true,
+        "fetch": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "@metamask/controller-utils>@spruceid/siwe-parser": true,
+        "@metamask/logging-controller>@metamask/controller-utils>ethjs-unit": true,
+        "@metamask/utils": true,
+        "browserify>buffer": true,
+        "eslint>fast-deep-equal": true,
+        "eth-ens-namehash": true,
+        "ethereumjs-util": true
+      }
+    },
     "@metamask/smart-transactions-controller": {
       "globals": {
         "URLSearchParams": true,
@@ -2044,8 +1969,8 @@
         "@ethersproject/abi>@ethersproject/bytes": true,
         "@ethersproject/bignumber": true,
         "@ethersproject/providers": true,
-        "@metamask/controller-utils": true,
         "@metamask/smart-transactions-controller>@metamask/base-controller": true,
+        "@metamask/smart-transactions-controller>@metamask/controller-utils": true,
         "@metamask/smart-transactions-controller>bignumber.js": true,
         "fast-json-patch": true,
         "lodash": true
@@ -2057,6 +1982,23 @@
       },
       "packages": {
         "immer": true
+      }
+    },
+    "@metamask/smart-transactions-controller>@metamask/controller-utils": {
+      "globals": {
+        "URL": true,
+        "console.error": true,
+        "fetch": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "@metamask/controller-utils>@spruceid/siwe-parser": true,
+        "@metamask/logging-controller>@metamask/controller-utils>ethjs-unit": true,
+        "@metamask/utils": true,
+        "browserify>buffer": true,
+        "eslint>fast-deep-equal": true,
+        "eth-ens-namehash": true,
+        "ethereumjs-util": true
       }
     },
     "@metamask/smart-transactions-controller>@metamask/controllers>nanoid": {
@@ -2318,6 +2260,19 @@
         "semver": true
       }
     },
+    "@metamask/test-bundler>@ethersproject/abstract-provider": {
+      "packages": {
+        "@ethersproject/abi>@ethersproject/bytes": true,
+        "@ethersproject/abi>@ethersproject/logger": true,
+        "@ethersproject/abi>@ethersproject/properties": true,
+        "@ethersproject/bignumber": true
+      }
+    },
+    "@metamask/test-bundler>@ethersproject/networks": {
+      "packages": {
+        "@ethersproject/abi>@ethersproject/logger": true
+      }
+    },
     "@metamask/transaction-controller": {
       "globals": {
         "console.error": true,
@@ -2328,11 +2283,11 @@
         "@ethereumjs/tx": true,
         "@ethersproject/abi": true,
         "@metamask/base-controller": true,
+        "@metamask/controller-utils": true,
         "@metamask/eth-query": true,
         "@metamask/gas-fee-controller": true,
         "@metamask/metamask-eth-abis": true,
         "@metamask/providers>@metamask/rpc-errors": true,
-        "@metamask/transaction-controller>@metamask/controller-utils": true,
         "@metamask/transaction-controller>nonce-tracker": true,
         "@metamask/utils": true,
         "eth-json-rpc-filters>async-mutex": true,
@@ -2342,23 +2297,6 @@
         "lodash": true,
         "uuid": true,
         "webpack>events": true
-      }
-    },
-    "@metamask/transaction-controller>@metamask/controller-utils": {
-      "globals": {
-        "URL": true,
-        "console.error": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/utils": true,
-        "browserify>buffer": true,
-        "eslint>fast-deep-equal": true,
-        "eth-ens-namehash": true,
-        "ethereumjs-util": true
       }
     },
     "@metamask/transaction-controller>nonce-tracker": {
@@ -2384,34 +2322,18 @@
       },
       "packages": {
         "@metamask/base-controller": true,
+        "@metamask/controller-utils": true,
         "@metamask/eth-query": true,
         "@metamask/gas-fee-controller": true,
         "@metamask/polling-controller": true,
+        "@metamask/providers>@metamask/rpc-errors": true,
         "@metamask/transaction-controller": true,
-        "@metamask/user-operation-controller>@metamask/controller-utils": true,
         "@metamask/utils": true,
         "ethereumjs-util": true,
         "lodash": true,
         "superstruct": true,
         "uuid": true,
         "webpack>events": true
-      }
-    },
-    "@metamask/user-operation-controller>@metamask/controller-utils": {
-      "globals": {
-        "URL": true,
-        "console.error": true,
-        "fetch": true,
-        "setTimeout": true
-      },
-      "packages": {
-        "@metamask/controller-utils>@spruceid/siwe-parser": true,
-        "@metamask/ethjs>@metamask/ethjs-unit": true,
-        "@metamask/utils": true,
-        "browserify>buffer": true,
-        "eslint>fast-deep-equal": true,
-        "eth-ens-namehash": true,
-        "ethereumjs-util": true
       }
     },
     "@metamask/utils": {
