@@ -74,7 +74,7 @@ export const TokenListItem = ({
   const trackEvent = useContext(MetaMetricsContext);
   const metaMetricsId = useSelector(getMetaMetricsId);
   const chainId = useSelector(getCurrentChainId);
-  const TOKEN_VALUE_THRESHOLD = 8;
+
   // Scam warning
   const showScamWarning = isNativeCurrency && !isOriginalTokenSymbol;
   const dispatch = useDispatch();
@@ -130,20 +130,6 @@ export const TokenListItem = ({
   // Used for badge icon
   const currentNetwork = useSelector(getCurrentNetwork);
   const testNetworkBackgroundColor = useSelector(getTestNetworkBackgroundColor);
-  const wrapInTooltip = (jsxElement, control, threshold = 12) => {
-    return control?.length > threshold ? (
-      <Tooltip
-        position="bottom"
-        interactive
-        html={control}
-        tooltipInnerClassName="multichain-token-list-item__tooltip"
-      >
-        {jsxElement}
-      </Tooltip>
-    ) : (
-      <>{jsxElement}</>
-    );
-  };
 
   return (
     <Box
@@ -215,7 +201,7 @@ export const TokenListItem = ({
           <Box
             display={Display.Flex}
             flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
+            justifyContent={JustifyContent.spaceBetween}
             gap={1}
           >
             <Box
@@ -253,10 +239,10 @@ export const TokenListItem = ({
                 >
                   {isStakeable ? (
                     <Box display={Display.InlineBlock}>
-                      {tokenTitle} {stakeableTitle}
+                      {tokenSymbol} {stakeableTitle}
                     </Box>
                   ) : (
-                    tokenTitle
+                    tokenSymbol
                   )}
                 </Text>
               )}
@@ -282,84 +268,39 @@ export const TokenListItem = ({
                 data-testid="multichain-token-list-item-secondary-value"
                 ellipsis={isStakeable}
               >
-                <ButtonIcon
-                  iconName={IconName.Danger}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowScamWarningModal(true);
-                  }}
-                  color={IconColor.errorDefault}
-                  size={IconSize.Lg}
-                  backgroundColor={BackgroundColor.transparent}
-                />
+                {secondary}
               </Text>
             )}
-            <Box
-              style={{ overflow: 'hidden' }}
-              width={BlockSize.TwoThirds}
-              justifyContent={JustifyContent.flexEnd}
-            >
-              {
-                // top right
-                wrapInTooltip(
-                  <Text
-                    fontWeight={FontWeight.Medium}
-                    variant={TextVariant.bodyLgMedium}
-                    textAlign={TextAlign.End}
-                    data-testid="multichain-token-list-item-secondary-value"
-                    ellipsis
-                  >
-                    {secondary}
-                  </Text>,
-                  secondary,
-                  TOKEN_VALUE_THRESHOLD,
-                )
-              }
-            </Box>
           </Box>
           <Box
-            flexDirection={FlexDirection.Row}
             display={Display.Flex}
-            alignItems={AlignItems.center}
+            flexDirection={FlexDirection.Row}
+            justifyContent={JustifyContent.spaceBetween}
             gap={1}
           >
             <Box width={BlockSize.OneThird}>
-              {
-                // bottom left
-                wrapInTooltip(
-                  <Text
-                    fontWeight={FontWeight.Medium}
-                    variant={TextVariant.bodyMd}
-                    color={TextColor.textAlternative}
-                    data-testid="multichain-token-list-item-token-name" //
-                    ellipsis
-                  >
-                    {tokenTitle}
-                  </Text>,
-                  title,
-                )
-              }
+              {/* bottom left */}
+              <Text
+                fontWeight={FontWeight.Medium}
+                variant={TextVariant.bodyMd}
+                color={TextColor.textAlternative}
+                data-testid="multichain-token-list-item-token-name" //
+                ellipsis
+              >
+                {tokenTitle}
+              </Text>
             </Box>
-
             <Box style={{ overflow: 'hidden' }} width={BlockSize.TwoThirds}>
-              {
-                // bottom right
-                wrapInTooltip(
-                  <Text
-                    fontWeight={FontWeight.Medium}
-                    variant={TextVariant.bodyMd}
-                    color={TextColor.textAlternative}
-                    textAlign={TextAlign.End}
-                    data-testid="multichain-token-list-item-value"
-                    ellipsis
-                  >
-                    {primary} {tokenSymbol}{' '}
-                  </Text>,
-                  `${primary} ${tokenSymbol} `,
-                  TOKEN_VALUE_THRESHOLD,
-                )
-              }
+              {/* bottom right */}
+              <Text
+                data-testid="multichain-token-list-item-value"
+                color={TextColor.textAlternative}
+                fontWeight={FontWeight.Medium}
+                variant={TextVariant.bodyMd}
+                textAlign={TextAlign.End}
+              >
+                {primary} {tokenSymbol}{' '}
+              </Text>
             </Box>
           </Box>
         </Box>
