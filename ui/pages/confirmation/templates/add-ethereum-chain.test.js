@@ -17,7 +17,7 @@ describe('add-ethereum-chain confirmation', () => {
         pendingApprovals: {
           [mockApprovalId]: {
             ...mockApproval,
-            type: MESSAGE_TYPE.ADD_ETHEREUM_CHAIN,
+            'type': MESSAGE_TYPE.ADD_ETHEREUM_CHAIN,
           },
         },
       },
