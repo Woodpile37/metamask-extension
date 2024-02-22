@@ -24,7 +24,7 @@ DefaultStory.args = {
 
 export const HttpStory = ({ url }) => <ConfirmInfoRowUrl url={url} />;
 HttpStory.args = {
-  url: 'http://example.com',
+  url: 'https://example.com',
 };
 
 export default ConfirmInfoRowUrlStory;

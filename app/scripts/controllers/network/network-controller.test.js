@@ -459,7 +459,7 @@ describe('NetworkController', () => {
       const exampleInitialState = {
         provider: {
           type: 'rpc',
-          rpcUrl: 'http://example-custom-rpc.metamask.io',
+          rpcUrl: 'https://example-custom-rpc.metamask.io',
           chainId: '0x9999',
           nickname: 'Test initial state',
         },
@@ -487,13 +487,13 @@ describe('NetworkController', () => {
               "previousProviderStore": {
                 "chainId": "0x9999",
                 "nickname": "Test initial state",
-                "rpcUrl": "http://example-custom-rpc.metamask.io",
+                "rpcUrl": "https://example-custom-rpc.metamask.io",
                 "type": "rpc",
               },
               "provider": {
                 "chainId": "0x9999",
                 "nickname": "Test initial state",
-                "rpcUrl": "http://example-custom-rpc.metamask.io",
+                "rpcUrl": https:///example-custom-rpc.metamask.io",
                 "type": "rpc",
               },
             }
@@ -1129,7 +1129,7 @@ describe('NetworkController', () => {
       it('does not update state in any way', async () => {
         const providerConfig = {
           type: 'rpc',
-          rpcUrl: 'http://example-custom-rpc.metamask.io',
+          rpcUrl: 'https://example-custom-rpc.metamask.io',
           chainId: '0x9999',
           nickname: 'Test initial state',
         };
@@ -2599,7 +2599,7 @@ describe('NetworkController', () => {
           state: {
             provider: {
               type: 'rpc',
-              rpcUrl: 'http://example-custom-rpc.metamask.io',
+              rpcUrl: 'https://example-custom-rpc.metamask.io',
               chainId: '0x9999',
               ticker: 'RPC',
               id: 'testNetworkConfigurationId2',
@@ -2613,7 +2613,7 @@ describe('NetworkController', () => {
                 id: 'testNetworkConfigurationId1',
               },
               testNetworkConfigurationId2: {
-                rpcUrl: 'http://example-custom-rpc.metamask.io',
+                rpcUrl: 'https://example-custom-rpc.metamask.io',
                 chainId: '0x9999',
                 ticker: 'RPC',
                 type: 'rpc',
@@ -2650,7 +2650,7 @@ describe('NetworkController', () => {
           state: {
             provider: {
               type: 'rpc',
-              rpcUrl: 'http://example-custom-rpc.metamask.io',
+              rpcUrl: 'https://example-custom-rpc.metamask.io',
               chainId: '0xtest2',
               ticker: 'TEST2',
               id: 'testNetworkConfigurationId2',
@@ -2664,7 +2664,7 @@ describe('NetworkController', () => {
                 id: 'testNetworkConfigurationId1',
               },
               testNetworkConfigurationId2: {
-                rpcUrl: 'http://example-custom-rpc.metamask.io',
+                rpcUrl: 'https://example-custom-rpc.metamask.io',
                 chainId: '0xtest2',
                 ticker: 'TEST2',
                 id: 'testNetworkConfigurationId2',

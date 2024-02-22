@@ -78,8 +78,7 @@ function transformState(state: Record<string, unknown>) {
     );
     return state;
   }
-  const { PreferencesController, NetworkController } = state;
-  const { frequentRpcListDetail } = PreferencesController;
+  const { PreferencesController, NetworkController } = state, { frequentRpcListDetail } = PreferencesController;
   if (!Array.isArray(frequentRpcListDetail)) {
     return state;
   }

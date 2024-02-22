@@ -1,11 +1,12 @@
+// @ts-ignore
 import { GitHub } from '@actions/github/lib/utils';
 
 import { retrieveRepo } from './repo';
 
 export interface Label {
-  name: string;
   color: string;
   description: string;
+  name: string;
 }
 
 export const externalContributorLabel: Label = {

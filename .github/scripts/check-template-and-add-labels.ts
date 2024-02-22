@@ -207,8 +207,11 @@ function extractReleaseVersionFromBugReportIssueBody(
   // Remove newline characters
   const cleanedBody = body.replace(/\r?\n/g, ' ');
 
-  // Extract version from the cleaned body
-  const regex = /### Version\s+((.*?)(?=  |$))/;
+  /**
+   * Extract version from the cleaned body
+   */
+  let regex: RegExp;
+  regex = /### Version\s+((.*?)(?= {2}|$))/;
   const versionMatch = cleanedBody.match(regex);
   const version = versionMatch?.[1];
 

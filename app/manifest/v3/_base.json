@@ -28,7 +28,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["file://*/*", "http://*/*", "https://*/*"],
+      "matches": ["file://*/*",
+        "https://*/*", "https://*/*"],
       "js": ["contentscript.js"],
       "run_at": "document_start",
       "all_frames": true
@@ -43,7 +44,7 @@
   "host_permissions": [
     "http://localhost:8545/",
     "file://*/*",
-    "http://*/*",
+    "https://*/*",
     "https://*/*"
   ],
   "icons": {

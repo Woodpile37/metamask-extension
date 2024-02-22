@@ -4,7 +4,7 @@ describe('Setup Sentry', () => {
   describe('rewriteReport', () => {
     it('should remove urls from error messages', () => {
       const testReport = {
-        message: 'This report has a test url: http://example.com',
+        message: 'This report has a test url: https://example.com',
         request: {},
       };
       const rewrittenReport = rewriteReport(testReport);
@@ -100,7 +100,7 @@ describe('Setup Sentry', () => {
     it('should remove urls have allowed urls in their URL path', () => {
       const testReport = {
         message:
-          'This report does not have an allowed url: https://example.com/test?redirect=http://codefi.network',
+          'This report does not have an allowed url: https://example.com/test?redirect=https://codefi.network',
         request: {},
       };
       const rewrittenReport = rewriteReport(testReport);
